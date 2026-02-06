@@ -1,0 +1,6 @@
+﻿Category,Strategy,CAGR,Sharpe,MaxDD,Worst5Y,MedianReturn,PositiveYears,Trades,Recommended
+Ens2,Ens2(Asym+Slope),28.58%,1.031,-48.17%,1.41%,27.87%,37/48,30,True
+Ens2,Ens2(Slope+TrendTV),28.46%,1.014,-48.17%,1.36%,28.05%,36/48,30,False
+R4-Top,DD+VT+VolSpike(1.5x),31.72%,0.902,-58.44%,-7.81%,29.61%,34/48,30,False
+Baseline,DD(-18/92)+VT(25%),30.01%,0.861,-61.90%,-7.97%,29.69%,33/48,30,False
+Reference,Buy & Hold 3x,19.94%,0.607,-99.89%,-60.07%,42.31%,35/48,0,False
