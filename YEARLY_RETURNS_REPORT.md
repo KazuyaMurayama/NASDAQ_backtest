@@ -9,75 +9,29 @@
 | 経費率 | 年0.86%（TQQQ準拠） |
 | リバランス閾値 | 20% |
 
-> \* DH Static / DH Dyn CAGR25+ は3資産ポートフォリオ（NASDAQ 3x + Gold + Bond）
-
 ---
 
-## 年次リターン表（%）
+## 各戦略の概要
 
-| Year | DH Static | DH Dyn CAGR25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |
-|------|-----------|----------------|--------|------|---------|-------|-------|
-| 1974 | +12.9% | +11.1% | +0.0% | -42.8% | -42.8% | -75.8% | -35.4% |
-| 1975 | -0.0% | +5.3% | +14.4% | +15.0% | +3.8% | +96.8% | +27.9% |
-| 1976 | +28.9% | +49.7% | +66.3% | +34.3% | +91.3% | +91.3% | +25.4% |
-| 1977 | +10.2% | +7.4% | +3.2% | +6.9% | +21.7% | +21.7% | +7.5% |
-| 1978 | +30.9% | +67.7% | +65.6% | +52.1% | +17.8% | +39.0% | +13.4% |
-| 1979 | +55.3% | +45.8% | +20.7% | +14.1% | +54.6% | +101.9% | +28.3% |
-| 1980 | +22.6% | +63.1% | +87.5% | +69.6% | +57.3% | +133.5% | +36.6% |
-| 1981 | -11.4% | -10.2% | -8.3% | -20.2% | -33.1% | -15.6% | -3.8% |
-| 1982 | +56.1% | +66.2% | +82.4% | +77.3% | +87.8% | +58.2% | +18.9% |
-| 1983 | +19.4% | +43.6% | +76.1% | +80.6% | +54.8% | +67.6% | +20.8% |
-| 1984 | -2.1% | -2.2% | -4.7% | -6.8% | -4.7% | -33.6% | -11.0% |
-| 1985 | +45.8% | +68.0% | +84.4% | +72.0% | +124.3% | +124.3% | +32.1% |
-| 1986 | +26.1% | +34.8% | +28.8% | +34.4% | +18.7% | +18.7% | +7.3% |
-| 1987 | +10.9% | +20.8% | +11.1% | +3.0% | -29.6% | -34.4% | -6.4% |
-| 1988 | -3.5% | -5.3% | -4.0% | -3.3% | -5.9% | +37.8% | +12.7% |
-| 1989 | +23.7% | +40.8% | +44.9% | +43.6% | +67.9% | +67.9% | +20.1% |
-| 1990 | -3.0% | -5.2% | -13.0% | -22.4% | -47.9% | -50.5% | -18.6% |
-| 1991 | +30.2% | +54.8% | +86.5% | +79.9% | +123.5% | +262.1% | +57.5% |
-| 1992 | +16.8% | +29.8% | +45.5% | +22.4% | +44.9% | +44.9% | +15.4% |
-| 1993 | +11.4% | +9.3% | +4.0% | +10.0% | +47.2% | +47.2% | +15.6% |
-| 1994 | -2.3% | +0.1% | +0.2% | +0.7% | -11.6% | -11.6% | -2.4% |
-| 1995 | +47.4% | +73.8% | +114.8% | +91.0% | +166.0% | +166.0% | +41.5% |
-| 1996 | +12.2% | +27.0% | +43.0% | +34.1% | +67.2% | +67.2% | +22.0% |
-| 1997 | +28.3% | +63.4% | +99.1% | +97.2% | +64.4% | +64.4% | +22.6% |
-| 1998 | +31.9% | +68.4% | +84.1% | +69.0% | +21.5% | +112.9% | +38.6% |
-| 1999 | +55.3% | +132.3% | +214.8% | +142.2% | +394.8% | +394.8% | +84.3% |
-| 2000 | +7.3% | -3.2% | -8.6% | -16.0% | -36.7% | -89.7% | -40.2% |
-| 2001 | +2.5% | +1.6% | +0.0% | +0.0% | +0.0% | -64.1% | -14.9% |
-| 2002 | +12.3% | +10.5% | +0.0% | +0.0% | +0.0% | -78.6% | -32.5% |
-| 2003 | +39.5% | +67.6% | +99.3% | +127.9% | +175.5% | +159.7% | +44.7% |
-| 2004 | +6.5% | +10.7% | +6.4% | +5.5% | -20.5% | +15.9% | +8.4% |
-| 2005 | +8.5% | +5.8% | +1.9% | +8.3% | +1.8% | +1.8% | +2.5% |
-| 2006 | +22.6% | +35.0% | +45.2% | +14.0% | +16.6% | +16.6% | +7.6% |
-| 2007 | +17.9% | +17.3% | +12.3% | +9.0% | +18.7% | +18.7% | +9.5% |
-| 2008 | +5.4% | +3.1% | -6.2% | -11.9% | -33.2% | -87.0% | -39.6% |
-| 2009 | +22.3% | +43.3% | +54.3% | +48.7% | +59.2% | +110.4% | +39.0% |
-| 2010 | +19.4% | +30.2% | +20.3% | +36.1% | +33.9% | +33.9% | +14.9% |
-| 2011 | -3.1% | -14.9% | -27.7% | -30.7% | -44.0% | -25.9% | -3.2% |
-| 2012 | +16.5% | +27.0% | +34.6% | +22.5% | +37.5% | +37.5% | +14.0% |
-| 2013 | +7.9% | +30.0% | +68.5% | +79.7% | +129.4% | +129.4% | +34.2% |
-| 2014 | +5.7% | +5.4% | +10.6% | +10.4% | +39.4% | +39.4% | +14.3% |
-| 2015 | -7.3% | -11.3% | -13.2% | +3.7% | +8.2% | +8.2% | +5.9% |
-| 2016 | +3.3% | +5.5% | +0.1% | -0.1% | -13.7% | +21.7% | +9.8% |
-| 2017 | +20.4% | +31.2% | +46.5% | +36.3% | +98.2% | +98.2% | +27.2% |
-| 2018 | +0.9% | +7.5% | +2.1% | -12.1% | -28.7% | -26.2% | -5.3% |
-| 2019 | +24.7% | +38.0% | +47.6% | +33.6% | +61.2% | +124.4% | +34.6% |
-| 2020 | +31.0% | +57.2% | +62.0% | +64.4% | +78.6% | +88.5% | +41.8% |
-| 2021 | +11.6% | +28.8% | +45.7% | +28.1% | +68.2% | +68.2% | +23.2% |
-| 2022 | -8.7% | -12.4% | -14.4% | -21.5% | -41.0% | -79.0% | -33.9% |
-| 2023 | +23.9% | +39.7% | +51.4% | +40.4% | +84.9% | +173.5% | +44.5% |
-| 2024 | +19.6% | +30.0% | +31.7% | +36.0% | +100.9% | +100.9% | +30.8% |
-| 2025 | +32.3% | +37.0% | +29.4% | +13.5% | -13.8% | +46.4% | +20.5% |
-| 2026 | -3.7% | -8.4% | -11.1% | -15.2% | -23.5% | -23.5% | -7.9% |
+| 戦略 | 概要 |
+|------|------|
+| **DH Static (35/30/35)** * | A2のNAVに Gold 30% / Bond 35% を加えた3資産ポートフォリオ。四半期リバランス |
+| **DH Dyn CAGR25+** * | A2のレバレッジとVIXシグナルで NASDAQ/Gold/Bond 比率を動的調整（CAGR 25%+制約版） |
+| **A2 Optimized** | DD制御 + AsymEWMA VT + SlopeMult + MomDecel(60/180) + VIX Mean Reversion。単一資産最良 |
+| **Ens2(Asym+Slope)** | DD制御 + AsymEWMA(20/5) + SlopeMult(0.7/0.3)。旧推奨戦略 |
+| **DD Only** | 200日高値から-18%でCASH退避、92%回復でHOLD。最もシンプルな管理戦略 |
+| **BH 3x** | NASDAQ 3倍レバレッジ（TQQQ相当）を無管理で保有 |
+| **BH 1x** | レバレッジなしのNASDAQ指数をそのまま保有。ベンチマーク |
+
+> \* 3資産ポートフォリオ（NASDAQ 3x + Gold 447A + Bond 2621）
 
 ---
 
 ## 統計サマリー
 
-| 統計量 | DH Static | DH Dyn CAGR25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |
-|--------|-----------|----------------|--------|------|---------|-------|-------|
-| 平均 | +16.9% | +27.8% | +34.6% | +27.6% | +39.8% | +49.4% | +13.6% |
+| 統計量 | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |
+|--------|-----------|------------|--------|------|---------|-------|-------|
+| CAGR | +16.07% | +25.23% | +29.19% | +22.20% | +25.58% | +19.21% | +10.98% |
 | 中央値 | +16.5% | +28.8% | +28.8% | +15.0% | +21.7% | +39.4% | +14.9% |
 | 最大 | +56.1% | +132.3% | +214.8% | +142.2% | +394.8% | +394.8% | +84.3% |
 | 最小 | -11.4% | -14.9% | -27.7% | -42.8% | -47.9% | -89.7% | -40.2% |
@@ -87,4 +41,134 @@
 
 ---
 
-*Generated: 2026-03-30*
+## 年次リターン表（%）
+
+| Year | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |
+|------|-----------|------------|--------|------|---------|-------|-------|
+| 1974 | <span style="color:blue">+12.9%</span> | <span style="color:blue">+11.1%</span> | 0.0% | <span style="color:red">-42.8%</span> | <span style="color:red">-42.8%</span> | <span style="color:red">-75.8%</span> | <span style="color:red">-35.4%</span> |
+| 1975 | <span style="color:red">-0.0%</span> | <span style="color:blue">+5.3%</span> | <span style="color:blue">+14.4%</span> | <span style="color:blue">+15.0%</span> | <span style="color:blue">+3.8%</span> | <span style="color:blue">+96.8%</span> | <span style="color:blue">+27.9%</span> |
+| 1976 | <span style="color:blue">+28.9%</span> | <span style="color:blue">+49.7%</span> | <span style="color:blue">+66.3%</span> | <span style="color:blue">+34.3%</span> | <span style="color:blue">+91.3%</span> | <span style="color:blue">+91.3%</span> | <span style="color:blue">+25.4%</span> |
+| 1977 | <span style="color:blue">+10.2%</span> | <span style="color:blue">+7.4%</span> | <span style="color:blue">+3.2%</span> | <span style="color:blue">+6.9%</span> | <span style="color:blue">+21.7%</span> | <span style="color:blue">+21.7%</span> | <span style="color:blue">+7.5%</span> |
+| 1978 | <span style="color:blue">+30.9%</span> | <span style="color:blue">+67.7%</span> | <span style="color:blue">+65.6%</span> | <span style="color:blue">+52.1%</span> | <span style="color:blue">+17.8%</span> | <span style="color:blue">+39.0%</span> | <span style="color:blue">+13.4%</span> |
+| 1979 | <span style="color:blue">+55.3%</span> | <span style="color:blue">+45.8%</span> | <span style="color:blue">+20.7%</span> | <span style="color:blue">+14.1%</span> | <span style="color:blue">+54.6%</span> | <span style="color:blue">+101.9%</span> | <span style="color:blue">+28.3%</span> |
+| 1980 | <span style="color:blue">+22.6%</span> | <span style="color:blue">+63.1%</span> | <span style="color:blue">+87.5%</span> | <span style="color:blue">+69.6%</span> | <span style="color:blue">+57.3%</span> | <span style="color:blue">+133.5%</span> | <span style="color:blue">+36.6%</span> |
+| 1981 | <span style="color:red">-11.4%</span> | <span style="color:red">-10.2%</span> | <span style="color:red">-8.3%</span> | <span style="color:red">-20.2%</span> | <span style="color:red">-33.1%</span> | <span style="color:red">-15.6%</span> | <span style="color:red">-3.8%</span> |
+| 1982 | <span style="color:blue">+56.1%</span> | <span style="color:blue">+66.2%</span> | <span style="color:blue">+82.4%</span> | <span style="color:blue">+77.3%</span> | <span style="color:blue">+87.8%</span> | <span style="color:blue">+58.2%</span> | <span style="color:blue">+18.9%</span> |
+| 1983 | <span style="color:blue">+19.4%</span> | <span style="color:blue">+43.6%</span> | <span style="color:blue">+76.1%</span> | <span style="color:blue">+80.6%</span> | <span style="color:blue">+54.8%</span> | <span style="color:blue">+67.6%</span> | <span style="color:blue">+20.8%</span> |
+| 1984 | <span style="color:red">-2.1%</span> | <span style="color:red">-2.2%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-6.8%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-33.6%</span> | <span style="color:red">-11.0%</span> |
+| 1985 | <span style="color:blue">+45.8%</span> | <span style="color:blue">+68.0%</span> | <span style="color:blue">+84.4%</span> | <span style="color:blue">+72.0%</span> | <span style="color:blue">+124.3%</span> | <span style="color:blue">+124.3%</span> | <span style="color:blue">+32.1%</span> |
+| 1986 | <span style="color:blue">+26.1%</span> | <span style="color:blue">+34.8%</span> | <span style="color:blue">+28.8%</span> | <span style="color:blue">+34.4%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+7.3%</span> |
+| 1987 | <span style="color:blue">+10.9%</span> | <span style="color:blue">+20.8%</span> | <span style="color:blue">+11.1%</span> | <span style="color:blue">+3.0%</span> | <span style="color:red">-29.6%</span> | <span style="color:red">-34.4%</span> | <span style="color:red">-6.4%</span> |
+| 1988 | <span style="color:red">-3.5%</span> | <span style="color:red">-5.3%</span> | <span style="color:red">-4.0%</span> | <span style="color:red">-3.3%</span> | <span style="color:red">-5.9%</span> | <span style="color:blue">+37.8%</span> | <span style="color:blue">+12.7%</span> |
+| 1989 | <span style="color:blue">+23.7%</span> | <span style="color:blue">+40.8%</span> | <span style="color:blue">+44.9%</span> | <span style="color:blue">+43.6%</span> | <span style="color:blue">+67.9%</span> | <span style="color:blue">+67.9%</span> | <span style="color:blue">+20.1%</span> |
+| 1990 | <span style="color:red">-3.0%</span> | <span style="color:red">-5.2%</span> | <span style="color:red">-13.0%</span> | <span style="color:red">-22.4%</span> | <span style="color:red">-47.9%</span> | <span style="color:red">-50.5%</span> | <span style="color:red">-18.6%</span> |
+| 1991 | <span style="color:blue">+30.2%</span> | <span style="color:blue">+54.8%</span> | <span style="color:blue">+86.5%</span> | <span style="color:blue">+79.9%</span> | <span style="color:blue">+123.5%</span> | <span style="color:blue">+262.1%</span> | <span style="color:blue">+57.5%</span> |
+| 1992 | <span style="color:blue">+16.8%</span> | <span style="color:blue">+29.8%</span> | <span style="color:blue">+45.5%</span> | <span style="color:blue">+22.4%</span> | <span style="color:blue">+44.9%</span> | <span style="color:blue">+44.9%</span> | <span style="color:blue">+15.4%</span> |
+| 1993 | <span style="color:blue">+11.4%</span> | <span style="color:blue">+9.3%</span> | <span style="color:blue">+4.0%</span> | <span style="color:blue">+10.0%</span> | <span style="color:blue">+47.2%</span> | <span style="color:blue">+47.2%</span> | <span style="color:blue">+15.6%</span> |
+| 1994 | <span style="color:red">-2.3%</span> | <span style="color:blue">+0.1%</span> | <span style="color:blue">+0.2%</span> | <span style="color:blue">+0.7%</span> | <span style="color:red">-11.6%</span> | <span style="color:red">-11.6%</span> | <span style="color:red">-2.4%</span> |
+| 1995 | <span style="color:blue">+47.4%</span> | <span style="color:blue">+73.8%</span> | <span style="color:blue">+114.8%</span> | <span style="color:blue">+91.0%</span> | <span style="color:blue">+166.0%</span> | <span style="color:blue">+166.0%</span> | <span style="color:blue">+41.5%</span> |
+| 1996 | <span style="color:blue">+12.2%</span> | <span style="color:blue">+27.0%</span> | <span style="color:blue">+43.0%</span> | <span style="color:blue">+34.1%</span> | <span style="color:blue">+67.2%</span> | <span style="color:blue">+67.2%</span> | <span style="color:blue">+22.0%</span> |
+| 1997 | <span style="color:blue">+28.3%</span> | <span style="color:blue">+63.4%</span> | <span style="color:blue">+99.1%</span> | <span style="color:blue">+97.2%</span> | <span style="color:blue">+64.4%</span> | <span style="color:blue">+64.4%</span> | <span style="color:blue">+22.6%</span> |
+| 1998 | <span style="color:blue">+31.9%</span> | <span style="color:blue">+68.4%</span> | <span style="color:blue">+84.1%</span> | <span style="color:blue">+69.0%</span> | <span style="color:blue">+21.5%</span> | <span style="color:blue">+112.9%</span> | <span style="color:blue">+38.6%</span> |
+| 1999 | <span style="color:blue">+55.3%</span> | <span style="color:blue">+132.3%</span> | <span style="color:blue">+214.8%</span> | <span style="color:blue">+142.2%</span> | <span style="color:blue">+394.8%</span> | <span style="color:blue">+394.8%</span> | <span style="color:blue">+84.3%</span> |
+| 2000 | <span style="color:blue">+7.3%</span> | <span style="color:red">-3.2%</span> | <span style="color:red">-8.6%</span> | <span style="color:red">-16.0%</span> | <span style="color:red">-36.7%</span> | <span style="color:red">-89.7%</span> | <span style="color:red">-40.2%</span> |
+| 2001 | <span style="color:blue">+2.5%</span> | <span style="color:blue">+1.6%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-64.1%</span> | <span style="color:red">-14.9%</span> |
+| 2002 | <span style="color:blue">+12.3%</span> | <span style="color:blue">+10.5%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-78.6%</span> | <span style="color:red">-32.5%</span> |
+| 2003 | <span style="color:blue">+39.5%</span> | <span style="color:blue">+67.6%</span> | <span style="color:blue">+99.3%</span> | <span style="color:blue">+127.9%</span> | <span style="color:blue">+175.5%</span> | <span style="color:blue">+159.7%</span> | <span style="color:blue">+44.7%</span> |
+| 2004 | <span style="color:blue">+6.5%</span> | <span style="color:blue">+10.7%</span> | <span style="color:blue">+6.4%</span> | <span style="color:blue">+5.5%</span> | <span style="color:red">-20.5%</span> | <span style="color:blue">+15.9%</span> | <span style="color:blue">+8.4%</span> |
+| 2005 | <span style="color:blue">+8.5%</span> | <span style="color:blue">+5.8%</span> | <span style="color:blue">+1.9%</span> | <span style="color:blue">+8.3%</span> | <span style="color:blue">+1.8%</span> | <span style="color:blue">+1.8%</span> | <span style="color:blue">+2.5%</span> |
+| 2006 | <span style="color:blue">+22.6%</span> | <span style="color:blue">+35.0%</span> | <span style="color:blue">+45.2%</span> | <span style="color:blue">+14.0%</span> | <span style="color:blue">+16.6%</span> | <span style="color:blue">+16.6%</span> | <span style="color:blue">+7.6%</span> |
+| 2007 | <span style="color:blue">+17.9%</span> | <span style="color:blue">+17.3%</span> | <span style="color:blue">+12.3%</span> | <span style="color:blue">+9.0%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+9.5%</span> |
+| 2008 | <span style="color:blue">+5.4%</span> | <span style="color:blue">+3.1%</span> | <span style="color:red">-6.2%</span> | <span style="color:red">-11.9%</span> | <span style="color:red">-33.2%</span> | <span style="color:red">-87.0%</span> | <span style="color:red">-39.6%</span> |
+| 2009 | <span style="color:blue">+22.3%</span> | <span style="color:blue">+43.3%</span> | <span style="color:blue">+54.3%</span> | <span style="color:blue">+48.7%</span> | <span style="color:blue">+59.2%</span> | <span style="color:blue">+110.4%</span> | <span style="color:blue">+39.0%</span> |
+| 2010 | <span style="color:blue">+19.4%</span> | <span style="color:blue">+30.2%</span> | <span style="color:blue">+20.3%</span> | <span style="color:blue">+36.1%</span> | <span style="color:blue">+33.9%</span> | <span style="color:blue">+33.9%</span> | <span style="color:blue">+14.9%</span> |
+| 2011 | <span style="color:red">-3.1%</span> | <span style="color:red">-14.9%</span> | <span style="color:red">-27.7%</span> | <span style="color:red">-30.7%</span> | <span style="color:red">-44.0%</span> | <span style="color:red">-25.9%</span> | <span style="color:red">-3.2%</span> |
+| 2012 | <span style="color:blue">+16.5%</span> | <span style="color:blue">+27.0%</span> | <span style="color:blue">+34.6%</span> | <span style="color:blue">+22.5%</span> | <span style="color:blue">+37.5%</span> | <span style="color:blue">+37.5%</span> | <span style="color:blue">+14.0%</span> |
+| 2013 | <span style="color:blue">+7.9%</span> | <span style="color:blue">+30.0%</span> | <span style="color:blue">+68.5%</span> | <span style="color:blue">+79.7%</span> | <span style="color:blue">+129.4%</span> | <span style="color:blue">+129.4%</span> | <span style="color:blue">+34.2%</span> |
+| 2014 | <span style="color:blue">+5.7%</span> | <span style="color:blue">+5.4%</span> | <span style="color:blue">+10.6%</span> | <span style="color:blue">+10.4%</span> | <span style="color:blue">+39.4%</span> | <span style="color:blue">+39.4%</span> | <span style="color:blue">+14.3%</span> |
+| 2015 | <span style="color:red">-7.3%</span> | <span style="color:red">-11.3%</span> | <span style="color:red">-13.2%</span> | <span style="color:blue">+3.7%</span> | <span style="color:blue">+8.2%</span> | <span style="color:blue">+8.2%</span> | <span style="color:blue">+5.9%</span> |
+| 2016 | <span style="color:blue">+3.3%</span> | <span style="color:blue">+5.5%</span> | <span style="color:blue">+0.1%</span> | <span style="color:red">-0.1%</span> | <span style="color:red">-13.7%</span> | <span style="color:blue">+21.7%</span> | <span style="color:blue">+9.8%</span> |
+| 2017 | <span style="color:blue">+20.4%</span> | <span style="color:blue">+31.2%</span> | <span style="color:blue">+46.5%</span> | <span style="color:blue">+36.3%</span> | <span style="color:blue">+98.2%</span> | <span style="color:blue">+98.2%</span> | <span style="color:blue">+27.2%</span> |
+| 2018 | <span style="color:blue">+0.9%</span> | <span style="color:blue">+7.5%</span> | <span style="color:blue">+2.1%</span> | <span style="color:red">-12.1%</span> | <span style="color:red">-28.7%</span> | <span style="color:red">-26.2%</span> | <span style="color:red">-5.3%</span> |
+| 2019 | <span style="color:blue">+24.7%</span> | <span style="color:blue">+38.0%</span> | <span style="color:blue">+47.6%</span> | <span style="color:blue">+33.6%</span> | <span style="color:blue">+61.2%</span> | <span style="color:blue">+124.4%</span> | <span style="color:blue">+34.6%</span> |
+| 2020 | <span style="color:blue">+31.0%</span> | <span style="color:blue">+57.2%</span> | <span style="color:blue">+62.0%</span> | <span style="color:blue">+64.4%</span> | <span style="color:blue">+78.6%</span> | <span style="color:blue">+88.5%</span> | <span style="color:blue">+41.8%</span> |
+| 2021 | <span style="color:blue">+11.6%</span> | <span style="color:blue">+28.8%</span> | <span style="color:blue">+45.7%</span> | <span style="color:blue">+28.1%</span> | <span style="color:blue">+68.2%</span> | <span style="color:blue">+68.2%</span> | <span style="color:blue">+23.2%</span> |
+| 2022 | <span style="color:red">-8.7%</span> | <span style="color:red">-12.4%</span> | <span style="color:red">-14.4%</span> | <span style="color:red">-21.5%</span> | <span style="color:red">-41.0%</span> | <span style="color:red">-79.0%</span> | <span style="color:red">-33.9%</span> |
+| 2023 | <span style="color:blue">+23.9%</span> | <span style="color:blue">+39.7%</span> | <span style="color:blue">+51.4%</span> | <span style="color:blue">+40.4%</span> | <span style="color:blue">+84.9%</span> | <span style="color:blue">+173.5%</span> | <span style="color:blue">+44.5%</span> |
+| 2024 | <span style="color:blue">+19.6%</span> | <span style="color:blue">+30.0%</span> | <span style="color:blue">+31.7%</span> | <span style="color:blue">+36.0%</span> | <span style="color:blue">+100.9%</span> | <span style="color:blue">+100.9%</span> | <span style="color:blue">+30.8%</span> |
+| 2025 | <span style="color:blue">+32.3%</span> | <span style="color:blue">+37.0%</span> | <span style="color:blue">+29.4%</span> | <span style="color:blue">+13.5%</span> | <span style="color:red">-13.8%</span> | <span style="color:blue">+46.4%</span> | <span style="color:blue">+20.5%</span> |
+| 2026 | <span style="color:red">-3.7%</span> | <span style="color:red">-8.4%</span> | <span style="color:red">-11.1%</span> | <span style="color:red">-15.2%</span> | <span style="color:red">-23.5%</span> | <span style="color:red">-23.5%</span> | <span style="color:red">-7.9%</span> |
+
+---
+
+## 月次リターン表（2021-2026, OOS期間）（%）
+
+| Year-Month | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |
+|------------|-----------|------------|--------|------|---------|-------|-------|
+| 2021-01 | <span style="color:blue">+0.4%</span> | <span style="color:blue">+4.2%</span> | <span style="color:blue">+6.7%</span> | <span style="color:blue">+8.0%</span> | <span style="color:blue">+8.0%</span> | <span style="color:blue">+8.0%</span> | <span style="color:blue">+2.9%</span> |
+| 2021-02 | <span style="color:red">-4.6%</span> | <span style="color:red">-4.6%</span> | <span style="color:red">-4.4%</span> | <span style="color:red">-5.7%</span> | <span style="color:red">-5.5%</span> | <span style="color:red">-5.5%</span> | <span style="color:red">-1.6%</span> |
+| 2021-03 | <span style="color:red">-2.4%</span> | <span style="color:red">-3.0%</span> | <span style="color:red">-3.9%</span> | <span style="color:red">-1.7%</span> | <span style="color:red">-9.2%</span> | <span style="color:red">-9.2%</span> | <span style="color:red">-2.5%</span> |
+| 2021-04 | <span style="color:blue">+2.2%</span> | <span style="color:blue">+2.8%</span> | <span style="color:blue">+3.9%</span> | <span style="color:blue">+2.2%</span> | <span style="color:blue">+10.5%</span> | <span style="color:blue">+10.5%</span> | <span style="color:blue">+3.6%</span> |
+| 2021-05 | <span style="color:blue">+0.1%</span> | <span style="color:red">-1.8%</span> | <span style="color:red">-5.2%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-4.1%</span> | <span style="color:red">-4.1%</span> | <span style="color:red">-1.1%</span> |
+| 2021-06 | <span style="color:blue">+1.6%</span> | <span style="color:blue">+5.3%</span> | <span style="color:blue">+10.1%</span> | <span style="color:blue">+6.5%</span> | <span style="color:blue">+17.3%</span> | <span style="color:blue">+17.3%</span> | <span style="color:blue">+5.6%</span> |
+| 2021-07 | <span style="color:blue">+2.2%</span> | <span style="color:blue">+2.4%</span> | <span style="color:blue">+2.6%</span> | <span style="color:blue">+2.4%</span> | <span style="color:blue">+2.7%</span> | <span style="color:blue">+2.7%</span> | <span style="color:blue">+1.0%</span> |
+| 2021-08 | <span style="color:blue">+3.8%</span> | <span style="color:blue">+8.3%</span> | <span style="color:blue">+11.2%</span> | <span style="color:blue">+8.0%</span> | <span style="color:blue">+11.9%</span> | <span style="color:blue">+11.9%</span> | <span style="color:blue">+3.9%</span> |
+| 2021-09 | <span style="color:red">-4.6%</span> | <span style="color:red">-6.6%</span> | <span style="color:red">-8.7%</span> | <span style="color:red">-8.5%</span> | <span style="color:red">-16.5%</span> | <span style="color:red">-16.5%</span> | <span style="color:red">-5.6%</span> |
+| 2021-10 | <span style="color:blue">+3.5%</span> | <span style="color:blue">+6.1%</span> | <span style="color:blue">+9.4%</span> | <span style="color:blue">+7.1%</span> | <span style="color:blue">+19.7%</span> | <span style="color:blue">+19.7%</span> | <span style="color:blue">+6.4%</span> |
+| 2021-11 | <span style="color:blue">+1.2%</span> | <span style="color:blue">+2.3%</span> | <span style="color:blue">+3.5%</span> | <span style="color:blue">+0.1%</span> | <span style="color:red">-1.8%</span> | <span style="color:red">-1.8%</span> | <span style="color:red">-0.4%</span> |
+| 2021-12 | <span style="color:blue">+1.3%</span> | <span style="color:blue">+0.7%</span> | <span style="color:blue">+1.7%</span> | <span style="color:blue">+2.1%</span> | <span style="color:blue">+6.4%</span> | <span style="color:blue">+6.4%</span> | <span style="color:blue">+2.6%</span> |
+| 2022-01 | <span style="color:red">-5.1%</span> | <span style="color:red">-9.7%</span> | <span style="color:red">-13.1%</span> | <span style="color:red">-18.1%</span> | <span style="color:red">-28.8%</span> | <span style="color:red">-28.8%</span> | <span style="color:red">-10.1%</span> |
+| 2022-02 | <span style="color:blue">+1.1%</span> | <span style="color:blue">+1.3%</span> | <span style="color:red">-1.8%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-19.0%</span> | <span style="color:red">-14.0%</span> | <span style="color:red">-4.1%</span> |
+| 2022-03 | <span style="color:red">-1.3%</span> | <span style="color:red">-1.2%</span> | 0.0% | 0.0% | 0.0% | <span style="color:blue">+12.9%</span> | <span style="color:blue">+5.1%</span> |
+| 2022-04 | <span style="color:red">-1.3%</span> | <span style="color:red">-1.0%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-37.2%</span> | <span style="color:red">-13.5%</span> |
+| 2022-05 | <span style="color:blue">+0.1%</span> | <span style="color:blue">+0.1%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-14.4%</span> | <span style="color:red">-3.6%</span> |
+| 2022-06 | <span style="color:red">-0.6%</span> | <span style="color:red">-0.6%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-25.0%</span> | <span style="color:red">-8.1%</span> |
+| 2022-07 | <span style="color:blue">+0.1%</span> | <span style="color:red">-0.0%</span> | 0.0% | 0.0% | 0.0% | <span style="color:blue">+35.6%</span> | <span style="color:blue">+11.3%</span> |
+| 2022-08 | <span style="color:red">-2.2%</span> | <span style="color:red">-1.8%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-14.3%</span> | <span style="color:red">-4.5%</span> |
+| 2022-09 | <span style="color:red">-1.8%</span> | <span style="color:red">-1.6%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-29.3%</span> | <span style="color:red">-10.3%</span> |
+| 2022-10 | <span style="color:red">-1.9%</span> | <span style="color:red">-1.9%</span> | 0.0% | 0.0% | 0.0% | <span style="color:blue">+2.2%</span> | <span style="color:blue">+1.6%</span> |
+| 2022-11 | <span style="color:blue">+2.8%</span> | <span style="color:blue">+2.4%</span> | 0.0% | 0.0% | 0.0% | <span style="color:blue">+13.1%</span> | <span style="color:blue">+5.3%</span> |
+| 2022-12 | <span style="color:red">-0.5%</span> | <span style="color:red">-0.2%</span> | 0.0% | 0.0% | 0.0% | <span style="color:red">-25.3%</span> | <span style="color:red">-8.8%</span> |
+| 2023-01 | <span style="color:blue">+2.2%</span> | <span style="color:blue">+1.8%</span> | 0.0% | 0.0% | 0.0% | <span style="color:blue">+37.1%</span> | <span style="color:blue">+11.5%</span> |
+| 2023-02 | <span style="color:red">-6.7%</span> | <span style="color:red">-10.3%</span> | <span style="color:red">-11.6%</span> | <span style="color:red">-11.6%</span> | <span style="color:red">-11.6%</span> | <span style="color:red">-10.0%</span> | <span style="color:red">-3.1%</span> |
+| 2023-03 | <span style="color:blue">+11.3%</span> | <span style="color:blue">+18.2%</span> | <span style="color:blue">+22.4%</span> | <span style="color:blue">+22.4%</span> | <span style="color:blue">+22.4%</span> | <span style="color:blue">+22.4%</span> | <span style="color:blue">+7.4%</span> |
+| 2023-04 | <span style="color:blue">+0.2%</span> | <span style="color:blue">+0.3%</span> | <span style="color:blue">+0.3%</span> | <span style="color:red">-1.5%</span> | <span style="color:blue">+0.3%</span> | <span style="color:blue">+0.3%</span> | <span style="color:blue">+0.3%</span> |
+| 2023-05 | <span style="color:blue">+4.5%</span> | <span style="color:blue">+8.7%</span> | <span style="color:blue">+12.8%</span> | <span style="color:blue">+11.1%</span> | <span style="color:blue">+17.9%</span> | <span style="color:blue">+17.9%</span> | <span style="color:blue">+5.9%</span> |
+| 2023-06 | <span style="color:blue">+5.1%</span> | <span style="color:blue">+11.0%</span> | <span style="color:blue">+15.9%</span> | <span style="color:blue">+13.7%</span> | <span style="color:blue">+15.9%</span> | <span style="color:blue">+15.9%</span> | <span style="color:blue">+5.2%</span> |
+| 2023-07 | <span style="color:blue">+4.7%</span> | <span style="color:blue">+8.9%</span> | <span style="color:blue">+11.4%</span> | <span style="color:blue">+11.0%</span> | <span style="color:blue">+11.4%</span> | <span style="color:blue">+11.4%</span> | <span style="color:blue">+3.8%</span> |
+| 2023-08 | <span style="color:red">-4.2%</span> | <span style="color:red">-8.7%</span> | <span style="color:red">-10.9%</span> | <span style="color:red">-6.4%</span> | <span style="color:red">-6.0%</span> | <span style="color:red">-6.0%</span> | <span style="color:red">-1.7%</span> |
+| 2023-09 | <span style="color:red">-5.0%</span> | <span style="color:red">-6.3%</span> | <span style="color:red">-7.9%</span> | <span style="color:red">-10.4%</span> | <span style="color:red">-16.9%</span> | <span style="color:red">-16.9%</span> | <span style="color:red">-5.8%</span> |
+| 2023-10 | <span style="color:red">-1.4%</span> | <span style="color:red">-5.1%</span> | <span style="color:red">-10.2%</span> | <span style="color:red">-12.5%</span> | <span style="color:red">-10.8%</span> | <span style="color:red">-10.8%</span> | <span style="color:red">-3.4%</span> |
+| 2023-11 | <span style="color:blue">+6.0%</span> | <span style="color:blue">+8.4%</span> | <span style="color:blue">+11.7%</span> | <span style="color:blue">+11.9%</span> | <span style="color:blue">+28.4%</span> | <span style="color:blue">+28.4%</span> | <span style="color:blue">+8.9%</span> |
+| 2023-12 | <span style="color:blue">+5.3%</span> | <span style="color:blue">+9.7%</span> | <span style="color:blue">+13.1%</span> | <span style="color:blue">+12.5%</span> | <span style="color:blue">+15.1%</span> | <span style="color:blue">+15.1%</span> | <span style="color:blue">+4.9%</span> |
+| 2024-01 | <span style="color:blue">+2.1%</span> | <span style="color:blue">+4.7%</span> | <span style="color:blue">+6.7%</span> | <span style="color:blue">+6.9%</span> | <span style="color:blue">+7.6%</span> | <span style="color:blue">+7.6%</span> | <span style="color:blue">+2.7%</span> |
+| 2024-02 | <span style="color:blue">+3.6%</span> | <span style="color:blue">+8.3%</span> | <span style="color:blue">+12.4%</span> | <span style="color:blue">+13.0%</span> | <span style="color:blue">+14.1%</span> | <span style="color:blue">+14.1%</span> | <span style="color:blue">+4.8%</span> |
+| 2024-03 | <span style="color:blue">+1.0%</span> | <span style="color:red">-0.7%</span> | <span style="color:red">-2.0%</span> | <span style="color:red">-2.9%</span> | <span style="color:blue">+1.5%</span> | <span style="color:blue">+1.5%</span> | <span style="color:blue">+0.6%</span> |
+| 2024-04 | <span style="color:red">-2.0%</span> | <span style="color:red">-3.3%</span> | <span style="color:red">-5.9%</span> | <span style="color:red">-4.1%</span> | <span style="color:red">-13.8%</span> | <span style="color:red">-13.8%</span> | <span style="color:red">-4.5%</span> |
+| 2024-05 | <span style="color:blue">+2.6%</span> | <span style="color:blue">+3.4%</span> | <span style="color:blue">+5.9%</span> | <span style="color:blue">+6.3%</span> | <span style="color:blue">+22.7%</span> | <span style="color:blue">+22.7%</span> | <span style="color:blue">+7.2%</span> |
+| 2024-06 | <span style="color:blue">+4.8%</span> | <span style="color:blue">+10.4%</span> | <span style="color:blue">+14.1%</span> | <span style="color:blue">+16.0%</span> | <span style="color:blue">+16.5%</span> | <span style="color:blue">+16.5%</span> | <span style="color:blue">+5.4%</span> |
+| 2024-07 | <span style="color:red">-0.3%</span> | <span style="color:red">-2.9%</span> | <span style="color:red">-7.3%</span> | <span style="color:red">-8.2%</span> | <span style="color:red">-6.0%</span> | <span style="color:red">-6.0%</span> | <span style="color:red">-1.6%</span> |
+| 2024-08 | <span style="color:blue">+0.5%</span> | <span style="color:blue">+0.8%</span> | <span style="color:red">-1.6%</span> | <span style="color:blue">+1.4%</span> | <span style="color:blue">+7.6%</span> | <span style="color:blue">+7.6%</span> | <span style="color:blue">+3.0%</span> |
+| 2024-09 | <span style="color:blue">+3.2%</span> | <span style="color:blue">+4.1%</span> | <span style="color:blue">+3.4%</span> | <span style="color:blue">+8.0%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+18.7%</span> | <span style="color:blue">+6.1%</span> |
+| 2024-10 | <span style="color:red">-1.3%</span> | <span style="color:red">-2.9%</span> | <span style="color:red">-2.8%</span> | <span style="color:red">-0.7%</span> | <span style="color:blue">+2.4%</span> | <span style="color:blue">+2.4%</span> | <span style="color:blue">+1.0%</span> |
+| 2024-11 | <span style="color:blue">+2.8%</span> | <span style="color:blue">+4.3%</span> | <span style="color:blue">+9.4%</span> | <span style="color:blue">+5.1%</span> | <span style="color:blue">+16.2%</span> | <span style="color:blue">+16.2%</span> | <span style="color:blue">+5.4%</span> |
+| 2024-12 | <span style="color:red">-3.0%</span> | <span style="color:red">-4.9%</span> | <span style="color:red">-6.3%</span> | <span style="color:red">-8.4%</span> | <span style="color:red">-2.4%</span> | <span style="color:red">-2.4%</span> | <span style="color:red">-0.5%</span> |
+| 2025-01 | <span style="color:blue">+1.6%</span> | <span style="color:red">-1.0%</span> | <span style="color:red">-0.9%</span> | <span style="color:red">-2.2%</span> | <span style="color:blue">+4.3%</span> | <span style="color:blue">+4.3%</span> | <span style="color:blue">+1.8%</span> |
+| 2025-02 | <span style="color:red">-0.6%</span> | <span style="color:red">-3.1%</span> | <span style="color:red">-4.9%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-9.0%</span> | <span style="color:red">-9.0%</span> | <span style="color:red">-2.8%</span> |
+| 2025-03 | <span style="color:blue">+2.0%</span> | <span style="color:blue">+2.3%</span> | <span style="color:red">-1.4%</span> | <span style="color:red">-4.2%</span> | <span style="color:red">-17.8%</span> | <span style="color:red">-17.8%</span> | <span style="color:red">-5.7%</span> |
+| 2025-04 | <span style="color:blue">+1.3%</span> | <span style="color:blue">+1.7%</span> | <span style="color:red">-1.6%</span> | <span style="color:red">-7.9%</span> | <span style="color:red">-30.3%</span> | <span style="color:red">-7.7%</span> | <span style="color:red">-0.0%</span> |
+| 2025-05 | <span style="color:blue">+0.5%</span> | <span style="color:blue">+0.4%</span> | <span style="color:blue">+0.1%</span> | <span style="color:blue">+0.6%</span> | <span style="color:blue">+1.3%</span> | <span style="color:blue">+24.3%</span> | <span style="color:blue">+7.9%</span> |
+| 2025-06 | <span style="color:blue">+6.0%</span> | <span style="color:blue">+13.4%</span> | <span style="color:blue">+18.1%</span> | <span style="color:blue">+18.1%</span> | <span style="color:blue">+18.1%</span> | <span style="color:blue">+18.1%</span> | <span style="color:blue">+5.9%</span> |
+| 2025-07 | <span style="color:blue">+4.5%</span> | <span style="color:blue">+10.4%</span> | <span style="color:blue">+14.0%</span> | <span style="color:blue">+14.0%</span> | <span style="color:blue">+14.0%</span> | <span style="color:blue">+14.0%</span> | <span style="color:blue">+4.6%</span> |
+| 2025-08 | <span style="color:blue">+5.5%</span> | <span style="color:blue">+9.6%</span> | <span style="color:blue">+11.5%</span> | <span style="color:blue">+9.6%</span> | <span style="color:blue">+11.5%</span> | <span style="color:blue">+11.5%</span> | <span style="color:blue">+3.9%</span> |
+| 2025-09 | <span style="color:blue">+8.7%</span> | <span style="color:blue">+12.0%</span> | <span style="color:blue">+15.4%</span> | <span style="color:blue">+11.9%</span> | <span style="color:blue">+20.4%</span> | <span style="color:blue">+20.4%</span> | <span style="color:blue">+6.5%</span> |
+| 2025-10 | <span style="color:blue">+4.1%</span> | <span style="color:blue">+6.1%</span> | <span style="color:blue">+8.7%</span> | <span style="color:blue">+7.7%</span> | <span style="color:blue">+12.1%</span> | <span style="color:blue">+12.1%</span> | <span style="color:blue">+4.3%</span> |
+| 2025-11 | <span style="color:red">-2.7%</span> | <span style="color:red">-8.3%</span> | <span style="color:red">-12.6%</span> | <span style="color:red">-12.1%</span> | <span style="color:red">-6.9%</span> | <span style="color:red">-6.9%</span> | <span style="color:red">-2.0%</span> |
+| 2025-12 | <span style="color:red">-0.2%</span> | <span style="color:red">-1.7%</span> | <span style="color:red">-2.6%</span> | <span style="color:red">-1.7%</span> | <span style="color:red">-0.9%</span> | <span style="color:red">-0.9%</span> | <span style="color:red">-0.1%</span> |
+| 2026-01 | <span style="color:blue">+3.5%</span> | <span style="color:blue">+2.8%</span> | <span style="color:blue">+2.2%</span> | <span style="color:blue">+2.5%</span> | <span style="color:blue">+2.5%</span> | <span style="color:blue">+2.5%</span> | <span style="color:blue">+1.0%</span> |
+| 2026-02 | <span style="color:blue">+1.2%</span> | <span style="color:red">-5.3%</span> | <span style="color:red">-10.6%</span> | <span style="color:red">-11.4%</span> | <span style="color:red">-12.0%</span> | <span style="color:red">-12.0%</span> | <span style="color:red">-3.9%</span> |
+| 2026-03 | <span style="color:red">-8.2%</span> | <span style="color:red">-7.2%</span> | <span style="color:red">-4.7%</span> | <span style="color:red">-8.6%</span> | <span style="color:red">-17.4%</span> | <span style="color:red">-17.4%</span> | <span style="color:red">-5.9%</span> |
+
+---
+
+*Generated: 2026-03-31*
