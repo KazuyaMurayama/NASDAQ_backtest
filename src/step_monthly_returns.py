@@ -100,7 +100,7 @@ def main():
         cagr = (v[-1] / v[0]) ** (1/years) - 1
         print(f"  {name}: {cagr*100:.2f}%")
 
-    # Monthly returns 2021-2026
+    # Monthly returns 2021-2026 (using month-end NAV ratios for correct chaining)
     print("\nMonthly returns (2021-2026):")
     monthly_data = []
     for name in order:
@@ -108,12 +108,14 @@ def main():
         ndf = pd.DataFrame({'nav': nav.values if hasattr(nav, 'values') else nav,
                             'date': dates.values})
         ndf['date'] = pd.to_datetime(ndf['date'])
-        ndf = ndf[ndf['date'] >= '2021-01-01']
         ndf['ym'] = ndf['date'].dt.to_period('M')
-        monthly_nav = ndf.groupby('ym')['nav'].agg(['first', 'last'])
-        monthly_nav['return'] = (monthly_nav['last'] / monthly_nav['first'] - 1) * 100
-        for ym, row in monthly_nav.iterrows():
-            monthly_data.append({'YearMonth': str(ym), 'Strategy': name, 'Return': row['return']})
+        # Use last NAV of each month; monthly return = last_this / last_prev - 1
+        month_end_nav = ndf.groupby('ym')['nav'].last()
+        month_end_nav = month_end_nav[month_end_nav.index >= '2020-12']  # need Dec 2020 as base
+        monthly_ret = month_end_nav.pct_change() * 100
+        monthly_ret = monthly_ret[monthly_ret.index >= '2021-01']
+        for ym, ret in monthly_ret.items():
+            monthly_data.append({'YearMonth': str(ym), 'Strategy': name, 'Return': ret})
 
     mdf = pd.DataFrame(monthly_data)
     pivot = mdf.pivot(index='YearMonth', columns='Strategy', values='Return')[order]

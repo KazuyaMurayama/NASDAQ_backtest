@@ -36,12 +36,18 @@ def calc_asym_ewma(returns, su=30, sd=10):
     return np.sqrt(var * 252)
 
 def yearly_returns(nav, dates):
-    """Calculate yearly returns from NAV series."""
+    """Calculate yearly returns from NAV series.
+    Uses year-end NAV ratios: return_Y = NAV_end_Y / NAV_end_(Y-1) - 1
+    This ensures monthly compound == yearly return.
+    """
     df = pd.DataFrame({'nav': nav.values if hasattr(nav, 'values') else nav, 'date': dates.values})
     df['year'] = pd.to_datetime(df['date']).dt.year
-    yearly_nav = df.groupby('year')['nav'].agg(['first', 'last'])
-    yearly_nav['return'] = (yearly_nav['last'] / yearly_nav['first'] - 1) * 100
-    return yearly_nav['return']
+    year_end_nav = df.groupby('year')['nav'].last()
+    yearly_ret = year_end_nav.pct_change() * 100
+    # First year: use first available NAV as base
+    first_nav = df['nav'].iloc[0]
+    yearly_ret.iloc[0] = (year_end_nav.iloc[0] / first_nav - 1) * 100
+    return yearly_ret
 
 def main():
     df = load_data(DATA_PATH)
