@@ -9,15 +9,14 @@ mo_csv = os.path.join(BASE, 'monthly_returns_oos.csv')
 yr = pd.read_csv(yr_csv, index_col=0)
 mo = pd.read_csv(mo_csv, index_col=0)
 
-order = ['DH Static (35/30/35)', 'DH Dynamic CAGR25+', 'A2 Optimized',
+order = ['DH Dyn 2x3x', 'DH Dynamic CAGR25+', 'A2 Optimized',
          'Ens2(Asym+Slope)', 'DD Only', 'BH 3x', 'BH 1x']
-short = ['DH Static', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
+short = ['DH Dyn 2x3x', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
 
-cagrs = {'DH Static': 16.07, 'DH Dyn 25+': 25.23, 'A2 Opt': 29.19,
+cagrs = {'DH Dyn 2x3x': 30.67, 'DH Dyn 25+': 25.23, 'A2 Opt': 29.19,
          'Ens2': 22.20, 'DD Only': 25.58, 'BH 3x': 19.21, 'BH 1x': 10.98}
 
 def colored(v):
-    """Return HTML-colored value string"""
     if v > 0:
         return f'<span style="color:blue">+{v:.1f}%</span>'
     elif v < 0:
@@ -33,7 +32,7 @@ md = """# 7戦略 年次リターン（1974-2026）
 |------|-----|
 | データ期間 | 1974-01-02 〜 2026-03-26 |
 | 実行遅延 | 2営業日 |
-| 経費率 | 年0.86%（TQQQ準拠） |
+| 経費率 | TQQQ 0.86%, 金ETN 0.5%(推定), TMF 0.91% |
 | リバランス閾値 | 20% |
 
 ---
@@ -42,15 +41,15 @@ md = """# 7戦略 年次リターン（1974-2026）
 
 | 戦略 | 概要 |
 |------|------|
-| **DH Static (35/30/35)** * | A2のNAVに Gold 30% / Bond 35% を加えた3資産ポートフォリオ。四半期リバランス |
-| **DH Dyn CAGR25+** * | A2のレバレッジとVIXシグナルで NASDAQ/Gold/Bond 比率を動的調整（CAGR 25%+制約版） |
+| **DH Dyn 2x3x** * | A2シグナルでTQQQ/Gold2x(2036)/Bond3x(TMF)を動的配分。CAGR・Sharpe両立の最良戦略 |
+| **DH Dyn CAGR25+** * | A2シグナルでTQQQ/Gold1x/Bond1xを動的配分（CAGR 25%+制約版） |
 | **A2 Optimized** | DD制御 + AsymEWMA VT + SlopeMult + MomDecel(60/180) + VIX Mean Reversion。単一資産最良 |
 | **Ens2(Asym+Slope)** | DD制御 + AsymEWMA(20/5) + SlopeMult(0.7/0.3)。旧推奨戦略 |
 | **DD Only** | 200日高値から-18%でCASH退避、92%回復でHOLD。最もシンプルな管理戦略 |
 | **BH 3x** | NASDAQ 3倍レバレッジ（TQQQ相当）を無管理で保有 |
 | **BH 1x** | レバレッジなしのNASDAQ指数をそのまま保有。ベンチマーク |
 
-> \\* 3資産ポートフォリオ（NASDAQ 3x + Gold 447A + Bond 2621）
+> \\* 3資産ポートフォリオ。DH Dyn 2x3x: TQQQ + Gold2x(2036) + Bond3x(TMF)。DH Dyn CAGR25+: TQQQ + Gold1x(447A) + Bond1x(2621)
 
 ---
 
@@ -58,9 +57,8 @@ md = """# 7戦略 年次リターン（1974-2026）
 
 """
 
-# Stats table
-md += "| 統計量 | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
-md += "|--------|-----------|------------|--------|------|---------|-------|-------|\n"
+md += "| 統計量 | DH Dyn 2x3x | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
+md += "|--------|-------------|------------|--------|------|---------|-------|-------|\n"
 
 for stat_name, func in [
     ('CAGR', None),
@@ -88,8 +86,8 @@ md += """
 
 """
 
-md += "| Year | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
-md += "|------|-----------|------------|--------|------|---------|-------|-------|\n"
+md += "| Year | DH Dyn 2x3x | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
+md += "|------|-------------|------------|--------|------|---------|-------|-------|\n"
 
 for year in yr.index:
     md += f"| {year} |"
@@ -105,8 +103,8 @@ md += """
 
 """
 
-md += "| Year-Month | DH Static | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
-md += "|------------|-----------|------------|--------|------|---------|-------|-------|\n"
+md += "| Year-Month | DH Dyn 2x3x | DH Dyn 25+ | A2 Opt | Ens2 | DD Only | BH 3x | BH 1x |\n"
+md += "|------------|-------------|------------|--------|------|---------|-------|-------|\n"
 
 for ym in mo.index:
     md += f"| {ym} |"

@@ -16,13 +16,13 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 yr = pd.read_csv(os.path.join(BASE, 'yearly_returns_7strategies.csv'), index_col=0)
 mo = pd.read_csv(os.path.join(BASE, 'monthly_returns_oos.csv'), index_col=0)
 
-order = ['DH Static (35/30/35)', 'DH Dynamic CAGR25+', 'A2 Optimized',
+order = ['DH Dyn 2x3x', 'DH Dynamic CAGR25+', 'A2 Optimized',
          'Ens2(Asym+Slope)', 'DD Only', 'BH 3x', 'BH 1x']
-short = ['DH Static', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
-cagrs = [16.07, 25.23, 29.19, 22.20, 25.58, 19.21, 10.98]
+short = ['DH Dyn 2x3x', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
+cagrs = [30.67, 25.23, 29.19, 22.20, 25.58, 19.21, 10.98]
 descs = [
-    'A2+Gold30%+Bond35%\n四半期リバランス *',
-    'A2動的配分\nCAGR25%+制約 *',
+    'A2+Gold2x(2036)\n+Bond3x(TMF) *',
+    'A2+Gold1x+Bond1x\n動的配分 *',
     'DD+AsymEWMA+Slope\n+MomDecel+VIX',
     'DD+AsymEWMA(20/5)\n+Slope(旧推奨)',
     'DD制御のみ\n-18%退避/92%復帰',
@@ -218,7 +218,7 @@ for j in range(len(order)):
 ws.freeze_panes = f'B{yr_data_start}'
 
 # Save
-out = os.path.join(BASE, 'YEARLY_RETURNS_7STRATEGIES.xlsx')
+out = os.path.join(BASE, 'YEARLY_RETURNS_7STRATEGIES_v2.xlsx')
 wb.save(out)
 
 # Patch XML for negative bar color (red)
