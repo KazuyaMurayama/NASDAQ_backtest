@@ -19,9 +19,9 @@ mo = pd.read_csv(os.path.join(BASE, 'monthly_returns_oos.csv'), index_col=0)
 order = ['DH Dyn 2x3x', 'DH Dynamic CAGR25+', 'A2 Optimized',
          'Ens2(Asym+Slope)', 'DD Only', 'BH 3x', 'BH 1x']
 short = ['DH Dyn 2x3x', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
-cagrs = [30.67, 25.23, 29.19, 22.20, 25.58, 19.21, 10.98]
+cagrs = [31.40, 25.60, 29.19, 22.20, 25.58, 19.21, 10.98]
 descs = [
-    'A2+Gold2x(2036)\n+Bond3x(TMF) *',
+    'A2+Gold2x(2036)\n+Bond3x(TMF)\nG0.5/B0.5 *',
     'A2+Gold1x+Bond1x\n動的配分 *',
     'DD+AsymEWMA+Slope\n+MomDecel+VIX',
     'DD+AsymEWMA(20/5)\n+Slope(旧推奨)',

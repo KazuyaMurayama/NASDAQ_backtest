@@ -13,7 +13,7 @@ order = ['DH Dyn 2x3x', 'DH Dynamic CAGR25+', 'A2 Optimized',
          'Ens2(Asym+Slope)', 'DD Only', 'BH 3x', 'BH 1x']
 short = ['DH Dyn 2x3x', 'DH Dyn 25+', 'A2 Opt', 'Ens2', 'DD Only', 'BH 3x', 'BH 1x']
 
-cagrs = {'DH Dyn 2x3x': 30.67, 'DH Dyn 25+': 25.23, 'A2 Opt': 29.19,
+cagrs = {'DH Dyn 2x3x': 31.40, 'DH Dyn 25+': 25.60, 'A2 Opt': 29.19,
          'Ens2': 22.20, 'DD Only': 25.58, 'BH 3x': 19.21, 'BH 1x': 10.98}
 
 def colored(v):
@@ -41,7 +41,7 @@ md = """# 7戦略 年次リターン（1974-2026）
 
 | 戦略 | 概要 |
 |------|------|
-| **DH Dyn 2x3x** * | A2シグナルでTQQQ/Gold2x(2036)/Bond3x(TMF)を動的配分。CAGR・Sharpe両立の最良戦略 |
+| **DH Dyn 2x3x** * | A2シグナルでTQQQ/Gold2x(2036)/Bond3x(TMF)を動的配分(B0.55/L0.25/V0.1/G0.5)。CAGR・Sharpe両立の最良戦略 |
 | **DH Dyn CAGR25+** * | A2シグナルでTQQQ/Gold1x/Bond1xを動的配分（CAGR 25%+制約版） |
 | **A2 Optimized** | DD制御 + AsymEWMA VT + SlopeMult + MomDecel(60/180) + VIX Mean Reversion。単一資産最良 |
 | **Ens2(Asym+Slope)** | DD制御 + AsymEWMA(20/5) + SlopeMult(0.7/0.3)。旧推奨戦略 |
@@ -116,7 +116,7 @@ for ym in mo.index:
 md += """
 ---
 
-*Generated: 2026-03-31*
+*Generated: 2026-04-01 (Gold data: LBMA daily 1968+)*
 """
 
 out = os.path.join(BASE, 'YEARLY_RETURNS_REPORT.md')

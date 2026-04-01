@@ -64,13 +64,13 @@ def main():
         br = bond_1x[i]/bond_1x[i-1]-1 if bond_1x[i-1]>0 else 0
         b3[i] = b3[i-1]*(1+br*3-0.0091/252)
 
-    # Dyn 2x3x (B0.55/L0.25/V0.1/G0.6)
+    # Dyn 2x3x (B0.55/L0.25/V0.1/G0.5) — updated with LBMA daily gold
     signals_raw = raw.values; signals_vz = vz.fillna(0).values
     wn,wg,wb = np.zeros(n),np.zeros(n),np.zeros(n)
     for i in range(n):
         lv = signals_raw[i]; vzv = max(signals_vz[i],0)
         w = np.clip(0.55+0.25*lv-0.10*vzv, 0.30, 0.90)
-        wn[i]=w; wg[i]=(1-w)*0.60; wb[i]=(1-w)*0.40
+        wn[i]=w; wg[i]=(1-w)*0.50; wb[i]=(1-w)*0.50
     dyn_nav = build_dynamic_portfolio(nav_a2.values, g2, b3, wn, wg, wb)
     dyn_nav_s = pd.Series(dyn_nav, index=dates.index)
 
