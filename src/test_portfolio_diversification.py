@@ -34,50 +34,36 @@ DEFAULT_THRESHOLD = 0.20
 # =============================================================================
 def prepare_gold_data(nasdaq_dates):
     """Build daily gold price series aligned to NASDAQ dates.
-    Monthly data (1974-2000) linearly interpolated to daily,
-    then merged with yfinance daily data (2000+)."""
-    import yfinance as yf
+    Uses LBMA daily gold AM fix (1968+) as primary source.
+    Falls back to LBMA JSON API if local file not found."""
+    import os
 
-    # Monthly gold from GitHub
-    url = "https://raw.githubusercontent.com/datasets/gold-prices/main/data/monthly.csv"
-    gold_monthly = pd.read_csv(url, parse_dates=['Date'])
-    gold_monthly = gold_monthly[gold_monthly['Date'] >= '1974-01-01'].copy()
-    gold_monthly = gold_monthly.set_index('Date')['Price']
-
-    # Resample to daily via interpolation
-    gold_daily_interp = gold_monthly.resample('D').interpolate(method='linear')
-    gold_daily_interp = gold_daily_interp.reset_index()
-    gold_daily_interp.columns = ['Date', 'Gold']
-    gold_daily_interp['Date'] = pd.to_datetime(gold_daily_interp['Date'])
-
-    # yfinance daily gold (2000+)
-    try:
-        gc = yf.Ticker('GC=F')
-        gc_data = gc.history(start='2000-01-01', end='2026-03-28')
-        gc_data = gc_data.reset_index()
-        gc_data['Date'] = pd.to_datetime(gc_data['Date']).dt.tz_localize(None)
-        gc_daily = gc_data[['Date', 'Close']].rename(columns={'Close': 'Gold'})
-
-        # Merge: use interpolated for pre-2000, yfinance for 2000+
-        cutoff = pd.Timestamp('2000-09-01')
-        early = gold_daily_interp[gold_daily_interp['Date'] < cutoff]
-        late = gc_daily[gc_daily['Date'] >= cutoff]
-
-        # Scale early to match late at junction
-        early_last = early[early['Date'] <= cutoff]['Gold'].iloc[-1]
-        late_first = late['Gold'].iloc[0]
-        scale = late_first / early_last if early_last > 0 else 1.0
-        early = early.copy()
-        early['Gold'] = early['Gold'] * scale
-
-        gold_combined = pd.concat([early, late], ignore_index=True)
-    except Exception as e:
-        print(f"  Warning: yfinance gold failed ({e}), using interpolated only")
-        gold_combined = gold_daily_interp
+    # Try local LBMA daily CSV first
+    local_path = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                              'data', 'lbma_gold_daily.csv')
+    if os.path.exists(local_path):
+        gold_df = pd.read_csv(local_path, parse_dates=['Date'])
+        gold_df = gold_df.rename(columns={'USD': 'Gold'})
+        print(f"  Gold: loaded LBMA daily from {local_path} ({len(gold_df)} rows)")
+    else:
+        # Download from LBMA API
+        import urllib.request, json
+        url = 'https://prices.lbma.org.uk/json/gold_am.json'
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.load(r)
+        items = data if isinstance(data, list) else data.get('items', [])
+        rows = []
+        for item in items:
+            v = item['v']
+            if len(v) > 0 and v[0]:
+                rows.append({'Date': pd.Timestamp(item['d']), 'Gold': float(v[0])})
+        gold_df = pd.DataFrame(rows)
+        print(f"  Gold: downloaded LBMA daily ({len(gold_df)} rows)")
 
     # Align to NASDAQ trading dates
     nasdaq_df = pd.DataFrame({'Date': nasdaq_dates})
-    merged = nasdaq_df.merge(gold_combined, on='Date', how='left')
+    merged = nasdaq_df.merge(gold_df, on='Date', how='left')
     merged['Gold'] = merged['Gold'].ffill().bfill()
     return merged['Gold'].values
 
