@@ -9,14 +9,15 @@
 
 ## 最新情報の確認フロー
 
-> **「最新のベスト戦略・研究状況」を知りたい場合は、必ずこの順番で確認すること:**
+> **「最新のベスト戦略・研究状況」を知りたい場合:**
 >
-> 1. **★★★ セッションサマリー（最優先）** — 各セッションの最終結論・ベスト戦略が記載
->    - `SESSION_SUMMARY_2026-04-04.md`（compare-trading-strategies-PPCbl ブランチ）
-> 2. **★★ STRATEGY_COMPARISON_CAGR30per_plus.md** — 全戦略の最終比較表
-> 3. **★ FINAL_RESULTS.md** — 安定版の結果（古い可能性あり）
+> - **同種のファイルが複数ある場合は、ファイル名の日付サフィックス（`_YYYY-MM-DD`）が最新のものを最優先で参照すること**
+>   - 例: `SESSION_SUMMARY_2026-04-04.md` と `SESSION_SUMMARY_2026-03-01.md` があれば → 2026-04-04 を参照
+>   - 例: `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` → 日付が最新の比較レポートを参照
+> - **生成ドキュメントには必ず日付サフィックスを付与すること**（ルール: `FILENAME_YYYY-MM-DD.md`）
+> - `CLAUDE.md` / `README.md` / `FILE_INDEX.md` は living docs のため日付なし
 >
-> ⚠️ `CLAUDE.md` や `README.md` は概要説明用であり、最新の数値は含まれていない場合がある。
+> ⚠️ `CLAUDE.md` は概要説明用であり、最新の数値は含まれていない場合がある。
 
 ---
 
@@ -35,28 +36,26 @@
 
 | ファイル | 説明 | ブランチ |
 |---------|------|---------|
-| ファイル | 説明 | 重要度 | ブランチ |
-|---------|------|:------:|---------|
-| `SESSION_SUMMARY_2026-04-04.md` | **★★★ 最新セッションサマリー** — Dyn 2x3x G0.5が最新ベスト戦略と確定。CAGR 31.40%/Sharpe 1.297/MaxDD -33.4%/Worst5Y +5.2%。Gold日次データ改善・190指標検証・Bond追加は改善なしと判定。**最新の研究結論はここを最初に確認すること。** | ★★★ | compare-trading-strategies-PPCbl |
-| `STRATEGY_COMPARISON_CAGR30per_plus.md` | 全7戦略の最終比較表（CAGR/Sharpe/MaxDD/Worst5Y/年次リターン）— 最新ベスト戦略の数値確認はここ | ★★ | compare-trading-strategies-PPCbl |
-| `REGIME_ANALYSIS_REPORT.md` | レジーム分析レポート（rawLev×NASDAQ 3×5ビン、フォワードリターン統計） | ★★ | compare-trading-strategies-PPCbl |
-| `YEARLY_RETURNS_REPORT.md` | 7戦略の年次・月次リターン詳細（Dyn 2x3x含む最新版） | ★★ | compare-trading-strategies-PPCbl |
-| `CLAUDE.md` | プロジェクト概要・戦略詳細・GAS実装ガイド（AIへの指示書） | ★ | 全ブランチ |
-| `FILE_INDEX.md` | このファイル（全ファイルインデックス） | ★ | claude/create-file-index-vVbP4以降 |
-| `CONTEXT_SUMMARY.md` | セッション文脈サマリー（研究の経緯・決定事項） | ★ | 全ブランチ |
-| `3x_NASDAQ_Strategy_Research_Summary.md` | 3倍レバレッジNASDAQ戦略研究全体サマリー | ★ | 全ブランチ |
-| `FINAL_RESULTS.md` | 最終戦略比較結果レポート（旧版、Ens2が主体） | - | 全ブランチ |
-| `R4_RESULTS_SUMMARY.md` | Round 4バックテスト結果サマリー（55戦略） | - | 全ブランチ |
-| `STRATEGY_RESEARCH_PLAN_R4.md` | Round 4 研究計画書 | - | 全ブランチ |
-| `LEVERAGE_BIN_ANALYSIS.md` | レバレッジ区間分析レポート v1 | - | 全ブランチ |
-| `LEVERAGE_BIN_ANALYSIS_V2.md` | レバレッジ区間分析レポート v2 | - | 全ブランチ |
-| `LEVERAGE_BIN_ANALYSIS_V3.md` | レバレッジ区間分析レポート v3 | - | 全ブランチ |
-| `ADDITIONAL_ANALYSIS_REPORT.md` | 追加分析レポート（戦略拡張・改善） | - | compare-trading-strategies-PPCbl |
-| `PARAMETER_OPTIMIZATION_PLAN.md` | パラメータ最適化計画書 | - | compare-trading-strategies-PPCbl |
-| `PARAMETER_OPTIMIZATION_REPORT.md` | パラメータ最適化結果レポート | - | compare-trading-strategies-PPCbl |
-| `STRATEGY_COMPARISON.md` | 7戦略比較レポート（旧版） | - | compare-trading-strategies-PPCbl |
-| `docs/TQQQ_execution_guide.md` | TQQQ実行ガイド（実際の売買手順） | - | compare-trading-strategies-PPCbl, investment-strategy-tracking-gt8uD |
-| `plan.md` | プロジェクト実行計画（旧版） | - | project-overview-s2l8s |
+| `SESSION_SUMMARY_2026-04-04.md` | 最新セッションサマリー — Dyn 2x3x G0.5が最新ベスト戦略と確定。CAGR 31.40%/Sharpe 1.297/MaxDD -33.4%/Worst5Y +5.2%。Gold日次データ改善・190指標検証・Bond追加は改善なしと判定。 | compare-trading-strategies-PPCbl |
+| `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` | 全7戦略の最終比較表（CAGR/Sharpe/MaxDD/Worst5Y/年次リターン） | compare-trading-strategies-PPCbl |
+| `REGIME_ANALYSIS_REPORT_2026-04-04.md` | レジーム分析レポート（rawLev×NASDAQ 3×5ビン、フォワードリターン統計） | compare-trading-strategies-PPCbl |
+| `YEARLY_RETURNS_REPORT_2026-04-01.md` | 7戦略の年次・月次リターン詳細（Dyn 2x3x含む最新版） | compare-trading-strategies-PPCbl |
+| `ADDITIONAL_ANALYSIS_REPORT_2026-03-30.md` | 追加分析レポート（戦略拡張・改善） | compare-trading-strategies-PPCbl |
+| `PARAMETER_OPTIMIZATION_PLAN_2026-03-30.md` | パラメータ最適化計画書 | compare-trading-strategies-PPCbl |
+| `PARAMETER_OPTIMIZATION_REPORT_2026-03-30.md` | パラメータ最適化結果レポート | compare-trading-strategies-PPCbl |
+| `STRATEGY_COMPARISON_2026-03-30.md` | 7戦略比較レポート（旧版） | compare-trading-strategies-PPCbl |
+| `CLAUDE.md` | プロジェクト概要・戦略詳細・GAS実装ガイド（AIへの指示書） | 全ブランチ |
+| `FILE_INDEX.md` | このファイル（全ファイルインデックス） | claude/create-file-index-vVbP4以降 |
+| `CONTEXT_SUMMARY_2026-02-06.md` | セッション文脈サマリー（研究の経緯・決定事項） | 全ブランチ |
+| `3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md` | 3倍レバレッジNASDAQ戦略研究全体サマリー | 全ブランチ |
+| `FINAL_RESULTS_2026-02-06.md` | 最終戦略比較結果レポート（旧版、Ens2が主体） | 全ブランチ |
+| `R4_RESULTS_SUMMARY_2026-02-06.md` | Round 4バックテスト結果サマリー（55戦略） | 全ブランチ |
+| `STRATEGY_RESEARCH_PLAN_R4_2026-02-06.md` | Round 4 研究計画書 | 全ブランチ |
+| `LEVERAGE_BIN_ANALYSIS_2026-03-19.md` | レバレッジ区間分析レポート v1 | 全ブランチ |
+| `LEVERAGE_BIN_ANALYSIS_V2_2026-03-19.md` | レバレッジ区間分析レポート v2 | 全ブランチ |
+| `LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md` | レバレッジ区間分析レポート v3 | 全ブランチ |
+| `docs/TQQQ_execution_guide.md` | TQQQ実行ガイド（実際の売買手順） | compare-trading-strategies-PPCbl, investment-strategy-tracking-gt8uD |
+| `plan_2026-02-12.md` | プロジェクト実行計画（旧版） | project-overview-s2l8s |
 
 ---
 
@@ -133,12 +132,10 @@
 | `step2_static_cagr25_results.csv` | CAGR25%静的戦略結果 | compare-trading-strategies-PPCbl |
 | `step2_summary.csv` | ステップ2サマリー | compare-trading-strategies-PPCbl |
 | `step3_dynamic_cagr25_results.csv` | CAGR25%動的戦略結果 | compare-trading-strategies-PPCbl |
-| `dynamic_portfolio_results.csv` | 動的ポートフォリオ結果 | compare-trading-strategies-PPCbl |
 | `oos_monthly_returns.csv` | OOS月次リターン | compare-trading-strategies-PPCbl |
 | `external_is_param_sweep.csv` | 外部シグナル in-sample パラメータスイープ | project-overview-s2l8s |
 | `external_oos_results.csv` | 外部シグナル OOS結果 | project-overview-s2l8s |
 | `external_signal_results.csv` | 外部シグナル結果 | project-overview-s2l8s |
-| `oos_monthly_returns.csv` | OOS月次リターン | project-overview-s2l8s |
 | `overfitting_validation_results.csv` | 過学習検証結果 | project-overview-s2l8s |
 
 ### Excelファイル
@@ -265,4 +262,4 @@ Layer 4 (推奨追加): MomDecel
   - モメンタム減速検出によるリスク抑制
 ```
 
-**推奨戦略**: `Ens2(Asym+Slope)` または `MomDecel + Ens2(S+T)`（GAS実装済み）
+**推奨戦略**: `Dyn 2x3x (B0.55/L0.25/V0.1/G0.5)` — CAGR 31.40% / Sharpe 1.297 / MaxDD -33.4%（2026-04-04確定）
