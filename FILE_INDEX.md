@@ -37,6 +37,7 @@
 | ファイル | 説明 | ブランチ |
 |---------|------|---------|
 | `SESSION_SUMMARY_2026-04-04.md` | 最新セッションサマリー — Dyn 2x3x G0.5が最新ベスト戦略と確定。CAGR 31.40%/Sharpe 1.297/MaxDD -33.4%/Worst5Y +5.2%。Gold日次データ改善・190指標検証・Bond追加は改善なしと判定。 | compare-trading-strategies-PPCbl |
+| `CAGR_IMPROVEMENT_PLAN_2026-04-09.md` | CAGR改善計画v2（改訂版）— 旧計画の問題点（過学習・商品誤認）を修正。有効6方向性：リバランス頻度最適化・SOXL少量追加・まるごとレバレッジ（Goldスロット）・DD期短期国債・執行タイミング・手数料削減。まるごとレバレッジのリスクパリティ分解（債券エクスポージャー123%）も記載。 | compare-trading-strategies-PPCbl |
 | `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` | 全7戦略の最終比較表（CAGR/Sharpe/MaxDD/Worst5Y/年次リターン） | compare-trading-strategies-PPCbl |
 | `REGIME_ANALYSIS_REPORT_2026-04-04.md` | レジーム分析レポート（rawLev×NASDAQ 3×5ビン、フォワードリターン統計） | compare-trading-strategies-PPCbl |
 | `YEARLY_RETURNS_REPORT_2026-04-01.md` | 7戦略の年次・月次リターン詳細（Dyn 2x3x含む最新版） | compare-trading-strategies-PPCbl |
