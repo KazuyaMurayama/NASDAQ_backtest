@@ -1,5 +1,35 @@
 # NASDAQ 3x Leveraged Investment Strategy Project
 
+## GASスプレッドシートへのアクセス方法
+
+> **重要**: このスプレッドシートは「リンクを知っている全員が閲覧可」に設定済み（2026-04-13）。
+> Claude Code から WebFetch ツールで以下の URL パターンを使うと読み込み可能。
+
+**スプレッドシートID**: `1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI`
+
+**URL パターン（Google Visualization API）:**
+```
+https://docs.google.com/spreadsheets/d/1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI/gviz/tq?tqx=out:json&sheet={シート名}
+```
+
+**シート一覧:**
+
+| シート名 | 内容 | 主要カラム |
+|---------|------|----------|
+| `PriceHistory` | NASDAQ日次終値 | date, close |
+| `Log` | 戦略シグナル・ポジション履歴 | date, close, dd_state, raw_leverage, new_leverage, w_nasdaq, w_gold, w_bond, actual_tqqq, actual_gold, actual_bond, rebalanced |
+| `State` | 現在の内部状態 | （都度確認） |
+
+**使用例（最新シグナル取得）:**
+```
+WebFetch(
+  url="https://docs.google.com/spreadsheets/d/1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI/gviz/tq?tqx=out:json&sheet=Log",
+  prompt="最新行の raw_leverage, new_leverage, w_nasdaq, w_gold, w_bond, rebalanced を返せ"
+)
+```
+
+---
+
 ## 成果物の報告ルール（必須）
 
 > **重要**: ファイル・ドキュメントの作成・更新が完了したとき、**必ずGitHubのハイパーリンクを添えて報告すること**。
