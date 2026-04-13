@@ -1,5 +1,21 @@
 # NASDAQ 3x Leveraged Investment Strategy Project
 
+## 成果物の報告ルール（必須）
+
+> **重要**: ファイル・ドキュメントの作成・更新が完了したとき、**必ずGitHubのハイパーリンクを添えて報告すること**。
+> ユーザーはローカルパスではリポジトリ上の場所を判別できないため、このルールは例外なく適用される。
+
+**リンク形式:**
+```
+https://github.com/KazuyaMurayama/NASDAQ_backtest/blob/<branch>/path/to/file.md
+```
+
+**例:**
+- ブランチ `claude/create-file-index-vVbP4` 上の `docs/TQQQ_execution_guide.md`
+  → `https://github.com/KazuyaMurayama/NASDAQ_backtest/blob/claude/create-file-index-vVbP4/docs/TQQQ_execution_guide.md`
+
+---
+
 ## ファイル参照ガイドライン
 
 > **重要**: ファイル検索やファイル参照を行う際には、必ず [`FILE_INDEX.md`](./FILE_INDEX.md) を最初に参照してください。
