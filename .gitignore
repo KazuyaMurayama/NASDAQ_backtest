@@ -31,3 +31,5 @@ Thumbs.db
 # Local config
 *.local
 .env
+research_data_cache.pkl
+regime_ctx.npz
