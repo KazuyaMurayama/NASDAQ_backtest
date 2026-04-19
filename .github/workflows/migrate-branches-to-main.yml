@@ -1,0 +1,35 @@
+name: Migrate branches to main
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run migrate_large_files.sh
+        run: bash scripts/migrate_large_files.sh
+
+      - name: Commit and push (if any changes)
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: import unmerged files from claude/* branches via workflow"
+            git push origin main
+          fi
