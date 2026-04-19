@@ -1,40 +1,30 @@
-# NASDAQ Backtest Project — Claude Code ガイド
+# nasdaq_backtest — 運用ルール入口
 
-## 必読ルールファイル（セッション開始時に必ず読み込む）
+NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**main 単一ブランチ運用**。
 
-| ファイル | 内容 |
-|---------|------|
-| [`.claude/rules/response-rules.md`](.claude/rules/response-rules.md) | 回答フォーマット・成果物報告・名前表記 |
-| [`.claude/rules/git-rules.md`](.claude/rules/git-rules.md) | Git操作ルール（ブランチ作成禁止等） |
-| [`.claude/rules/workflow-rules.md`](.claude/rules/workflow-rules.md) | タスク管理・モデル使い分け・エージェント構成 |
+## セッション開始時の参照順序
+1. **FILE_INDEX.md** — 全ファイルの所在・優先度
+2. **tasks.md** — 未完了タスク・進捗
+3. このCLAUDE.md — ルール入口
 
-## セッション開始チェックリスト
+## 運用ルール（詳細はスキルファイル）
 
-1. 上記ルールファイルを読み込む
-2. [`FILE_INDEX.md`](./FILE_INDEX.md) でファイル構成を把握する
-3. [`tasks.md`](./tasks.md) で未完了タスク・優先度を確認する
+| # | ファイル | 内容 |
+|---|---------|------|
+| 01 | [docs/rules/01_response-basics.md](docs/rules/01_response-basics.md) | 回答の基本ルール |
+| 02 | [docs/rules/02_task-management.md](docs/rules/02_task-management.md) | タスク管理 |
+| 03 | [docs/rules/03_file-index.md](docs/rules/03_file-index.md) | ファイルインデックス管理 |
+| 04 | [docs/rules/04_deliverables-and-models.md](docs/rules/04_deliverables-and-models.md) | 成果物・モデル・出力フォーマット |
+| 05 | [docs/rules/05_git-and-execution.md](docs/rules/05_git-and-execution.md) | Git操作・実行計画 |
 
-## プロフィール
+## プロジェクト概要
 
-- **名前**: 男座員也（おざ かずや / Kazuya Oza）
-- **拠点**: 東京都小平市（花小金井近辺）
-- **職種**: データサイエンティスト・生成AIコンサルタント（フリーランス）
-- **事業**: AIコンサルタント（月単価300万円×稼働50%以内）／SaaS事業／レバレッジ投資／不動産投資
+47年間（1974-2021）のNASDAQ Composite を対象に、3倍レバレッジ日次リバランス戦略を研究。
 
-## GASスプレッドシート
+### 推奨戦略: Ens2(Asym+Slope)
+- Sharpe 1.031、CAGR 28.58%、MaxDD -48.17%、Worst5Y +1.41%
+- 構成: DD × AsymEWMA VT × SlopeMult
+- 詳細: [FINAL_RESULTS_2026-02-06.md](FINAL_RESULTS_2026-02-06.md)
 
-ID: `1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI`（閲覧: リンクを知っている全員）
-
-WebFetch URL:
-```
-https://docs.google.com/spreadsheets/d/1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI/gviz/tq?tqx=out:json&sheet={シート名}
-```
-
-| シート名 | 内容 |
-|---------|------|
-| `PriceHistory` | NASDAQ日次終値（date, close） |
-| `Log` | 戦略シグナル（raw_leverage, new_leverage, w_nasdaq, w_gold, w_bond, rebalanced 等） |
-| `State` | 現在の内部状態 |
-
-## GitHub
-https://github.com/KazuyaMurayama/NASDAQ_backtest
+### 実運用リポジトリ
+https://github.com/KazuyaMurayama/nasdaq-strategy-gas

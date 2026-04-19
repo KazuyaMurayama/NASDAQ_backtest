@@ -1,96 +1,60 @@
-# ファイルインデックス - nasdaq_backtest
+# File Index — nasdaq_backtest
 
-> **重要**: ファイル検索・参照前に必ずこの一覧を確認してください。
+最終更新: 2026-04-19
 
-最終更新: 2026-04-16
-リポジトリ: https://github.com/KazuyaMurayama/NASDAQ_backtest
+## 📁 Living Docs（毎回参照）
+| ファイル | 役割 |
+|---------|------|
+| [CLAUDE.md](CLAUDE.md) | 運用ルール入口 |
+| [tasks.md](tasks.md) | タスク管理 |
+| [FILE_INDEX.md](FILE_INDEX.md) | このファイル |
 
----
+## 📘 運用ルール（docs/rules/）
+- [01_response-basics.md](docs/rules/01_response-basics.md)
+- [02_task-management.md](docs/rules/02_task-management.md)
+- [03_file-index.md](docs/rules/03_file-index.md)
+- [04_deliverables-and-models.md](docs/rules/04_deliverables-and-models.md)
+- [05_git-and-execution.md](docs/rules/05_git-and-execution.md)
 
-## セッション開始時の参照順序
+## 📊 戦略研究ドキュメント（優先度順、新しいもの優先）
+| ファイル | 内容 |
+|---------|------|
+| [FINAL_RESULTS_2026-02-06.md](FINAL_RESULTS_2026-02-06.md) | **推奨戦略 Ens2(Asym+Slope)** |
+| [LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md](LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md) | レバレッジビン別 前方リターン分析 V3 |
+| [3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md](3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md) | 研究総括 |
+| [R4_RESULTS_SUMMARY_2026-02-06.md](R4_RESULTS_SUMMARY_2026-02-06.md) | R4 55戦略比較 |
+| [plan_2026-02-12.md](plan_2026-02-12.md) | 研究計画 |
+| [docs/TQQQ_execution_guide.md](docs/TQQQ_execution_guide.md) | TQQQ/Gold/TMF 実運用ガイド |
 
-1. `tasks.md` — 未完了タスク・優先度を確認
-2. `FILE_INDEX.md`（このファイル）— ファイル構成を把握
-3. `.claude/rules/` — 操作ルールを確認
+## 🔧 src/ コードベース
+| ファイル | 役割 |
+|---------|------|
+| [src/backtest_engine.py](src/backtest_engine.py) | **コアエンジン**（全戦略実装） |
+| [src/test_ens2_strategies.py](src/test_ens2_strategies.py) | Ens2 戦略テスト |
+| [src/test_realistic_product.py](src/test_realistic_product.py) | 実商品条件テスト |
+| [src/run_r4_backtest.py](src/run_r4_backtest.py) | R4 検証ランナー |
+| [src/test_delay_robust.py](src/test_delay_robust.py) | 遅延耐性テスト |
+| [src/analyze_leverage_vs_return_v3.py](src/analyze_leverage_vs_return_v3.py) | レバレッジ vs リターン分析 V3 |
 
-## 最新情報の確認フロー
+※ その他 src/ 各種テスト・生成スクリプトは GitHub 上で確認
 
-> **同種ファイルが複数ある場合は日付サフィックス（`_YYYY-MM-DD`）が最新のものを最優先で参照すること**
-> - 例: `SESSION_SUMMARY_2026-04-04.md` が最新
-> - 生成ドキュメントには必ず日付サフィックスを付与（ルール: `FILENAME_YYYY-MM-DD.md`）
-> - `CLAUDE.md` / `FILE_INDEX.md` / `tasks.md` は living docs のため日付なし
+## 🧰 運用ツール
+| ファイル | 役割 |
+|---------|------|
+| [scripts/migrate_large_files.sh](scripts/migrate_large_files.sh) | 大容量CSV・未集約テキスト取込スクリプト |
 
-⚠️ `CLAUDE.md` に数値・戦略詳細は書かない。FILE_INDEX.md 経由で参照する。
+## 🌿 Branches（歴史的参照）
+| ブランチ | 主な固有コンテンツ | 状態 |
+|---|---|---|
+| `claude/create-file-index-vVbP4` | **未集約 src/ Python 42件・CSV 30件・MD 8件・XLSX 2件** | ⚠️ migrate スクリプトで取込推奨 |
+| `claude/project-overview-s2l8s` | overfitting/external-OOS 系（9ファイル） | 取込候補 |
+| `claude/compare-trading-strategies-PPCbl` | create-file-index に内包済 | 不要 |
+| `claude/investment-strategy-tracking-gt8uD` | test_portfolio_diversification.py 最新版のみ | 個別取込推奨 |
 
----
+**未集約ファイル取込方法**: `bash scripts/migrate_large_files.sh` を実行
 
-## ブランチ一覧
-
-| ブランチ名 | 用途 |
-|-----------|------|
-| `main` | メインブランチ（安定版） |
-| `claude/create-file-index-vVbP4` | **現在の作業ブランチ**（実行ガイド・ルール整備・tasks.md） |
-| `claude/compare-trading-strategies-PPCbl` | 戦略比較・パラメータ最適化・研究拡張 |
-| `claude/investment-strategy-tracking-gt8uD` | 投資戦略トラッキング・検証強化 |
-| `claude/project-overview-s2l8s` | プロジェクト概要・OOS検証・過学習検証 |
-
----
-
-## ドキュメント（MDファイル）
-
-### 運用管理（living docs）
-
-| ファイル | 説明 | ブランチ |
-|---------|------|---------|
-| `tasks.md` | **タスク一覧**（未完了・完了・バックログ） | create-file-index-vVbP4 |
-| `CLAUDE.md` | Claude Code 指示書（軽量）— ルール参照先・プロフィール・スプレッドシートアクセス | 全ブランチ |
-| `FILE_INDEX.md` | このファイル（全ファイルインデックス） | create-file-index-vVbP4 以降 |
-| `.claude/rules/response-rules.md` | 回答フォーマット・成果物報告・名前表記ルール | create-file-index-vVbP4 |
-| `.claude/rules/git-rules.md` | Git操作ルール（ブランチ作成禁止等） | create-file-index-vVbP4 |
-| `.claude/rules/workflow-rules.md` | タスク管理・モデル使い分け・エージェントルール | create-file-index-vVbP4 |
-
-### 実行ガイド・投資運用
-
-| ファイル | 説明 | ブランチ |
-|---------|------|---------|
-| `docs/TQQQ_execution_guide.md` | **Dyn-Hybrid戦略 実行ガイド v3**（SBI証券）— TQQQ/2036/TMF 売買手順・株数計算・保有残高確認 | **create-file-index-vVbP4** ✅ 最新 |
-
-### 研究サマリー・レポート（優先度: 日付降順）
-
-| ファイル | 説明 | ブランチ |
-|---------|------|---------|
-| `SESSION_SUMMARY_2026-04-04.md` | ⭐ **最新セッションサマリー** — Dyn 2x3x G0.5 が最新ベスト戦略 | compare-trading-strategies-PPCbl |
-| `CAGR_IMPROVEMENT_PLAN_2026-04-09.md` | CAGR改善計画v2 | compare-trading-strategies-PPCbl |
-| `REGIME_ANALYSIS_REPORT_2026-04-04.md` | レジーム分析レポート | compare-trading-strategies-PPCbl |
-| `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` | 全7戦略最終比較表 | compare-trading-strategies-PPCbl |
-| `YEARLY_RETURNS_REPORT_2026-04-01.md` | 7戦略の年次・月次リターン詳細 | compare-trading-strategies-PPCbl |
-| `ADDITIONAL_ANALYSIS_REPORT_2026-03-30.md` | 追加分析レポート | compare-trading-strategies-PPCbl |
-| `PARAMETER_OPTIMIZATION_REPORT_2026-03-30.md` | パラメータ最適化結果レポート | compare-trading-strategies-PPCbl |
-| `PARAMETER_OPTIMIZATION_PLAN_2026-03-30.md` | パラメータ最適化計画書 | compare-trading-strategies-PPCbl |
-| `STRATEGY_COMPARISON_2026-03-30.md` | 7戦略比較レポート（旧版） | compare-trading-strategies-PPCbl |
-| `LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md` | レバレッジ区間分析 v3（最新） | 全ブランチ |
-| `LEVERAGE_BIN_ANALYSIS_V2_2026-03-19.md` | レバレッジ区間分析 v2 | 全ブランチ |
-| `LEVERAGE_BIN_ANALYSIS_2026-03-19.md` | レバレッジ区間分析 v1 | 全ブランチ |
-| `CONTEXT_SUMMARY_2026-02-06.md` | セッション文脈サマリー | 全ブランチ |
-| `3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md` | 3倍レバレッジNASDAQ戦略研究全体サマリー | 全ブランチ |
-| `FINAL_RESULTS_2026-02-06.md` | 最終戦略比較結果（旧版） | 全ブランチ |
-| `R4_RESULTS_SUMMARY_2026-02-06.md` | Round 4バックテスト結果サマリー | 全ブランチ |
-| `STRATEGY_RESEARCH_PLAN_R4_2026-02-06.md` | Round 4 研究計画書 | 全ブランチ |
-| `plan_2026-02-12.md` | プロジェクト実行計画（旧版） | project-overview-s2l8s |
-
----
-
-## 戦略の全体像（参考）
-
-```
-最終レバレッジ = DD × VT × SlopeMult [× MomDecel]
-
-Layer 1: DD Control（0 or 1）
-Layer 2: VT = min(Target_Vol / AsymEWMA_Vol, max_lev)
-Layer 3: SlopeMult = clip(0.7 + 0.3 × z_score, 0.3, 1.5)
-Layer 4 (推奨追加): MomDecel
-```
-
-**推奨戦略**: `Dyn 2x3x (B0.55/L0.25/V0.1/G0.5)` — CAGR 31.40% / Sharpe 1.297 / MaxDD -33.4%（2026-04-04確定）
-
-> **備考**: Pythonソースコード詳細・データファイル・各CSVについては本リポジトリの `src/` ・ルート直下を参照。
+## 🗄️ archive/
+| ファイル | 役割 |
+|---------|------|
+| `archive/2026-04-19_CLAUDE_main.md` | 旧 main CLAUDE.md（5510B、詳細ルール入り）歴史的参照用 |
+| `archive/2026-04-19_gitignore_main.txt` | 旧 main .gitignore |
