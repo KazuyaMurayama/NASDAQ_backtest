@@ -1,0 +1,9 @@
+label,drift_threshold,calendar_freq_days,CAGR_pct,MaxDD_pct,Sharpe,Worst5Y_pct,OOS_Sharpe,Rebalances
+現状 Quarterly (drift>10%|63d),0.1,63,31.4,-33.393,1.2967,5.162,0.8659,2502
+Monthly     (drift>10%|21d),0.1,21,31.166,-33.243,1.2909,4.998,0.8621,2831
+Bi-monthly  (drift>10%|42d),0.1,42,31.359,-33.259,1.2961,5.036,0.8749,2577
+Weekly      (drift>10%| 5d),0.1,5,31.214,-33.457,1.293,5.246,0.866,4315
+Daily       (drift>10%| 1d),0.1,1,31.331,-33.586,1.2975,5.319,0.8526,13168
+Threshold-only (drift>10%),0.1,0,31.381,-33.393,1.2964,5.169,0.867,2332
+Tight+Monthly (drift>5% |21d),0.05,21,31.306,-33.059,1.2955,5.097,0.8597,4701
+Tight+Quarterly(drift>5% |63d),0.05,63,31.305,-33.192,1.2952,5.082,0.8557,4458
