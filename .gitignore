@@ -33,3 +33,9 @@ Thumbs.db
 .env
 research_data_cache.pkl
 regime_ctx.npz
+
+# Large regenerable data files (migrate via scripts/migrate_large_files.sh when needed)
+NASDAQ_extended_to_2026.csv
+NASDAQ_extended.csv
+data/*.csv
+research_all_corrected.csv
