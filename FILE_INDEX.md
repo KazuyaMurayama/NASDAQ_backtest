@@ -41,17 +41,8 @@
 ## 🧰 運用ツール
 | ファイル | 役割 |
 |---------|------|
-| [scripts/migrate_large_files.sh](scripts/migrate_large_files.sh) | 大容量CSV・未集約テキスト取込スクリプト |
-
-## 🌿 Branches（歴史的参照）
-| ブランチ | 主な固有コンテンツ | 状態 |
-|---|---|---|
-| `claude/create-file-index-vVbP4` | **未集約 src/ Python 42件・CSV 30件・MD 8件・XLSX 2件** | ⚠️ migrate スクリプトで取込推奨 |
-| `claude/project-overview-s2l8s` | overfitting/external-OOS 系（9ファイル） | 取込候補 |
-| `claude/compare-trading-strategies-PPCbl` | create-file-index に内包済 | 不要 |
-| `claude/investment-strategy-tracking-gt8uD` | test_portfolio_diversification.py 最新版のみ | 個別取込推奨 |
-
-**未集約ファイル取込方法**: `bash scripts/migrate_large_files.sh` を実行
+| [.github/workflows/migrate-branches-to-main.yml](.github/workflows/migrate-branches-to-main.yml) | 旧ブランチ統合ワークフロー（使用済） |
+| [scripts/migrate_large_files.sh](scripts/migrate_large_files.sh) | 旧ブランチ取込スクリプト（使用済） |
 
 ## 🗄️ archive/
 | ファイル | 役割 |
