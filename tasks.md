@@ -1,15 +1,21 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-04-19
+最終更新: 2026-04-21
 
 ## 🔴 In Progress
 （なし）
 
 ## 🟡 Pending
-- [ ] 2026年データへの拡張
+- [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
+- [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-04-21: **Approach A 内リバランス閾値スイープ再検証** — 閾値0.15を推奨（FULL CAGR +30.81% vs 現行0.20の+30.30%）。ダブルチェック3/3 PASS。[THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md)
+- 2026-04-20: YEARLY_RETURNS_REPORT v2（Approach A/B 両方の CAGR をデータから計算）
+- 2026-04-20: LEVERAGE_BIN_ANALYSIS V4 rev3（ベスト戦略NAVで前方リターン算定）
+- 2026-04-20: CAGR_DISCREPANCY_ANALYSIS（Approach A/B 別名同一名の混在を特定）
+- 2026-04-20: APPROACH_A_PROPOSAL（GAS改修設計書 30-50行規模）
 - 2026-04-19: main 単一ブランチ運用確立（他ブランチ全削除）
 - 2026-04-19: GitHub Actions workflow で旧ブランチ統合完了（src/ Python 42ファイル + CSV + MD + XLSX + overfitting系）
 - 2026-04-19: 運用ルール整備（CLAUDE.md / docs/rules/ 群 / tasks.md / FILE_INDEX.md）

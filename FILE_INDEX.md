@@ -1,6 +1,6 @@
 # File Index — nasdaq_backtest
 
-最終更新: 2026-04-19
+最終更新: 2026-04-21
 
 ## 📁 Living Docs（毎回参照）
 | ファイル | 役割 |
@@ -19,7 +19,12 @@
 ## 📊 戦略研究ドキュメント（優先度順、新しいもの優先）
 | ファイル | 内容 |
 |---------|------|
-| [FINAL_RESULTS_2026-02-06.md](FINAL_RESULTS_2026-02-06.md) | **推奨戦略 Ens2(Asym+Slope)** |
+| [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | **Approach A 内リバランス閾値スイープ**(推奨 0.15) |
+| [YEARLY_RETURNS_REPORT_2026-04-20_v2.md](YEARLY_RETURNS_REPORT_2026-04-20_v2.md) | 8戦略年次/月次リターン v2（Approach A/B 併記） |
+| [LEVERAGE_BIN_ANALYSIS_V4_2026-04-20.md](LEVERAGE_BIN_ANALYSIS_V4_2026-04-20.md) | レバビン別 × ベスト戦略 NAV 前方 CAGR V4 rev3 |
+| [CAGR_DISCREPANCY_ANALYSIS_2026-04-20.md](CAGR_DISCREPANCY_ANALYSIS_2026-04-20.md) | CAGR乖離 原因分析（Approach A vs B） |
+| [APPROACH_A_PROPOSAL_2026-04-20.md](APPROACH_A_PROPOSAL_2026-04-20.md) | **GAS Approach A 切替設計書** |
+| [FINAL_RESULTS_2026-02-06.md](FINAL_RESULTS_2026-02-06.md) | 旧推奨戦略 Ens2(Asym+Slope) |
 | [LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md](LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md) | レバレッジビン別 前方リターン分析 V3 |
 | [3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md](3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md) | 研究総括 |
 | [R4_RESULTS_SUMMARY_2026-02-06.md](R4_RESULTS_SUMMARY_2026-02-06.md) | R4 55戦略比較 |
@@ -30,6 +35,9 @@
 | ファイル | 役割 |
 |---------|------|
 | [src/backtest_engine.py](src/backtest_engine.py) | **コアエンジン**（全戦略実装） |
+| [src/test_threshold_sweep_A.py](src/test_threshold_sweep_A.py) | **Approach A 閾値スイープ**（5閾値×6期間×7指標） |
+| [src/gen_yearly_monthly_v2.py](src/gen_yearly_monthly_v2.py) | 年次/月次リターン生成 v2（Approach A/B 併記） |
+| [src/analyze_leverage_bin_v4.py](src/analyze_leverage_bin_v4.py) | レバビン分析 V4 rev3 |
 | [src/test_ens2_strategies.py](src/test_ens2_strategies.py) | Ens2 戦略テスト |
 | [src/test_realistic_product.py](src/test_realistic_product.py) | 実商品条件テスト |
 | [src/run_r4_backtest.py](src/run_r4_backtest.py) | R4 検証ランナー |
