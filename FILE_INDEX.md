@@ -19,7 +19,8 @@
 ## 📊 戦略研究ドキュメント（優先度順、新しいもの優先）
 | ファイル | 内容 |
 |---------|------|
-| [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | **Approach A 内リバランス閾値スイープ**(推奨 0.15) |
+| [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | **9戦略年次/月次リターン v3**（BRKベンチマーク追加、DH[A] +10.85pp vs BRK） |
+| [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | Approach A 内リバランス閾値スイープ(推奨 0.15) |
 | [YEARLY_RETURNS_REPORT_2026-04-20_v2.md](YEARLY_RETURNS_REPORT_2026-04-20_v2.md) | 8戦略年次/月次リターン v2（Approach A/B 併記） |
 | [LEVERAGE_BIN_ANALYSIS_V4_2026-04-20.md](LEVERAGE_BIN_ANALYSIS_V4_2026-04-20.md) | レバビン別 × ベスト戦略 NAV 前方 CAGR V4 rev3 |
 | [CAGR_DISCREPANCY_ANALYSIS_2026-04-20.md](CAGR_DISCREPANCY_ANALYSIS_2026-04-20.md) | CAGR乖離 原因分析（Approach A vs B） |
