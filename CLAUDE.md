@@ -37,3 +37,23 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - 「Murayama」「村山」「Otokoza」「おとこざ」など誤表記は使用しない
 - 英語表記: **Kazuya Oza** / 日本語表記: **男座員也**（おざ かずや）
 - AIアシスタントが生成するドキュメントでも本ルールを遵守すること
+
+## 🚀 自動実行ポリシー
+
+### 確認不要で即実行する操作
+- 全ファイル操作（作成・編集・削除）
+- 全シェルコマンド（PowerShell, Bash, git, gh, npm, node, python）
+- Git操作: add / commit / push（featureブランチ）/ pull / fetch / merge / branch -D / reset --hard
+- GitHub操作: gh pr create / gh api 全般 / ブランチ削除
+- パッケージ操作: npm install / pip install
+- Web検索・フェッチ
+- バックグラウンドプロセス起動
+
+### 事前確認が必要な操作（例外のみ）
+- `git push --force` を main / master ブランチに対して実行する場合
+- `gh repo delete` 実行時
+
+### 動作原則
+- 計画提示（簡潔）→ 即実行 → 結果報告 のフロー厳守
+- 事前確認文（「Should I run...?」等）を出力しない
+- エラー時は即再試行 or 別アプローチで対応、判断が必要な場合のみ報告
