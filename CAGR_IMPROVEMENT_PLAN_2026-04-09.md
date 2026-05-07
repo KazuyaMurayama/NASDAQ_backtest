@@ -1,6 +1,7 @@
 # CAGR改善計画 v2（改訂版）
 
 作成日: 2026-04-09  
+最終更新日: 2026-04-19
 対象戦略: Dyn 2x3x G0.5（CAGR 31.40% / Sharpe 1.297 / MaxDD -33.4%）  
 目的: CAGR改善（数パーセント）。MaxDD/Volatility/WinRateの多少の悪化を許容。
 
