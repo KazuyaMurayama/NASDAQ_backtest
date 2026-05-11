@@ -1,5 +1,11 @@
 # プロジェクトコンテキスト圧縮版
 
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-11
+> - 後継ファイル: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md), [tasks.md](tasks.md), [FILE_INDEX.md](FILE_INDEX.md)
+> - 現行ベスト戦略: **DH Dyn 2x3x [A] (閾値 0.15)**
+> - 廃止理由: 2026-02-06 時点のコンテキストスナップショット。最新の真実は CURRENT_BEST_STRATEGY.md と tasks.md を参照。
+
 ## 1. プロジェクト概要
 - **目的:** 3倍レバレッジNASDAQ投資戦略のバックテスト研究
 - **データ:** NASDAQ Composite 1974-2021年（47年間、11,943日）

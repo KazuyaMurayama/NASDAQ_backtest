@@ -1,14 +1,39 @@
 # FILE_INDEX — NASDAQ_backtest
 
 > ⚠️ このファイルは自動生成です。手動編集は次回更新で上書きされます。
+> 🎯 **最優先参照ファイル: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)** — 現行ベスト戦略の正典。「ベスト戦略は？」と問われたら必ずここから読むこと。
 
 | 項目 | 値 |
 |---|---|
 | リポジトリ | KazuyaMurayama/NASDAQ_backtest |
 | ブランチ | main |
-| 総ファイル数 | 211 |
-| 最終更新 | 2026-05-02 |
+| 総ファイル数 | 212 |
+| 最終更新 | 2026-05-11 |
 | 管理者 | 男座員也（Kazuya Oza） |
+
+---
+
+## 🎯 最優先参照ファイル（このリポジトリで最初に見るべき4つ）
+
+| 優先 | ファイル | 役割 |
+|---|---|---|
+| 1 | [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) | 現行ベスト戦略の正典 (Single Source of Truth) |
+| 2 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
+| 3 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 現行ベスト戦略の一次根拠 |
+| 4 | [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較・BRK ベンチマーク |
+
+## ⛔ SUPERSEDED ファイル（参照禁止・廃止済み）
+
+これらのファイルは冒頭に SUPERSEDED ヘッダ付き。「ベスト戦略」の根拠としては使用しないこと:
+
+| ファイル | 廃止日 | 後継 |
+|---|---|---|
+| FINAL_RESULTS_2026-02-06.md | 2026-05-11 | CURRENT_BEST_STRATEGY.md |
+| R4_RESULTS_SUMMARY_2026-02-06.md | 2026-05-11 | CURRENT_BEST_STRATEGY.md |
+| 3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md | 2026-05-11 | CURRENT_BEST_STRATEGY.md |
+| CONTEXT_SUMMARY_2026-02-06.md | 2026-05-11 | CURRENT_BEST_STRATEGY.md / tasks.md |
+| THRESHOLD_SWEEP_REPORT_2026-04-20.md | 2026-05-11 | THRESHOLD_SWEEP_A_REPORT_2026-04-21.md |
+| YEARLY_RETURNS_REPORT_2026-04-20_v2.md | 2026-05-11 | YEARLY_RETURNS_REPORT_2026-04-20_v3.md |
 
 ---
 
@@ -256,7 +281,7 @@
 | `.claude/rules/git-rules.md` | 911 B | Claude Code 設定・スキル |
 | `.claude/rules/response-rules.md` | 1.4 KB | Claude Code 設定・スキル |
 | `.claude/rules/workflow-rules.md` | 2.0 KB | Claude Code 設定・スキル |
-| `3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md` | 19.2 KB | Markdown ドキュメント |
+| `3x_NASDAQ_Strategy_Research_Summary_2026-02-06.md` | 19.2 KB | ⛔ SUPERSEDED → CURRENT_BEST_STRATEGY.md |
 | `ADDITIONAL_ANALYSIS_REPORT_2026-03-30.md` | 5.6 KB | Markdown ドキュメント |
 | `APPROACH_A_PROPOSAL_2026-04-20.md` | 7.5 KB | Markdown ドキュメント |
 | `archive/2026-04-19_CLAUDE_main.md` | 5.4 KB | Markdown ドキュメント |
@@ -264,7 +289,8 @@
 | `CAGR_DISCREPANCY_ANALYSIS_2026-04-20.md` | 4.4 KB | Markdown ドキュメント |
 | `CAGR_IMPROVEMENT_PLAN_2026-04-09.md` | 13.8 KB | Markdown ドキュメント |
 | `CLAUDE.md` | 2.0 KB | Claude Code プロジェクト設定・命名ルール |
-| `CONTEXT_SUMMARY_2026-02-06.md` | 2.9 KB | Markdown ドキュメント |
+| `CONTEXT_SUMMARY_2026-02-06.md` | 2.9 KB | ⛔ SUPERSEDED → CURRENT_BEST_STRATEGY.md |
+| `CURRENT_BEST_STRATEGY.md` | — | 🎯 現行ベスト戦略の正典 (Single Source of Truth) |
 | `docs/rules/01_response-basics.md` | 708 B | Markdown ドキュメント |
 | `docs/rules/02_task-management.md` | 458 B | Markdown ドキュメント |
 | `docs/rules/03_file-index.md` | 487 B | Markdown ドキュメント |
@@ -272,7 +298,7 @@
 | `docs/rules/05_git-and-execution.md` | 1.1 KB | Markdown ドキュメント |
 | `docs/TQQQ_execution_guide.md` | 4.0 KB | Markdown ドキュメント |
 | `FILE_INDEX.md` | 3.8 KB | （このファイル）全ファイルインデックス |
-| `FINAL_RESULTS_2026-02-06.md` | 2.8 KB | Markdown ドキュメント |
+| `FINAL_RESULTS_2026-02-06.md` | 2.8 KB | ⛔ SUPERSEDED → CURRENT_BEST_STRATEGY.md |
 | `LEVERAGE_BIN_ANALYSIS_2026-03-19.md` | 6.0 KB | Markdown ドキュメント |
 | `LEVERAGE_BIN_ANALYSIS_V2_2026-03-19.md` | 10.2 KB | Markdown ドキュメント |
 | `LEVERAGE_BIN_ANALYSIS_V3_2026-03-24.md` | 13.5 KB | Markdown ドキュメント |
@@ -280,7 +306,7 @@
 | `PARAMETER_OPTIMIZATION_PLAN_2026-03-30.md` | 7.7 KB | Markdown ドキュメント |
 | `PARAMETER_OPTIMIZATION_REPORT_2026-03-30.md` | 8.2 KB | Markdown ドキュメント |
 | `plan_2026-02-12.md` | 2.0 KB | Markdown ドキュメント |
-| `R4_RESULTS_SUMMARY_2026-02-06.md` | 5.5 KB | Markdown ドキュメント |
+| `R4_RESULTS_SUMMARY_2026-02-06.md` | 5.5 KB | ⛔ SUPERSEDED → CURRENT_BEST_STRATEGY.md |
 | `README.md` | 2.2 KB | リポジトリ概要・セットアップ手順 |
 | `REGIME_ANALYSIS_REPORT_2026-04-04.md` | 4.8 KB | Markdown ドキュメント |
 | `SESSION_SUMMARY_2026-04-04.md` | 13.6 KB | Markdown ドキュメント |
@@ -288,12 +314,12 @@
 | `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` | 36.7 KB | Markdown ドキュメント |
 | `STRATEGY_RESEARCH_PLAN_R4_2026-02-06.md` | 18.6 KB | Markdown ドキュメント |
 | `tasks.md` | 1.8 KB | タスク管理・セッション履歴 |
-| `THRESHOLD_SWEEP_A_REPORT_2026-04-21.md` | 8.0 KB | Markdown ドキュメント |
-| `THRESHOLD_SWEEP_REPORT_2026-04-20.md` | 5.3 KB | Markdown ドキュメント |
+| `THRESHOLD_SWEEP_A_REPORT_2026-04-21.md` | 8.0 KB | 🎯 現行ベスト戦略 (DH Dyn 2x3x [A] 閾値0.15) の一次根拠 |
+| `THRESHOLD_SWEEP_REPORT_2026-04-20.md` | 5.3 KB | ⛔ SUPERSEDED → THRESHOLD_SWEEP_A_REPORT_2026-04-21.md |
 | `Timeout_Prevention.md` | 4.9 KB | タイムアウト対策ガイド |
 | `YEARLY_RETURNS_REPORT_2026-04-01.md` | 34.1 KB | Markdown ドキュメント |
-| `YEARLY_RETURNS_REPORT_2026-04-20_v2.md` | 12.9 KB | Markdown ドキュメント |
-| `YEARLY_RETURNS_REPORT_2026-04-20_v3.md` | 11.6 KB | Markdown ドキュメント |
+| `YEARLY_RETURNS_REPORT_2026-04-20_v2.md` | 12.9 KB | ⛔ SUPERSEDED → YEARLY_RETURNS_REPORT_2026-04-20_v3.md |
+| `YEARLY_RETURNS_REPORT_2026-04-20_v3.md` | 11.6 KB | 🎯 51年分の年次比較・BRK ベンチマーク (現行ベスト戦略の根拠) |
 
 ### Code (79件)
 
@@ -497,4 +523,4 @@
 
 ---
 
-_自動生成: 2026-05-02 | 管理者: 男座員也（Kazuya Oza）_
+_自動生成: 2026-05-02 | 手動更新: 2026-05-11 (CURRENT_BEST_STRATEGY.md追加・SUPERSEDED マーキング) | 管理者: 男座員也（Kazuya Oza）_

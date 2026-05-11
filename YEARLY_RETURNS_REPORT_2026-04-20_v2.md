@@ -1,5 +1,11 @@
 # 7(+1)戦略 年次・月次リターン **v2** (1974-2026)
 
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-11
+> - 後継ファイル: [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md)
+> - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: v3 で Berkshire Hathaway ベンチマーク列が追加され、年次比較の決定版となった。
+
 **版**: v2 (2026-04-20)
 **旧版**: [YEARLY_RETURNS_REPORT_2026-04-01.md](YEARLY_RETURNS_REPORT_2026-04-01.md)
 **主要修正**: ① CAGRハードコード除去(データから計算) ② DH Dyn 2x3x を Approach A/B 両方で計算 ③ ダブルチェック通過

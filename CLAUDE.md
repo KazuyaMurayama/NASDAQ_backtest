@@ -3,9 +3,40 @@
 NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**main 単一ブランチ運用**。
 
 ## セッション開始時の参照順序
-1. **FILE_INDEX.md** — 全ファイルの所在・優先度
-2. **tasks.md** — 未完了タスク・進捗
-3. このCLAUDE.md — ルール入口
+1. **[CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)** — 現行ベスト戦略の正典 (Single Source of Truth)
+2. **FILE_INDEX.md** — 全ファイルの所在・優先度
+3. **tasks.md** — 未完了タスク・進捗
+4. このCLAUDE.md — ルール入口
+
+## 🎯 ベスト戦略参照プロトコル（最重要・再発防止）
+
+「ベスト戦略は？」「現在の推奨は？」「最終結果は？」と問われた時、**必ず以下の順で確認**:
+
+1. **[CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を最優先で読む** — このファイルが現行の正典
+2. tasks.md の最新 ✅ Completed エントリと整合性チェック
+3. **本 CLAUDE.md 内の「現行ベスト戦略:」記述は二次資料**として扱う（更新漏れがありうる）
+4. CSV ファイル (`R4_results.csv` 等) は実験ログであり、結論ではない
+
+### 絶対にやってはいけないこと
+- ❌ `FINAL_RESULTS_2026-02-06.md` を「最終結果」として読む（SUPERSEDED 済み）
+- ❌ ファイル名に `FINAL` を含むからといって最新と判定する（`FINAL_` プレフィックスは廃止）
+- ❌ CSV を Sharpe 降順で並べて「トップ」と回答する
+
+## 📛 ドキュメント命名規則（再発防止）
+
+新規レポート作成時:
+
+1. **`FINAL_` プレフィックスは禁止** — 「FINAL」と名乗ったファイルが後で覆されると参照地獄になる
+2. **`<TOPIC>_YYYY-MM-DD.md` または `REPORT_YYYY-MM-DD.md` 形式**を使用
+3. **旧レポートを置き換える時は、必ず旧レポート冒頭に SUPERSEDED ヘッダを追加**:
+   ```markdown
+   > ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+   > - 廃止日: YYYY-MM-DD
+   > - 後継ファイル: [新レポート名](新レポート.md)
+   > - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+   > - 廃止理由: <一行で理由>
+   ```
+4. **CURRENT_BEST_STRATEGY.md と tasks.md を同時更新**
 
 ## 運用ルール（詳細はスキルファイル）
 
@@ -19,12 +50,15 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 
 ## プロジェクト概要
 
-47年間（1974-2021）のNASDAQ Composite を対象に、3倍レバレッジ日次リバランス戦略を研究。
+52年間（1974-2026）のNASDAQ Composite を対象に、3倍レバレッジ日次リバランス戦略を研究。
 
-### 推奨戦略: Ens2(Asym+Slope)
-- Sharpe 1.031、CAGR 28.58%、MaxDD -48.17%、Worst5Y +1.41%
-- 構成: DD × AsymEWMA VT × SlopeMult
-- 詳細: [FINAL_RESULTS_2026-02-06.md](FINAL_RESULTS_2026-02-06.md)
+### 現行ベスト戦略 → [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を参照
+
+**DH Dyn 2x3x [A]（Approach A・閾値 0.15）** — CAGR +30.81%, Sharpe 1.298, MaxDD -31.36%, Worst5Y +4.77% (FULL 1974-2026)
+
+一次根拠: [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) / [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md)
+
+> ⚠️ 過去版にあった「推奨戦略: Ens2(Asym+Slope)」は 2026-04-21 に廃止されました。詳細は [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) の「廃止された旧推奨」セクションを参照。
 
 ### 実運用リポジトリ
 https://github.com/KazuyaMurayama/nasdaq-strategy-gas

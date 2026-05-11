@@ -1,4 +1,11 @@
 # リバランス閾値スイープ検証レポート
+
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-11
+> - 後継ファイル: [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md)
+> - 現行ベスト戦略: **DH Dyn 2x3x [A] (閾値 0.15)** — [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: Approach A/B 混在版。Approach A 内比較に絞った 2026-04-21 版が後継。
+
 **戦略**: Dyn 2x3x A2 Optimized  
 **日付**: 2026-04-20  
 **データ**: 1974-01-02 〜 2026-03-26（13,169日）  

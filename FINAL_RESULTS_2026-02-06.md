@@ -1,5 +1,12 @@
 # 3x NASDAQ投資戦略 最終検証結果
 
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-11
+> - 後継ファイル: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md), [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md), [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md)
+> - 現行ベスト戦略: **DH Dyn 2x3x [A] (閾値 0.15)** — CAGR +30.81%, Sharpe 1.298, MaxDD -31.36%
+> - 廃止理由: 2026-02-06 時点の旧推奨 `Ens2(Asym+Slope)` は 2026-04-21 に閾値スイープで `DH Dyn 2x3x [A] 閾値0.15` に置換された。ファイル名に `FINAL` を含むが**最終ではない**。
+> - **本ファイルを「ベスト戦略」の一次根拠として使用しないこと。**
+
 ## 検証概要
 - **期間**: 1974年1月2日 ～ 2021年5月7日（47年間）
 - **対象**: NASDAQ Composite Index
