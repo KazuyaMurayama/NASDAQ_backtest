@@ -72,6 +72,12 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - 英語表記: **Kazuya Oza** / 日本語表記: **男座員也**（おざ かずや）
 - AIアシスタントが生成するドキュメントでも本ルールを遵守すること
 
+### 開発者の作業環境
+- **OS:** Windows 11（Macではない）。シェルは PowerShell 5.1 / Bash（WSL/Git Bash）。`brew` / `Cmd+` / Mac専用コマンドは使用不可。パッケージ管理は `winget` / `scoop`。
+- **スマートフォン:** iPhone（iOS）。Android固有の手順・adb・Play Store等は不要。
+- コマンド例はPowerShell構文（`;` 連結、`$env:VAR`）で提示。macOS専用ツールを回答に含めない。
+
+
 ## 🚀 自動実行ポリシー
 
 ### 確認不要で即実行する操作
