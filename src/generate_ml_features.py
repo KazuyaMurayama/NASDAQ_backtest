@@ -246,6 +246,20 @@ def main():
         r3x.shift(-21).rolling(21).mean() * 252
     ) / (r3x.shift(-21).rolling(21).std() * np.sqrt(252)).replace(0, np.nan)
 
+    # Meta-labeling target: does DH raw_leverage direction agree with actual 21d outcome?
+    # 1 = DH signal correct (invest AND market up, OR cash AND market down)
+    # 0 = DH signal wrong
+    # NaN = raw_leverage unavailable
+    if 'dh_raw_leverage' in out.columns:
+        dh_invest = (out['dh_raw_leverage'] > 0.5).astype(float)
+        fwd_pos   = (out['target_ret_21d'] > 0).astype(float)
+        # correct = both agree in direction
+        out['target_meta_21d'] = np.where(
+            out['dh_raw_leverage'].isna() | out['target_ret_21d'].isna(),
+            np.nan,
+            (dh_invest == fwd_pos).astype(float)
+        )
+
     # --- Save ---
     out_path = os.path.join(DATA_DIR, 'ml_features.csv')
     out.to_csv(out_path, float_format='%.6f')
