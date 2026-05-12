@@ -1,5 +1,11 @@
 # 9戦略 年次・月次リターン **v3** (1974-2026) — Berkshire Hathaway ベンチマーク追加
 
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-12
+> - 後継ファイル: [YEARLY_RETURNS_REPORT_2026-05-12_v4.md](YEARLY_RETURNS_REPORT_2026-05-12_v4.md)
+> - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: SOFR金利コスト未適用（全戦略のCAGRが過大推計）。v4で補正済み。
+
 **版**: v3 (2026-04-21)
 **旧版**: [YEARLY_RETURNS_REPORT_2026-04-20_v2.md](YEARLY_RETURNS_REPORT_2026-04-20_v2.md)
 **主要変更**: Berkshire Hathaway (BRK-A per-share market value) を9列目として追加。DH Dyn 2x3x [A] との定量比較セクションを新設。
