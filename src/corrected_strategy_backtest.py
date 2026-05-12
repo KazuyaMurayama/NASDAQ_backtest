@@ -81,13 +81,30 @@ def load_sofr(dates_series: pd.Series) -> np.ndarray:
 # Corrected bond 1x total return NAV
 # ---------------------------------------------------------------------------
 
+def bond_modified_duration(yield_pct: float, maturity: float = 22.0) -> float:
+    """
+    Yield-dependent modified duration for an approximate par coupon bond.
+    At high yields (e.g., 15%), Dmod ~6-7; at low yields (e.g., 2%), Dmod ~16-17.
+    maturity=22 is representative for ICE 20+ Year Treasury Index avg maturity.
+    """
+    y = max(float(yield_pct) / 100.0, 0.005)
+    mac = (1.0 - (1.0 + y) ** (-maturity)) / y
+    return mac / (1.0 + y)
+
+
 def build_bond_1x_nav_corrected(dates_series: pd.Series,
                                   duration: float = 17.0,
                                   yield_name: str = 'dgs30',
-                                  coupon_basis: int = 252) -> np.ndarray:
+                                  coupon_basis: int = 252,
+                                  use_time_varying_duration: bool = False,
+                                  bond_maturity: float = 22.0) -> np.ndarray:
     """
     Build 1x bond total return NAV aligned to NASDAQ dates.
     Best verified params: dgs30, duration=17, coupon_basis=252 (MAE=3.87%/yr vs TMF)
+
+    use_time_varying_duration=True: replaces static duration with yield-dependent Dmod.
+    This corrects the 1974-1985 high-yield era where D=17 overstates price sensitivity
+    by ~2x (actual Dmod ~6-7 at 15% yield for a 20-yr coupon bond).
     """
     y_series = load_yield(yield_name)
 
@@ -98,6 +115,21 @@ def build_bond_1x_nav_corrected(dates_series: pd.Series,
     y_full[mask_no] = y_dgs10[mask_no]
     y_full   = y_full.ffill(limit=5)
 
+    # Fix splice discontinuity: when dgs30 first appears (1977-02-15),
+    # the level jump from dgs10 (7.38%) to dgs30 (7.70%) creates a fake
+    # one-day bond loss of -5.4% (D=17). Level-correct pre-splice values
+    # so the yield series is continuous at the transition.
+    if yield_name == 'dgs30':
+        dgs30_available = y_series.dropna()
+        if len(dgs30_available) > 0:
+            first_dgs30_date = dgs30_available.index[0]
+            pre_splice_mask = y_full.index < first_dgs30_date
+            if pre_splice_mask.any() and first_dgs30_date in y_full.index:
+                last_pre  = y_full[pre_splice_mask].iloc[-1]   # dgs10 level
+                first_post = y_full.loc[first_dgs30_date]      # dgs30 level
+                jump = first_post - last_pre                    # e.g. +0.32%
+                y_full[pre_splice_mask] = y_full[pre_splice_mask] + jump
+
     # Align to NASDAQ trading calendar
     y_aligned = y_full.reindex(dates_series.values).ffill(limit=5).bfill(limit=5)
     y_dec = (y_aligned.values / 100.0)  # percent → decimal
@@ -105,8 +137,10 @@ def build_bond_1x_nav_corrected(dates_series: pd.Series,
     n = len(y_dec)
     nav = np.ones(n)
     for i in range(1, n):
-        dy         = y_dec[i] - y_dec[i-1]
-        price_ret  = -duration * dy
+        dy  = y_dec[i] - y_dec[i-1]
+        dur = (bond_modified_duration(y_dec[i-1] * 100, bond_maturity)
+               if use_time_varying_duration else duration)
+        price_ret  = -dur * dy
         coupon_ret = y_dec[i-1] / coupon_basis
         daily_ret  = np.clip(price_ret + coupon_ret, -0.20, 0.20)
         nav[i]     = nav[i-1] * (1 + daily_ret)
@@ -292,72 +326,92 @@ def main():
     nav_B        = build_nav(close, lev, wn, wg, wb, dates,
                               gold_2x, bond_3x_B, sofr_daily=sofr, apply_tqqq_sofr=True)
 
-    # Scenario C: Full correction (dgs30, dur=17, +2xSOFR)
-    print("  C. Full correction (dgs30, dur=17, +2xSOFR)...")
+    # Scenario C: Full correction (dgs30, dur=17, +2xSOFR) -- splice fixed
+    print("  C. Full correction (dgs30, dur=17, +2xSOFR, splice fixed)...")
     bond_1x_corr = build_bond_1x_nav_corrected(dates)
     bond_3x_corr = build_bond_3x(bond_1x_corr, sofr, apply_sofr=True)
     nav_C        = build_nav(close, lev, wn, wg, wb, dates,
                               gold_2x, bond_3x_corr, sofr_daily=sofr, apply_tqqq_sofr=True)
 
+    # Scenario D: Full correction + time-varying duration (most physically accurate)
+    # Fixes static D=17 in 1974-1985 high-yield era (actual Dmod ~6-7 at 15% yield)
+    print("  D. Best model (dgs30, D_var, +2xSOFR, splice fixed)...")
+    bond_1x_D = build_bond_1x_nav_corrected(dates,
+                                              use_time_varying_duration=True,
+                                              bond_maturity=22.0)
+    bond_3x_D = build_bond_3x(bond_1x_D, sofr, apply_sofr=True)
+    nav_D     = build_nav(close, lev, wn, wg, wb, dates,
+                           gold_2x, bond_3x_D, sofr_daily=sofr, apply_tqqq_sofr=True)
+
     # Print comparison
-    print("\n" + "=" * 110)
-    print("DH Dyn 2x3x [A] -- THREE SCENARIOS COMPARISON")
-    print("=" * 110)
+    print("\n" + "=" * 120)
+    print("DH Dyn 2x3x [A] -- FOUR SCENARIOS COMPARISON")
+    print("=" * 120)
     print("Scenario A = Baseline (current code: dgs10+dur7, no SOFR)")
     print("Scenario B = +SOFR only (2*SOFR on both TQQQ+TMF, bond model unchanged)")
-    print("Scenario C = Full correction (dgs30+dur17+2*SOFR) -- MOST REALISTIC")
-    print("=" * 110)
+    print("Scenario C = dgs30+dur17+2*SOFR+splice_fix (yield source/duration corrected)")
+    print("Scenario D = dgs30+D_var+2*SOFR+splice_fix (time-varying duration, most accurate)")
+    print("=" * 120)
 
     header = (f"{'Period':<8} | "
-              f"{'CAGR_A':>8} {'CAGR_B':>8} {'CAGR_C':>8} | "
-              f"{'Shrp_A':>7} {'Shrp_B':>7} {'Shrp_C':>7} | "
-              f"{'MaxDD_A':>8} {'MaxDD_C':>8} | "
-              f"{'W5Y_A':>7} {'W5Y_C':>7}")
+              f"{'CAGR_A':>8} {'CAGR_B':>8} {'CAGR_C':>8} {'CAGR_D':>8} | "
+              f"{'Shrp_A':>7} {'Shrp_D':>7} | "
+              f"{'MaxDD_A':>8} {'MaxDD_C':>8} {'MaxDD_D':>8} | "
+              f"{'W5Y_A':>7} {'W5Y_D':>7}")
     print(header)
-    print("-" * 110)
+    print("-" * 120)
 
     rows = []
     for pname, pstart, pend in PERIODS:
         mA = calc_metrics(nav_A, dates, pstart, pend)
         mB = calc_metrics(nav_B, dates, pstart, pend)
         mC = calc_metrics(nav_C, dates, pstart, pend)
+        mD = calc_metrics(nav_D, dates, pstart, pend)
         if mA is None: continue
+        def _w5(m): return f"{m['Worst5Y']*100:>6.2f}%" if m and m['Worst5Y'] is not None else f"{'nan':>7}"
         print(f"{pname:<8} | "
-              f"{mA['CAGR']*100:>7.2f}% {mB['CAGR']*100:>7.2f}% {mC['CAGR']*100:>7.2f}% | "
-              f"{mA['Sharpe']:>7.3f} {mB['Sharpe']:>7.3f} {mC['Sharpe']:>7.3f} | "
-              f"{mA['MaxDD']*100:>7.2f}% {mC['MaxDD']*100:>7.2f}% | "
-              f"{mA['Worst5Y']*100:>6.2f}% {mC['Worst5Y']*100 if mC['Worst5Y'] else float('nan'):>6.2f}%")
+              f"{mA['CAGR']*100:>7.2f}% {mB['CAGR']*100:>7.2f}% {mC['CAGR']*100:>7.2f}% {mD['CAGR']*100:>7.2f}% | "
+              f"{mA['Sharpe']:>7.3f} {mD['Sharpe']:>7.3f} | "
+              f"{mA['MaxDD']*100:>7.2f}% {mC['MaxDD']*100:>7.2f}% {mD['MaxDD']*100:>7.2f}% | "
+              f"{_w5(mA)} {_w5(mD)}")
         rows.append({
             'period': pname,
             'CAGR_A%': round(mA['CAGR']*100, 2),
             'CAGR_B%': round(mB['CAGR']*100, 2) if mB else np.nan,
             'CAGR_C%': round(mC['CAGR']*100, 2),
+            'CAGR_D%': round(mD['CAGR']*100, 2),
             'dCAGR_B': round((mB['CAGR']-mA['CAGR'])*100, 2) if mB else np.nan,
             'dCAGR_C': round((mC['CAGR']-mA['CAGR'])*100, 2),
+            'dCAGR_D': round((mD['CAGR']-mA['CAGR'])*100, 2),
             'Sharpe_A': round(mA['Sharpe'], 3),
             'Sharpe_B': round(mB['Sharpe'], 3) if mB else np.nan,
             'Sharpe_C': round(mC['Sharpe'], 3),
+            'Sharpe_D': round(mD['Sharpe'], 3),
             'MaxDD_A%': round(mA['MaxDD']*100, 2),
             'MaxDD_C%': round(mC['MaxDD']*100, 2),
-            'Worst5Y_A%': round(mA['Worst5Y']*100, 2) if mA['Worst5Y'] else np.nan,
-            'Worst5Y_C%': round(mC['Worst5Y']*100, 2) if mC['Worst5Y'] else np.nan,
+            'MaxDD_D%': round(mD['MaxDD']*100, 2),
+            'Worst5Y_A%': round(mA['Worst5Y']*100, 2) if mA['Worst5Y'] is not None else np.nan,
+            'Worst5Y_D%': round(mD['Worst5Y']*100, 2) if mD['Worst5Y'] is not None else np.nan,
             'WinRate_A%': round(mA['WinRate']*100, 1),
-            'WinRate_C%': round(mC['WinRate']*100, 1),
+            'WinRate_D%': round(mD['WinRate']*100, 1),
         })
-    print("=" * 110)
+    print("=" * 120)
 
-    # Decomposition: SOFR vs Bond model
-    full_A = rows[0]; full_B_row = next((r for r in rows if r['period']=='FULL'), None)
+    # Decomposition: SOFR vs Bond model vs Duration fix
+    full_B_row = next((r for r in rows if r['period']=='FULL'), None)
     if full_B_row:
-        sofr_impact = full_B_row['dCAGR_B']
-        bond_impact = full_B_row['dCAGR_C'] - full_B_row['dCAGR_B']
+        sofr_impact  = full_B_row['dCAGR_B']
+        bond_impact  = full_B_row['dCAGR_C'] - full_B_row['dCAGR_B']
+        dur_impact   = full_B_row['dCAGR_D'] - full_B_row['dCAGR_C']
         print(f"\n[FULL period decomposition]")
-        print(f"  SOFR correction impact  : {sofr_impact:+.2f}% CAGR (TQQQ+TMF 2x financing)")
-        print(f"  Bond model correction   : {bond_impact:+.2f}% CAGR (dgs10+dur7 -> dgs30+dur17)")
-        print(f"  Total correction        : {full_B_row['dCAGR_C']:+.2f}% CAGR")
-        print(f"  Corrected CAGR (C)      : {full_B_row['CAGR_C%']:.2f}%  vs Baseline {full_B_row['CAGR_A%']:.2f}%")
-        print(f"  Corrected Sharpe (C)    : {full_B_row['Sharpe_C']:.3f}  vs Baseline {full_B_row['Sharpe_A']:.3f}")
-        print(f"  Corrected MaxDD (C)     : {full_B_row['MaxDD_C%']:.2f}%  vs Baseline {full_B_row['MaxDD_A%']:.2f}%")
+        print(f"  SOFR correction impact     : {sofr_impact:+.2f}% CAGR (TQQQ+TMF 2x financing)")
+        print(f"  Bond model+splice fix (C)  : {bond_impact:+.2f}% CAGR (dgs10+dur7 -> dgs30+dur17+splice_fix)")
+        print(f"  Time-varying duration (D)  : {dur_impact:+.2f}% CAGR (static D=17 -> yield-dep Dmod)")
+        print(f"  Total correction vs A      : {full_B_row['dCAGR_D']:+.2f}% CAGR")
+        print(f"")
+        print(f"  Best estimate CAGR  (D)    : {full_B_row['CAGR_D%']:.2f}%  vs Baseline {full_B_row['CAGR_A%']:.2f}%")
+        print(f"  Best estimate Sharpe(D)    : {full_B_row['Sharpe_D']:.3f}  vs Baseline {full_B_row['Sharpe_A']:.3f}")
+        print(f"  Best estimate MaxDD (D)    : {full_B_row['MaxDD_D%']:.2f}%  vs Baseline {full_B_row['MaxDD_A%']:.2f}%")
 
     # Save
     out = os.path.join(BASE, 'corrected_strategy_results.csv')
