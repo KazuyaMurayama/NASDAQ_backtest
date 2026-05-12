@@ -36,6 +36,7 @@ from test_delay_robust import calc_momentum_decel_mult
 from test_vix_integration import calc_vix_proxy
 from test_portfolio_diversification import prepare_gold_data
 from opt_lev2x3x import calc_asym_ewma
+from product_costs import TQQQ as TQQQ_COSTS, TMF as TMF_COSTS, GOLD2X as GOLD2X_COSTS
 
 BASE     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE, 'data')
@@ -162,13 +163,28 @@ def build_bond_1x_nav_baseline(dates_series: pd.Series) -> np.ndarray:
 # Asset NAV builders
 # ---------------------------------------------------------------------------
 
-def build_gold_2x(gold_1x_prices: np.ndarray) -> np.ndarray:
+def build_gold_2x(gold_1x_prices: np.ndarray,
+                   sofr_daily: np.ndarray = None,
+                   apply_sofr: bool = False,
+                   swap_spread: float = SWAP_SPREAD) -> np.ndarray:
+    """Build 2x gold NAV with optional SOFR financing drag.
+
+    Gold 2x (futures-based) financing structure: 1x notional SOFR + swap_spread.
+    (2x futures requires 1x notional financing, unlike equity swaps at 2x.)
+    Previously only TER was deducted; SOFR omission corrected in v2.
+    """
     n = len(gold_1x_prices)
+    swap_d = swap_spread / TRADING_DAYS
     g2 = np.ones(n)
     for i in range(1, n):
         gr = (gold_1x_prices[i] / gold_1x_prices[i-1] - 1
               if gold_1x_prices[i-1] > 0 else 0.0)
-        g2[i] = g2[i-1] * (1 + gr * 2 - GOLD_2X_COST / TRADING_DAYS)
+        if apply_sofr and sofr_daily is not None:
+            # 1xSOFR financing (sofr_daily is already daily rate) + swap_spread
+            g2_ret = gr * 2 - 1.0 * (sofr_daily[i] + swap_d) - GOLD_2X_COST / TRADING_DAYS
+        else:
+            g2_ret = gr * 2 - GOLD_2X_COST / TRADING_DAYS
+        g2[i] = g2[i-1] * (1 + g2_ret)
     return g2
 
 
@@ -304,7 +320,6 @@ def main():
 
     print("Loading gold data...")
     gold_1x = prepare_gold_data(dates)
-    gold_2x = build_gold_2x(gold_1x)
 
     print("Loading SOFR (DTB3)...")
     sofr = load_sofr(dates)
@@ -313,44 +328,49 @@ def main():
 
     print("\nBuilding bond models...")
 
-    # Scenario A: Baseline (dgs10, dur=7, no SOFR) - current code
+    # Scenario A: Baseline (dgs10, dur=7, no SOFR) - current code (gold: TER only, no SOFR)
     print("  A. Baseline (dgs10, dur=7, no SOFR)...")
+    gold_2x_A     = build_gold_2x(gold_1x, apply_sofr=False)
     bond_1x_base  = build_bond_1x_nav_baseline(dates)
     bond_3x_base  = build_bond_3x(bond_1x_base, sofr, apply_sofr=False)
     nav_A         = build_nav(close, lev, wn, wg, wb, dates,
-                               gold_2x, bond_3x_base, apply_tqqq_sofr=False)
+                               gold_2x_A, bond_3x_base, apply_tqqq_sofr=False)
 
-    # Scenario B: SOFR correction only, bond model unchanged
-    print("  B. SOFR only (dgs10, dur=7, +2xSOFR)...")
+    # Scenario B: SOFR correction only, bond model unchanged (gold: +1xSOFR)
+    print("  B. SOFR only (dgs10, dur=7, +2xSOFR TQQQ/TMF, +1xSOFR Gold)...")
+    gold_2x_B    = build_gold_2x(gold_1x, sofr_daily=sofr, apply_sofr=True)
     bond_3x_B    = build_bond_3x(bond_1x_base, sofr, apply_sofr=True)
     nav_B        = build_nav(close, lev, wn, wg, wb, dates,
-                              gold_2x, bond_3x_B, sofr_daily=sofr, apply_tqqq_sofr=True)
+                              gold_2x_B, bond_3x_B, sofr_daily=sofr, apply_tqqq_sofr=True)
 
-    # Scenario C: Full correction (dgs30, dur=17, +2xSOFR) -- splice fixed
-    print("  C. Full correction (dgs30, dur=17, +2xSOFR, splice fixed)...")
+    # Scenario C: Full correction (dgs30, dur=17, +2xSOFR) -- splice fixed (gold: +1xSOFR)
+    print("  C. Full correction (dgs30, dur=17, +2xSOFR, +1xSOFR Gold, splice fixed)...")
+    gold_2x_C    = build_gold_2x(gold_1x, sofr_daily=sofr, apply_sofr=True)
     bond_1x_corr = build_bond_1x_nav_corrected(dates)
     bond_3x_corr = build_bond_3x(bond_1x_corr, sofr, apply_sofr=True)
     nav_C        = build_nav(close, lev, wn, wg, wb, dates,
-                              gold_2x, bond_3x_corr, sofr_daily=sofr, apply_tqqq_sofr=True)
+                              gold_2x_C, bond_3x_corr, sofr_daily=sofr, apply_tqqq_sofr=True)
 
     # Scenario D: Full correction + time-varying duration (most physically accurate)
     # Fixes static D=17 in 1974-1985 high-yield era (actual Dmod ~6-7 at 15% yield)
-    print("  D. Best model (dgs30, D_var, +2xSOFR, splice fixed)...")
+    # Gold also corrected: +1xSOFR financing (v2 fix)
+    print("  D. Best model (dgs30, D_var, +2xSOFR TQQQ/TMF, +1xSOFR Gold, splice fixed)...")
+    gold_2x_D = build_gold_2x(gold_1x, sofr_daily=sofr, apply_sofr=True)
     bond_1x_D = build_bond_1x_nav_corrected(dates,
                                               use_time_varying_duration=True,
                                               bond_maturity=22.0)
     bond_3x_D = build_bond_3x(bond_1x_D, sofr, apply_sofr=True)
     nav_D     = build_nav(close, lev, wn, wg, wb, dates,
-                           gold_2x, bond_3x_D, sofr_daily=sofr, apply_tqqq_sofr=True)
+                           gold_2x_D, bond_3x_D, sofr_daily=sofr, apply_tqqq_sofr=True)
 
     # Print comparison
     print("\n" + "=" * 120)
     print("DH Dyn 2x3x [A] -- FOUR SCENARIOS COMPARISON")
     print("=" * 120)
-    print("Scenario A = Baseline (current code: dgs10+dur7, no SOFR)")
-    print("Scenario B = +SOFR only (2*SOFR on both TQQQ+TMF, bond model unchanged)")
-    print("Scenario C = dgs30+dur17+2*SOFR+splice_fix (yield source/duration corrected)")
-    print("Scenario D = dgs30+D_var+2*SOFR+splice_fix (time-varying duration, most accurate)")
+    print("Scenario A = Baseline (current code: dgs10+dur7, no SOFR, Gold TER-only)")
+    print("Scenario B = +SOFR only (2*SOFR on TQQQ+TMF, 1*SOFR on Gold, bond model unchanged)")
+    print("Scenario C = dgs30+dur17+2*SOFR+1*SOFR_Gold+splice_fix (yield source/duration corrected)")
+    print("Scenario D = dgs30+D_var+2*SOFR+1*SOFR_Gold+splice_fix (time-varying duration, most accurate)")
     print("=" * 120)
 
     header = (f"{'Period':<8} | "
