@@ -182,8 +182,10 @@ def main():
         # (label, delay, ter, use_sofr, use_boj, swap_spread, description)
         ("T2",  2,  TQQQ_TER,   True,  False, TQQQ_SWAP,  "TQQQ  DELAY=2  [baseline]"),
         ("T5",  5,  TQQQ_TER,   True,  False, TQQQ_SWAP,  "TQQQ  DELAY=5  [pure timing penalty]"),
+        ("T6",  6,  TQQQ_TER,   True,  False, TQQQ_SWAP,  "TQQQ  DELAY=6  [pure timing, actual]"),
         ("T7",  7,  TQQQ_TER,   True,  False, TQQQ_SWAP,  "TQQQ  DELAY=7  [pure timing worst]"),
         ("D5",  5,  FUND3X_TER, False, True,  FUND3X_SWAP, "3倍ブル DELAY=5  [full product comparison]"),
+        ("D6",  6,  FUND3X_TER, False, True,  FUND3X_SWAP, "3倍ブル DELAY=6  [actual confirmed delay]"),
         ("D7",  7,  FUND3X_TER, False, True,  FUND3X_SWAP, "3倍ブル DELAY=7  [3倍ブル worst case]"),
     ]
 
@@ -250,7 +252,7 @@ def main():
     print("=" * 100)
 
     full_rows = {r['scenario']: r for r in rows if r['period'] == 'FULL'}
-    if all(k in full_rows for k in ('T2','T5','T7','D5','D7')):
+    if all(k in full_rows for k in ('T2','T5','T6','T7','D5','D6','D7')):
         t2 = full_rows['T2']['CAGR%']
         t5 = full_rows['T5']['CAGR%']
         t7 = full_rows['T7']['CAGR%']
