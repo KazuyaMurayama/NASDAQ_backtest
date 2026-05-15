@@ -1,3 +1,9 @@
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-15
+> - 後継ファイル: [CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md](CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md)
+> - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: 6x/7x 理論値シナリオを追加した拡張版に統合
+
 # CFD/くりっく株365 レバレッジNASDAQ DH Dyn バックテスト
 
 **生成日**: 2026-05-15
