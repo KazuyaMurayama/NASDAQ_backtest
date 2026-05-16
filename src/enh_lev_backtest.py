@@ -48,6 +48,7 @@ from dynamic_leverage_strategies import (
     compute_L_s1_conviction,
     compute_L_s2_vz_gated,
     compute_L_s3_decomposed,
+    compute_L_s4_relvol,
 )
 
 BASE      = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,6 +85,16 @@ GRIDS = {
         {'beta_defense': b, 'l_max': lm}
         for b, lm in itertools.product([0.7, 1.0, 1.3], [5.0, 7.0])
     ],  # 6組み合わせ
+    'S4_RelVol': [
+        {'l_base': lb, 'k_rel': kr, 'rel_threshold': rt, 'k_vz': kv, 'gate_min': 0.20,
+         'short_hl': 20, 'long_hl': 120}
+        for lb, kr, rt, kv in itertools.product(
+            [5.0, 6.0, 7.0],
+            [1.0, 1.5, 2.0, 2.5],
+            [1.0, 1.2],
+            [0.30, 0.50, 0.80],
+        )
+    ],  # 72組み合わせ（相対ボラゲート）
 }
 
 
@@ -137,10 +148,10 @@ def fmt(v, pct=True, d=2):
 
 def generate_report(all_results, baselines, data_info, p2_best_m, p2_sharpe_oos) -> str:
     lines = []
-    lines.append('# NASDAQ CFD 改良動的レバレッジ戦略 バックテスト (S1/S2/S3)')
+    lines.append('# NASDAQ CFD 改良動的レバレッジ戦略 バックテスト (S1/S2/S3/S4)')
     lines.append('')
     lines.append('作成日: 2026-05-15')
-    lines.append('最終更新日: 2026-05-15')
+    lines.append('最終更新日: 2026-05-16')
     lines.append('')
     lines.append(f'**データ期間**: {data_info["start"]} 〜 {data_info["end"]}')
     lines.append(f'**IS期間**: {FULL_START} 〜 {IS_END} | **OOS期間**: {OOS_START} 〜 {data_info["end"]}')
@@ -150,13 +161,19 @@ def generate_report(all_results, baselines, data_info, p2_best_m, p2_sharpe_oos)
     lines.append('| 戦略 | コンセプト | パラメータ | グリッド数 |')
     lines.append('|------|-----------|-----------|---------|')
     lines.append('| S1: A2-Conviction | A2確信度×ボラ調整 | alpha, target_vol | 9 |')
-    lines.append('| S2: VZ-Gated P2  | P2+VIXゲート前置 | k_vz, gate_min | 9 |')
+    lines.append('| S2: VZ-Gated P2  | P2+VIXゲート前置 | k_vz, gate_min, target_vol | 36 |')
     lines.append('| S3: Decomposed A2 | A2原子因子→L_t再配線 | beta_defense, l_max | 6 |')
+    lines.append('| S4: RelVol-Gated | 相対ボラ(短期/長期)+VIXゲート | l_base, k_rel, rel_threshold, k_vz | 72 |')
     lines.append('')
     lines.append('**採用基準（事前定義）**:')
     lines.append('1. OOS Sharpe > P2 best')
     lines.append('2. |CAGR_IS - CAGR_OOS| < 10pp')
     lines.append('3. Worst5Y > -5%')
+    lines.append('')
+    lines.append('> ⚠️ **P2/S2の設計上の制約**: NASDAQの実現ボラ中央値≈13.6%に対して')
+    lines.append('> target_vol=0.60〜0.80はtarget_vol/σの比が中央値≈4〜6となり')
+    lines.append('> l_max=7に99%以上クリップ。target_volパラメータは実質ノイズ。')
+    lines.append('> S4はこの問題を解決するため相対ボラ（短期/長期EWMA比）を採用。')
     lines.append('')
     lines.append('---')
     lines.append('')
@@ -309,21 +326,40 @@ def main():
     # --- Strategy grid search ---
     all_results = {}
 
-    def run_grid(key, fn_and_grid_items):
+    def run_grid(key, fn_and_grid_items, worst5y_is_filter=-0.05):
+        """worst5y_is_filter: IS段階でWorst5Y < 閾値のパラメータをIS-bestから除外。"""
         print(f'\n--- {key} ---')
         ranked = []
+        filtered_out = 0
         for params, L_t in fn_and_grid_items:
             m     = run_one(L_t, close, lev_A, wn_A, wg_A, wb_A, dates,
                             gold_2x, bond_3x, sofr)
             score = is_score(m)
-            ranked.append((score, params, m, L_t))
+            # Worst5Y_IS フィルタ: 全期間Worst5Yが閾値未満は採用レースから外す
+            w5 = m.get('Worst5Y', -999)
+            passes = (w5 >= worst5y_is_filter) if not np.isnan(w5) else False
+            if not passes:
+                filtered_out += 1
+            ranked.append((score, params, m, L_t, passes))
             print(f'  {params} → IS:{m.get("CAGR_IS",0)*100:+.2f}% '
                   f'OOS:{m.get("CAGR_OOS",0)*100:+.2f}% '
                   f'Sharpe_OOS:{m.get("Sharpe_OOS",0):.3f} '
-                  f'MaxDD:{m.get("MaxDD_FULL",0)*100:.1f}%')
+                  f'MaxDD:{m.get("MaxDD_FULL",0)*100:.1f}% '
+                  f'Worst5Y:{w5*100:+.1f}% {"❌" if not passes else ""}')
         ranked.sort(key=lambda x: x[0], reverse=True)
-        all_results[key] = {'best': ranked[0], 'top3': ranked[:3]}
-        _, bp, bm, bL = ranked[0]
+        # Worst5Y フィルタ通過済み優先
+        passing = [(sc, pr, m, lt, ok) for sc, pr, m, lt, ok in ranked if ok]
+        ranked_final = passing if passing else ranked  # フィルタ後に残るものがなければ全体から選ぶ
+        print(f'  (Worst5Y≥-5% フィルタ通過: {len(passing)}/{len(ranked)}, 除外: {filtered_out})')
+        # top3はフィルタ通過済みから選ぶ
+        top3 = ranked_final[:3]
+        all_results[key] = {
+            'best': tuple(ranked_final[0][:4]),   # (score, params, m, L_t)
+            'top3': [tuple(x[:4]) for x in top3],
+            'filter_n': len(passing),
+            'total_n':  len(ranked),
+        }
+        _, bp, bm, bL = tuple(ranked_final[0][:4])
         ls = lev_stats(bL)
         print(f'  Best: {bp}')
         print(f'    CAGR_FULL={bm["CAGR_FULL"]*100:+.2f}% OOS={bm["CAGR_OOS"]*100:+.2f}% '
@@ -352,6 +388,14 @@ def main():
         for p in GRIDS['S3_Decomposed']
     ])
 
+    # S4 (相対ボラゲート: target_vol死パラメータ問題を回避)
+    run_grid('S4_RelVol', [
+        ({'l_base': p['l_base'], 'k_rel': p['k_rel'],
+          'rel_threshold': p['rel_threshold'], 'k_vz': p['k_vz']},
+         compute_L_s4_relvol(returns, vz, **p))
+        for p in GRIDS['S4_RelVol']
+    ])
+
     # --- Sanity check: S2 with k_vz=0 should match P2 ---
     print('\n--- Sanity Check: S2(k_vz=0) == P2 ---')
     L_s2_zero = compute_L_s2_vz_gated(returns, vz, target_vol=P2_BEST_TARGET_VOL,
@@ -367,7 +411,7 @@ def main():
     print('\nGenerating report...')
     data_info = {'start': str(dates.iloc[0].date()), 'end': str(dates.iloc[-1].date())}
     md = generate_report(all_results, baselines, data_info, p2_best_m, p2_sharpe_oos)
-    out = os.path.join(BASE, 'ENH_LEVERAGE_BACKTEST_2026-05-15.md')
+    out = os.path.join(BASE, 'ENH_LEVERAGE_BACKTEST_2026-05-16.md')
     with open(out, 'w', encoding='utf-8') as f:
         f.write(md)
     print(f'Saved: {out}')
