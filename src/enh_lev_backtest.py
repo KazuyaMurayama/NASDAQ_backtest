@@ -73,9 +73,13 @@ GRIDS = {
         for a, tv in itertools.product([0.5, 1.0, 1.5], [0.40, 0.60, 0.80])
     ],  # 9組み合わせ
     'S2_VZGated': [
-        {'k_vz': k, 'gate_min': g}
-        for k, g in itertools.product([0.20, 0.30, 0.45], [0.20, 0.35, 0.50])
-    ],  # 9組み合わせ
+        {'k_vz': k, 'gate_min': g, 'target_vol': tv}
+        for tv, k, g in itertools.product(
+            [0.60, 0.70, 0.80],
+            [0.20, 0.30, 0.45, 0.60],
+            [0.20, 0.35, 0.50],
+        )
+    ],  # 36組み合わせ（拡張版）
     'S3_Decomposed': [
         {'beta_defense': b, 'l_max': lm}
         for b, lm in itertools.product([0.7, 1.0, 1.3], [5.0, 7.0])
@@ -334,10 +338,10 @@ def main():
         for p in GRIDS['S1_Conviction']
     ])
 
-    # S2
+    # S2 (拡張グリッド: target_vol も最適化対象)
     run_grid('S2_VZGated', [
-        ({'k_vz': p['k_vz'], 'gate_min': p['gate_min']},
-         compute_L_s2_vz_gated(returns, vz, target_vol=P2_BEST_TARGET_VOL, **p))
+        ({'k_vz': p['k_vz'], 'gate_min': p['gate_min'], 'target_vol': p['target_vol']},
+         compute_L_s2_vz_gated(returns, vz, **p))
         for p in GRIDS['S2_VZGated']
     ])
 
