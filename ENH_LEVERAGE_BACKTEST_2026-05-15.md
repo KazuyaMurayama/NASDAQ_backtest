@@ -1,5 +1,12 @@
 # NASDAQ CFD 改良動的レバレッジ戦略 バックテスト (S1/S2/S3)
 
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-16
+> - 後継ファイル: [ENH_LEVERAGE_BACKTEST_2026-05-16.md](ENH_LEVERAGE_BACKTEST_2026-05-16.md)
+> - CFD動的レバレッジ推奨: [CFD_DYNAMIC_LEVERAGE_GUIDE.md](CFD_DYNAMIC_LEVERAGE_GUIDE.md)
+> - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: S4戦略追加・P0検証（target_vol死パラメータ問題）反映・S2採用判定確定のため2026-05-16版に置換
+
 作成日: 2026-05-15
 最終更新日: 2026-05-15
 

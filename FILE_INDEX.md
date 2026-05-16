@@ -6,21 +6,23 @@
 | 項目 | 値 |
 |---|---|
 | リポジトリ | KazuyaMurayama/NASDAQ_backtest |
-| ブランチ | main |
-| 総ファイル数 | 212 |
-| 最終更新 | 2026-05-11 |
+| ブランチ | main / claude/review-best-strategy-Jcjd5 (CFD軸作業中) |
+| 総ファイル数 | 218 |
+| 最終更新 | 2026-05-16 |
 | 管理者 | 男座員也（Kazuya Oza） |
 
 ---
 
-## 🎯 最優先参照ファイル（このリポジトリで最初に見るべき4つ）
+## 🎯 最優先参照ファイル（このリポジトリで最初に見るべきファイル）
 
 | 優先 | ファイル | 役割 |
 |---|---|---|
-| 1 | [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) | 現行ベスト戦略の正典 (Single Source of Truth) |
-| 2 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
-| 3 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 現行ベスト戦略の一次根拠 |
-| 4 | [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較・BRK ベンチマーク |
+| 1 | [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) | 現行ベスト戦略の正典 (DH Dyn軸 Single Source of Truth) |
+| 2 | [CFD_DYNAMIC_LEVERAGE_GUIDE.md](CFD_DYNAMIC_LEVERAGE_GUIDE.md) | **CFD動的レバレッジ軸の正典** (S2_VZGated, 2026-05-16採用) |
+| 3 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
+| 4 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 現行ベスト戦略の一次根拠 (DH Dyn軸) |
+| 5 | [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較・BRK ベンチマーク |
+| 6 | [SESSION_SUMMARY_2026-05-16.md](SESSION_SUMMARY_2026-05-16.md) | 2026-05-16セッション引継ぎ（CFD軸・次セッション向け） |
 
 ## ⛔ SUPERSEDED ファイル（参照禁止・廃止済み）
 
@@ -34,6 +36,7 @@
 | CONTEXT_SUMMARY_2026-02-06.md | 2026-05-11 | CURRENT_BEST_STRATEGY.md / tasks.md |
 | THRESHOLD_SWEEP_REPORT_2026-04-20.md | 2026-05-11 | THRESHOLD_SWEEP_A_REPORT_2026-04-21.md |
 | YEARLY_RETURNS_REPORT_2026-04-20_v2.md | 2026-05-11 | YEARLY_RETURNS_REPORT_2026-04-20_v3.md |
+| ENH_LEVERAGE_BACKTEST_2026-05-15.md | 2026-05-16 | ENH_LEVERAGE_BACKTEST_2026-05-16.md |
 
 ---
 
@@ -41,8 +44,8 @@
 
 | カテゴリ | ファイル数 |
 |---|---|
-| Documentation | 41 |
-| Code | 79 |
+| Documentation | 47 |
+| Code | 83 |
 | Data | 86 |
 | Asset | 4 |
 | Config | 1 |
@@ -290,7 +293,8 @@
 | `CAGR_IMPROVEMENT_PLAN_2026-04-09.md` | 13.8 KB | Markdown ドキュメント |
 | `CLAUDE.md` | 2.0 KB | Claude Code プロジェクト設定・命名ルール |
 | `CONTEXT_SUMMARY_2026-02-06.md` | 2.9 KB | ⛔ SUPERSEDED → CURRENT_BEST_STRATEGY.md |
-| `CURRENT_BEST_STRATEGY.md` | — | 🎯 現行ベスト戦略の正典 (Single Source of Truth) |
+| `CFD_DYNAMIC_LEVERAGE_GUIDE.md` | — | 🎯 CFD動的レバレッジ軸の正典 (S2_VZGated, 2026-05-16採用) |
+| `CURRENT_BEST_STRATEGY.md` | — | 🎯 現行ベスト戦略の正典 (DH Dyn 2x3x [A]、Single Source of Truth) |
 | `docs/rules/01_response-basics.md` | 708 B | Markdown ドキュメント |
 | `docs/rules/02_task-management.md` | 458 B | Markdown ドキュメント |
 | `docs/rules/03_file-index.md` | 487 B | Markdown ドキュメント |
@@ -310,9 +314,17 @@
 | `README.md` | 2.2 KB | リポジトリ概要・セットアップ手順 |
 | `REGIME_ANALYSIS_REPORT_2026-04-04.md` | 4.8 KB | Markdown ドキュメント |
 | `SESSION_SUMMARY_2026-04-04.md` | 13.6 KB | Markdown ドキュメント |
+| `SESSION_SUMMARY_2026-05-16.md` | — | 🎯 2026-05-16セッション引継ぎ（CFD軸 S1-S4バックテスト・P0検証結果） |
 | `STRATEGY_COMPARISON_2026-03-30.md` | 3.7 KB | Markdown ドキュメント |
 | `STRATEGY_COMPARISON_CAGR30per_plus_2026-04-02.md` | 36.7 KB | Markdown ドキュメント |
 | `STRATEGY_RESEARCH_PLAN_R4_2026-02-06.md` | 18.6 KB | Markdown ドキュメント |
+| `CFD_LEVERAGE_BACKTEST_2026-05-15.md` | — | ⛔ SUPERSEDED → CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md |
+| `CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md` | — | CFD 3x〜7x固定レバの DH Dyn バックテスト検証 |
+| `CFD_LEVERAGE_PROCEDURE_2026-05-15.md` | — | CFDレバレッジ取引手順ガイド（初心者向け） |
+| `CFD_YEARLY_RETURNS_2026-05-15.md` | — | CFD 年次リターン表 (3x/5x + ベンチマーク) |
+| `DYN_LEVERAGE_BACKTEST_2026-05-15.md` | — | P1〜P5 動的レバ戦略バックテスト（S1〜S4の前身） |
+| `ENH_LEVERAGE_BACKTEST_2026-05-15.md` | — | ⛔ SUPERSEDED → ENH_LEVERAGE_BACKTEST_2026-05-16.md |
+| `ENH_LEVERAGE_BACKTEST_2026-05-16.md` | — | 🎯 S1/S2/S3/S4バックテスト最終版（CFD動的レバレッジ） |
 | `tasks.md` | 1.8 KB | タスク管理・セッション履歴 |
 | `THRESHOLD_SWEEP_A_REPORT_2026-04-21.md` | 8.0 KB | 🎯 現行ベスト戦略 (DH Dyn 2x3x [A] 閾値0.15) の一次根拠 |
 | `THRESHOLD_SWEEP_REPORT_2026-04-20.md` | 5.3 KB | ⛔ SUPERSEDED → THRESHOLD_SWEEP_A_REPORT_2026-04-21.md |
@@ -404,6 +416,11 @@
 | `src/validate_c3_reit_bootstrap.py` | 10.0 KB | Python スクリプト |
 | `src/verify_calculations.py` | 21.1 KB | Python スクリプト |
 | `src/verify_max_lev.py` | 3.7 KB | Python スクリプト |
+| `src/cfd_leverage_backtest.py` | — | CFD NASDAQスリーブ・DH Dynポートフォリオ構築・評価関数 |
+| `src/dyn_lev_backtest.py` | — | P1〜P5 動的レバ戦略バックテストドライバ |
+| `src/dynamic_leverage_strategies.py` | — | P1〜P5, S1〜S4 戦略関数実装（2026-05-16: S4追加） |
+| `src/enh_lev_backtest.py` | — | S1〜S4 グリッドサーチ・Worst5Yフィルタ・DH Dyn評価（2026-05-16更新） |
+| `src/p0_verify_critical.py` | — | P0検証スクリプト（SOFR単位・vt_multクリップ率・Worst5Y定義） |
 | `src/yearly_returns_analysis.py` | 10.5 KB | Python スクリプト |
 | `src/yearly_returns_excel_formatted.py` | 17.9 KB | Python スクリプト |
 | `src/yearly_returns_excel_ja.py` | 20.9 KB | Python スクリプト |
