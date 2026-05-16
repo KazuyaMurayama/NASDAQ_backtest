@@ -210,7 +210,7 @@ def build_bond_3x(bond_1x_nav: np.ndarray, sofr_daily: np.ndarray,
 # DH A2 signal
 # ---------------------------------------------------------------------------
 
-def build_a2_signal(close, returns):
+def build_a2_signal(close, returns, return_components=False):
     dd  = calc_dd_signal(close, 0.82, 0.92)
     av  = calc_asym_ewma(returns, 30, 10)
     ma150 = close.rolling(150).mean(); ratio = close / ma150
@@ -224,6 +224,11 @@ def build_a2_signal(close, returns):
     vz  = ((vp - vp.rolling(252).mean()) / vp.rolling(252).std().replace(0,0.001))
     vm  = (1.0 - 0.25 * vz).clip(0.5, 1.15)
     raw = (dd * vt * slope * mom * vm).clip(0, 1.0).fillna(0)
+    if return_components:
+        return raw, vz.fillna(0), {
+            'dd': dd.fillna(0), 'vt': vt.fillna(0),
+            'slope': slope.fillna(1.0), 'mom': mom.fillna(1.0), 'vm': vm.fillna(1.0),
+        }
     return raw, vz.fillna(0)
 
 

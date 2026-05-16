@@ -174,3 +174,105 @@ def compute_L_kelly(returns: pd.Series,
     L_kelly = mu_excess / sigma2
     L_raw = (safety * L_kelly).clip(l_min, l_max).fillna(l_min)
     return _quantize(L_raw, step)
+
+
+# ---------------------------------------------------------------------------
+# S1: A2-Conviction Leverage（確信度スケーリング）
+# ---------------------------------------------------------------------------
+
+def compute_L_s1_conviction(raw_a2: pd.Series,
+                             returns: pd.Series,
+                             alpha: float = 1.0,
+                             target_vol: float = 0.60,
+                             n: int = 20,
+                             l_min: float = 1.0,
+                             l_max: float = 7.0,
+                             step: float = 0.5) -> pd.Series:
+    """
+    A2の raw スコア（確信度）をレバレッジに直接変換。
+
+    conviction = raw_A2 ^ alpha        (alpha<1: 中程度でもレバ高め, alpha>1: 高確信のみ)
+    vt_mult    = clip(target_vol/σ, 0, 1)  (高ボラ時に上限抑制)
+    L = l_min + (l_max - l_min) × conviction × vt_mult
+
+    根拠: A2が「強気確信（0.9）」のときだけフルレバ、「低確信（0.3）」では
+    最大でも3〜4倍相当に抑える。ベア相場でA2が低下→自動デレバ。
+    """
+    sigma = returns.rolling(n, min_periods=5).std() * np.sqrt(TRADING_DAYS)
+    sigma = sigma.clip(lower=1e-6)
+    vt_mult = np.clip(target_vol / sigma, 0.0, 1.0)
+
+    conviction = raw_a2.fillna(0.0).clip(0.0, 1.0) ** alpha
+    L_raw = l_min + (l_max - l_min) * conviction * vt_mult
+    return _quantize(L_raw.clip(l_min, l_max), step)
+
+
+# ---------------------------------------------------------------------------
+# S2: VZ-Gated Vol Target（VIXゲート付きP2）
+# ---------------------------------------------------------------------------
+
+def compute_L_s2_vz_gated(returns: pd.Series,
+                            vz: pd.Series,
+                            target_vol: float = 0.60,
+                            k_vz: float = 0.30,
+                            gate_min: float = 0.35,
+                            n: int = 20,
+                            l_min: float = 1.0,
+                            l_max: float = 7.0,
+                            step: float = 0.5) -> pd.Series:
+    """
+    P2（ボラ・ターゲティング）にVIXプロキシz-scoreの非対称ゲートを前置。
+
+    vz_gate = clip(1 - k_vz × max(vz, 0), gate_min, 1.0)
+    L = clip(target_vol / sigma × vz_gate, l_min, l_max)
+
+    根拠: P2は実現ボラが上がってからしか反応しない（遅れ2〜3週）。
+    VIXプロキシは実現ボラより1〜5日先行するため、急落初動で先に守れる。
+    vz<0（平穏）ではゲート=1.0（P2と同一）、vz>0で線形減衰（非対称）。
+    """
+    sigma = returns.rolling(n, min_periods=5).std() * np.sqrt(TRADING_DAYS)
+    sigma = sigma.clip(lower=1e-6)
+
+    vz_pos = vz.fillna(0.0).clip(lower=0.0)   # 負のVZは無視（非対称）
+    vz_gate = (1.0 - k_vz * vz_pos).clip(gate_min, 1.0)
+
+    L_raw = (target_vol / sigma) * vz_gate
+    return _quantize(L_raw.clip(l_min, l_max), step)
+
+
+# ---------------------------------------------------------------------------
+# S3: Decomposed A2 Leverage（A2分解再配線）
+# ---------------------------------------------------------------------------
+
+def compute_L_s3_decomposed(components: dict,
+                              beta_defense: float = 1.0,
+                              l_min: float = 1.0,
+                              l_max: float = 7.0,
+                              step: float = 0.5) -> pd.Series:
+    """
+    A2の原子コンポーネントを L_t に直接再配線。wn/lev_A 経路とは独立。
+
+    defense     = clip(dd × vm, 0, 1)            — 守備系（ドローダウン×VIX）
+    offense_norm = clip(slope × mom / 1.95, 0, 1) — 攻撃系（トレンド×モメンタム）
+    vol_adj     = vt                              — ボラ調整
+    score       = defense^beta × offense_norm × vol_adj
+    L = l_min + (l_max - l_min) × score
+
+    beta_defense < 1: 部分回復でも早めにレバを上げる
+    beta_defense > 1: 完全回復を確認してからレバを上げる（保守的）
+    """
+    dd    = components['dd']
+    vt    = components['vt']
+    slope = components['slope']
+    mom   = components['mom']
+    vm    = components['vm']
+
+    defense = (dd * vm).clip(0.0, 1.0)
+    defense_curved = defense.clip(0.0, 1.0) ** beta_defense
+
+    offense = (slope * mom).clip(0.0, 1.95)
+    offense_norm = (offense / 1.95).clip(0.0, 1.0)
+
+    score = (defense_curved * offense_norm * vt).clip(0.0, 1.0)
+    L_raw = l_min + (l_max - l_min) * score
+    return _quantize(L_raw.clip(l_min, l_max), step)
