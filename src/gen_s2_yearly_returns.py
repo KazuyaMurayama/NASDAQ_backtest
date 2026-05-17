@@ -55,15 +55,17 @@ def build_bh1x_nav(close: pd.Series) -> pd.Series:
     return nav
 
 
-def build_cfd_fixed_nav(close: pd.Series, sofr: np.ndarray, leverage: float) -> pd.Series:
-    """純粋NASDAQ CFD 固定倍率（ポートフォリオ混合なし）"""
-    r_nas = close.pct_change().fillna(0).values
-    r_cfd = build_cfd_nas_sleeve(r_nas, leverage, sofr, CFD_SPREAD_LOW)
-    # NAV崩壊対策: 1日損失を -0.999 でクリップ
-    r_clipped = np.clip(r_cfd, -0.999, None)
-    nav = pd.Series((1 + r_clipped).cumprod(), index=close.index)
-    nav.attrs['blowup_days'] = int((r_cfd < -0.999).sum())
-    return nav
+def build_cfd_fixed_nav(close: pd.Series, dates: pd.Series,
+                          sofr: np.ndarray, gold_2x, bond_3x, leverage: float) -> pd.Series:
+    """CFD 固定倍率: DH Dyn(A) ポートフォリオ + NAS スリーブ固定CFDレバ
+    （ENH_LEVERAGE_BACKTEST_2026-05-15.md と同じ定義）"""
+    raw_a2, vz = build_a2_signal(close, close.pct_change())
+    lev_A, wn_A, wg_A, wb_A, _ = simulate_rebalance_A(raw_a2, vz, THRESHOLD)
+    return build_nav_strategy(
+        close, lev_A, wn_A, wg_A, wb_A, dates,
+        gold_2x, bond_3x, sofr,
+        nas_mode='CFD', cfd_leverage=float(leverage), cfd_spread=CFD_SPREAD_LOW
+    )
 
 
 def build_s2_vzgated_nav(close: pd.Series, dates: pd.Series,
@@ -161,7 +163,7 @@ def generate_md(all_annual: dict, all_stats: dict, data_info: dict) -> str:
     lines.append('| 戦略 | コスト条件 |')
     lines.append('|------|-----------|')
     lines.append('| S2_VZGated | CFD (L-1)×SOFR + (L-1)×0.20%スプレッド + DH Dynポートフォリオ (Gold2x 20%, Bond3x 20%) |')
-    lines.append('| CFD 3x/7x [固定] | (L-1)×SOFR + (L-1)×0.20%スプレッド (純NASDAQのみ) |')
+    lines.append('| CFD 3x/7x [固定] | DH Dyn(A) ポートフォリオ + NASスリーブ固定CFDレバ ((L-1)×SOFR + (L-1)×0.20%スプレッド) |')
     lines.append('| DH Dyn 2x3x [A] | TQQQ mode: 3×SOFR + 2×swap(0.50%) + TER(0.86%) + DH Dynポートフォリオ |')
     lines.append('| BH 1x | 補正なし (ベンチマーク) |')
     lines.append('| SOFR proxy | DTB3 (FRED 3M T-bill, 平均 4.37%/年) |')
@@ -277,9 +279,9 @@ def main():
     print('  S2_VZGated...')
     navs['S2_VZGated']      = build_s2_vzgated_nav(close, dates, sofr, gold_2x, bond_3x)
     print('  CFD 3x [固定]...')
-    navs['CFD 3x [固定]']   = build_cfd_fixed_nav(close, sofr, 3.0)
+    navs['CFD 3x [固定]']   = build_cfd_fixed_nav(close, dates, sofr, gold_2x, bond_3x, 3.0)
     print('  CFD 7x [固定]...')
-    navs['CFD 7x [固定]']   = build_cfd_fixed_nav(close, sofr, 7.0)
+    navs['CFD 7x [固定]']   = build_cfd_fixed_nav(close, dates, sofr, gold_2x, bond_3x, 7.0)
     print('  DH Dyn 2x3x [A]...')
     navs['DH Dyn 2x3x [A]'] = build_dh_dyn_2x3x_A_nav(close, dates, sofr, gold_2x, bond_3x)
     print('  BH 1x...')
@@ -297,9 +299,10 @@ def main():
 
     # Sanity check
     print('\n--- Sanity Check ---')
-    # DH Dyn 2x3x [A] CAGR: 2026-05-12 Scenario D補正後は +22.50% (Gold 2x SOFR修正適用)
-    # 旧値 +30.81% は CURRENT_BEST_STRATEGY.md v1 (補正前)
+    # 旧 ENH_LEVERAGE_BACKTEST_2026-05-15.md と一致するべき値
     expected = {
+        'CFD 3x [固定]':    (23.20, 0.6),
+        'CFD 7x [固定]':    (41.36, 0.6),
         'DH Dyn 2x3x [A]': (22.50, 0.6),
         'BH 1x':            (10.98, 0.6),
     }
