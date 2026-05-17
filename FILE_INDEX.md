@@ -322,6 +322,7 @@
 | `CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md` | — | CFD 3x〜7x固定レバの DH Dyn バックテスト検証 |
 | `CFD_LEVERAGE_PROCEDURE_2026-05-15.md` | — | CFDレバレッジ取引手順ガイド（初心者向け） |
 | `CFD_YEARLY_RETURNS_2026-05-15.md` | — | CFD 年次リターン表 (3x/5x + ベンチマーク) |
+| `CFD_S2_YEARLY_RETURNS_2026-05-17.md` | — | 🎯 S2_VZGated 年次リターン表 (S2/CFD 3x/7x/DH 2x3x [A]/BH 1x、FULL/IS/OOS統計付き) |
 | `DYN_LEVERAGE_BACKTEST_2026-05-15.md` | — | P1〜P5 動的レバ戦略バックテスト（S1〜S4の前身） |
 | `ENH_LEVERAGE_BACKTEST_2026-05-15.md` | — | ⛔ SUPERSEDED → ENH_LEVERAGE_BACKTEST_2026-05-16.md |
 | `ENH_LEVERAGE_BACKTEST_2026-05-16.md` | — | 🎯 S1/S2/S3/S4バックテスト最終版（CFD動的レバレッジ） |
