@@ -9,12 +9,11 @@
 
 ## 🟡 Pending
 
-### Gold/Bond スリーブ拡張軸（新規・最優先）
-- [ ] **H1〜H5 バックテスト実装**（[GOLD_BOND_STRATEGY_PLAN_2026-05-17.md](GOLD_BOND_STRATEGY_PLAN_2026-05-17.md) に基づく）
-  - `src/sleeves_extended.py`（新規）
-  - `src/run_hypotheses_H1_H5.py`（新規）
-  - `src/data_loader_gold_bond.py`（新規）
-- [ ] H1〜H5 採用判定 → CURRENT_BEST_STRATEGY.md 更新
+### Gold/Bond スリーブ拡張軸（次フェーズ判断課題）
+- [ ] **H4 採用可否最終判断**（OOS Sharpe 0.837/Gap 0.3pp は魅力的だがWorst5Y -2.24%）
+- [ ] **H2/H3 リスク許容判断**（高Sharpe but MaxDD -79% は実運用に難）
+- [ ] Worst5Y ≥ 0% 必須条件を満たす代替仮説の探索（H4派生 wg/wb 比率調整、Bond軽減度の最適化）
+- [ ] H4採用時のCURRENT_BEST_STRATEGY.md 更新
 
 ### CFD動的レバレッジ軸（優先）
 （CFD動的レバレッジの主要タスク完了。以下は次フェーズ課題）
@@ -26,6 +25,7 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-17: **H1〜H5 Gold/Bond仮説 バックテスト完了** — 5仮説全実行。**H2 (S2+Gold5x): Sharpe 0.881** だが MaxDD -79.5%。**H4 (TOCOM+Bond軽減): Sharpe 0.837, Gap 0.3pp** で最ロバスト。⚠️ **Worst5Y≥0%必須基準は全仮説で未達** (最良はH5 -0.17%)。BL_S2超えは H2/H4 の2件。[H1_H5_SUMMARY_2026-05-17.md](H1_H5_SUMMARY_2026-05-17.md)
 - 2026-05-17: **Gold/Bond 商品選定とNASDAQ統合戦略 計画書** — 5仮説（H1〜H5）立案完了。Gold候補3本（1540+信用2x / SBI金CFD / TOCOM先物）、Bond候補（TMF維持）、コストモデル統一、採用基準明文化、感度分析計画。[GOLD_BOND_STRATEGY_PLAN_2026-05-17.md](GOLD_BOND_STRATEGY_PLAN_2026-05-17.md)
 - 2026-05-17: **S2 DH Dyn統合シナリオ試算** — S2 CFD+DH: CAGR +32.35% (+9.85pp vs TQQQ)、OOS Sharpe 0.769 (+0.123)、IS-OOS Gap 5.4pp。ただしMaxDD -62.36% (-17.27pp)、Worst5Y -4.73% (-5.60pp)。高リターン・高リスクのトレードオフ確認。[S2_DH_INTEGRATION_2026-05-17.md](S2_DH_INTEGRATION_2026-05-17.md)
 - 2026-05-17: **S4_RelVol Sharpe改善グリッドサーチ** — 192コンボ中採用基準パス0件。最大Sharpe 0.716 (閾値0.757未達)。S4不採用確定。[S4_SHARPE_SWEEP_2026-05-17.md](S4_SHARPE_SWEEP_2026-05-17.md)
