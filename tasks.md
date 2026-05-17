@@ -10,9 +10,8 @@
 ## 🟡 Pending
 
 ### CFD動的レバレッジ軸（優先）
-- [ ] P2*/S2* 再設計: target_vol ∈ {0.10, 0.13, 0.16, 0.20, 0.25} で再グリッドサーチ（死パラメータ問題の根本対処）
-- [ ] S4_RelVol の Sharpe 改善試案（l_base=5以下・IS-OOS gap 14.8pp 縮小）
-- [ ] S2 を DH Dynポートフォリオ正式統合シナリオ試算
+（CFD動的レバレッジの主要タスク完了。以下は次フェーズ課題）
+- [ ] S2 DH統合の実運用可否判断（MaxDD -62% は許容範囲か？スリーブ比率調整）
 
 ### DH Dyn軸（既存）
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
@@ -20,6 +19,9 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-17: **S2 DH Dyn統合シナリオ試算** — S2 CFD+DH: CAGR +32.35% (+9.85pp vs TQQQ)、OOS Sharpe 0.769 (+0.123)、IS-OOS Gap 5.4pp。ただしMaxDD -62.36% (-17.27pp)、Worst5Y -4.73% (-5.60pp)。高リターン・高リスクのトレードオフ確認。[S2_DH_INTEGRATION_2026-05-17.md](S2_DH_INTEGRATION_2026-05-17.md)
+- 2026-05-17: **S4_RelVol Sharpe改善グリッドサーチ** — 192コンボ中採用基準パス0件。最大Sharpe 0.716 (閾値0.757未達)。S4不採用確定。[S4_SHARPE_SWEEP_2026-05-17.md](S4_SHARPE_SWEEP_2026-05-17.md)
+- 2026-05-17: **P2*/S2* 低target_vol グリッドサーチ** — tv∈{0.10〜0.25}は全て機能的(clip_rate=0%)だが最大Sharpe 0.681（採用S2の0.769未達）。採用S2(tv=0.80)が最良。[S2_LOW_VOL_SWEEP_2026-05-17.md](S2_LOW_VOL_SWEEP_2026-05-17.md)
 - 2026-05-17: **S2_VZGated Rolling Window CV 検証** — 46窓（1980〜2025, 5yr IS/1yr OOS）で検証。MaxDD勝率63%（S2>P2）、Sharpe勝率41%（1年窓誤差範囲内）、CAGR>0率72%（P2と同等）。危機年（1987/1990/2008/2011/2022）での優位確認。採用維持確定。[S2_ROLLING_CV_2026-05-17.md](S2_ROLLING_CV_2026-05-17.md)
 - 2026-05-16: **CFD動的レバレッジ S1/S2/S3/S4 バックテスト完了** — S2_VZGated 採用確定（OOS Sharpe 0.769, Worst5Y -4.75%, IS-OOS Gap 5.4pp）。P0検証3件（SOFR単位✅ / target_vol99.7%クリップ⚠️ / Worst5Y定義✅）。S1/S3/S4 は不採用。[SESSION_SUMMARY_2026-05-16.md](SESSION_SUMMARY_2026-05-16.md) / [CFD_DYNAMIC_LEVERAGE_GUIDE.md](CFD_DYNAMIC_LEVERAGE_GUIDE.md) / [ENH_LEVERAGE_BACKTEST_2026-05-16.md](ENH_LEVERAGE_BACKTEST_2026-05-16.md)
 - 2026-05-15: **CFD固定レバレッジ & 動的レバレッジ P1〜P5 バックテスト** — P2(vol-targeting, target_vol=0.8) が OOS Sharpe 0.757 でベースライン。[DYN_LEVERAGE_BACKTEST_2026-05-15.md](DYN_LEVERAGE_BACKTEST_2026-05-15.md) / [CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md](CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md)
