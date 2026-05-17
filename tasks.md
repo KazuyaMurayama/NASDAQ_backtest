@@ -10,7 +10,6 @@
 ## 🟡 Pending
 
 ### CFD動的レバレッジ軸（優先）
-- [ ] S2_VZGated の Rolling Window CV 検証（5yr IS→1yr OOS ローリング、OOS安定性確認）
 - [ ] P2*/S2* 再設計: target_vol ∈ {0.10, 0.13, 0.16, 0.20, 0.25} で再グリッドサーチ（死パラメータ問題の根本対処）
 - [ ] S4_RelVol の Sharpe 改善試案（l_base=5以下・IS-OOS gap 14.8pp 縮小）
 - [ ] S2 を DH Dynポートフォリオ正式統合シナリオ試算
@@ -21,7 +20,7 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
-- 2026-05-17: **S2_VZGated 年次リターン表生成** — S2/CFD 3x/CFD 7x/DH 2x3x [A]/BH 1x の FULL/IS/OOS統計+年次表。[CFD_S2_YEARLY_RETURNS_2026-05-17.md](CFD_S2_YEARLY_RETURNS_2026-05-17.md)
+- 2026-05-17: **S2_VZGated Rolling Window CV 検証** — 46窓（1980〜2025, 5yr IS/1yr OOS）で検証。MaxDD勝率63%（S2>P2）、Sharpe勝率41%（1年窓誤差範囲内）、CAGR>0率72%（P2と同等）。危機年（1987/1990/2008/2011/2022）での優位確認。採用維持確定。[S2_ROLLING_CV_2026-05-17.md](S2_ROLLING_CV_2026-05-17.md)
 - 2026-05-16: **CFD動的レバレッジ S1/S2/S3/S4 バックテスト完了** — S2_VZGated 採用確定（OOS Sharpe 0.769, Worst5Y -4.75%, IS-OOS Gap 5.4pp）。P0検証3件（SOFR単位✅ / target_vol99.7%クリップ⚠️ / Worst5Y定義✅）。S1/S3/S4 は不採用。[SESSION_SUMMARY_2026-05-16.md](SESSION_SUMMARY_2026-05-16.md) / [CFD_DYNAMIC_LEVERAGE_GUIDE.md](CFD_DYNAMIC_LEVERAGE_GUIDE.md) / [ENH_LEVERAGE_BACKTEST_2026-05-16.md](ENH_LEVERAGE_BACKTEST_2026-05-16.md)
 - 2026-05-15: **CFD固定レバレッジ & 動的レバレッジ P1〜P5 バックテスト** — P2(vol-targeting, target_vol=0.8) が OOS Sharpe 0.757 でベースライン。[DYN_LEVERAGE_BACKTEST_2026-05-15.md](DYN_LEVERAGE_BACKTEST_2026-05-15.md) / [CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md](CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md)
 - 2026-05-11: **再発防止プロトコル整備** — `CURRENT_BEST_STRATEGY.md` 作成、旧 `FINAL_*` / `*_2026-02-06.md` / `THRESHOLD_SWEEP_REPORT_2026-04-20.md` / `YEARLY_RETURNS_REPORT_2026-04-20_v2.md` に SUPERSEDED ヘッダ追加。CLAUDE.md にベスト戦略参照プロトコルと命名規則を追記。[CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
