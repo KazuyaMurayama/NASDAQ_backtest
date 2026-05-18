@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-05-18 (P3完了)
+最終更新: 2026-05-18 (P5完了)
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -25,6 +25,8 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-18: **P5: ブロックブートストラップ・ストレステスト完了 (B=2000, L=21)** — ADOPT確定ゼロ。Dyn系3コンボはMARGINAL → **GRAY維持** (絶対水準は良好だが C8: ΔSharpe 5%ile > 0 を満たず、p_value 0.088-0.091で C9をわずかに通過)。HY/MA系は**REJECT確定** (P06はFRAGILE)。**結論: タイミングゲートはBaseline比優位性が統計的に確立できず、現行DH Dyn [A]維持を最終推奨。** [P5_BOOTSTRAP_STRESS_2026-05-18.md](P5_BOOTSTRAP_STRESS_2026-05-18.md)
+- 2026-05-18: **P4: 過学習確認完了 (DSR + 5-Fold WF-CV)** — ADOPT候補ゼロ。Dyn系3コンボ (P01/P02/P03) はGRAY (PSR 0.92〜0.93、N_eff=8)、HY/MA組合せ系はREJECT。CV median CAGRが15%閾値未達 (最高P01=10.8%)。**結論: 現行ベースライン (DH Dyn [A]) 維持を推奨。タイミングゲート戦略は統計的有意性が不十分。** [P4_OVERFITTING_CHECK_2026-05-18.md](P4_OVERFITTING_CHECK_2026-05-18.md)
 - 2026-05-18: **P3: シグナル組合せ バックテスト完了 (34コンボ)** — 全コンボが CAGR_OOS < 20% (primary tier 未達)。Secondary best: HY×CPI (OOS=+15.65%, Worst5Y=+6.04%, 2022=-31.31%)。最良2022防御: Dyn(w60,m0.1)×CPI (2022=-14.33%, OOS=+19.23%, Worst5Y=+0.12%)。**コア発見: Dyn_Corr単独で2022を保護するが Worst5Y をベースライン以下に押し下げる。NAS-gate追加は2022防御を損なわずWorst5Yをわずか改善するが依然ベースライン未達。**[P3_COMBINATION_RESULTS_2026-05-18.md](P3_COMBINATION_RESULTS_2026-05-18.md)
 - 2026-05-18: **P2: Top5シグナル単独バックテスト完了 (38コンボ)** — Dyn_Correlation のみが2022を実質的に削減 (-30.55%→-15.97%)。HY/CPI/YC/MA は2022に効果なし。採用基準 (OOS≥20%) 達成ゼロ。[P2_SINGLE_SIGNAL_RESULTS_2026-05-18.md](P2_SINGLE_SIGNAL_RESULTS_2026-05-18.md)
 - 2026-05-18: **P1: タイミング戦略データ取得完了** — 7 FRED系列取得・3段階HYスプライス・CPI 15営業日ラグ補正。timing_signals_raw.csv (13,169行×5列) 生成。[P1_DATA_FETCH_RESULTS_2026-05-18.md](P1_DATA_FETCH_RESULTS_2026-05-18.md)
