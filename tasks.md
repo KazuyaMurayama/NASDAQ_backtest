@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-05-17
+最終更新: 2026-05-18
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -25,6 +25,9 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-18: **タイミング戦略調査計画 完成 (Opus設計)** — CFD7/S2の大幅ドローダウン問題（1981/1988/1994/2015/2022）に対応する未試験シグナル Top5 を特定。HY Credit Spread / YC+FF / 動的相関 / CPI Momentum / MA200+CPPI。8週間実装ロードマップ（P1データ→P6 DH Dyn [B]確立）。CAGR ≥ 22%・Worst5Y -2〜+1%・Sharpe 1.15〜1.25 を目標。[TIMING_STRATEGY_RESEARCH_PLAN_2026-05-18.md](TIMING_STRATEGY_RESEARCH_PLAN_2026-05-18.md)
+- 2026-05-18: **方針A: DH Dyn [A] IS/OOS スタンドアローン検証** — 10コンボ全滅 (0/10 pass)。CAGR_IS構造的天井 ≈ 23%（TQQQ 3x + SOFR financing 約-8%/yr）を確認。正典 (gold=2x, wg=0.50): CAGR_IS=+23.13% ❌ / Sh_IS=1.030 ✅ / Worst5Y=+0.66% ✅。CAGR ≥ 25% は TQQQ 3x ベースでは構造的に不可能。[A_DH_STANDALONE_VERIFY_2026-05-18.md](A_DH_STANDALONE_VERIFY_2026-05-18.md)
+- 2026-05-18: **C2スイープ: wn_max 実効化 (0.40-0.70) で W5Y 改善を検証** — 48コンボ全滅 (0/48 pass)。W5Y ベスト = -4.12% (基準 -3% に 1.12pp 不足)。wn_max 引き下げが逆にW5Yを悪化させる逆説を発見。2022 Triple Bear (NASDAQ+Gold+Bond 同時下落) が根本原因。[C2_NASDAQ_CAP_SWEEP_2026-05-18.md](C2_NASDAQ_CAP_SWEEP_2026-05-18.md)
 - 2026-05-17: **H1〜H5 Gold/Bond仮説 バックテスト完了** — 5仮説全実行。**H2 (S2+Gold5x): Sharpe 0.881** だが MaxDD -79.5%。**H4 (TOCOM+Bond軽減): Sharpe 0.837, Gap 0.3pp** で最ロバスト。⚠️ **Worst5Y≥0%必須基準は全仮説で未達** (最良はH5 -0.17%)。BL_S2超えは H2/H4 の2件。[H1_H5_SUMMARY_2026-05-17.md](H1_H5_SUMMARY_2026-05-17.md)
 - 2026-05-17: **Gold/Bond 商品選定とNASDAQ統合戦略 計画書** — 5仮説（H1〜H5）立案完了。Gold候補3本（1540+信用2x / SBI金CFD / TOCOM先物）、Bond候補（TMF維持）、コストモデル統一、採用基準明文化、感度分析計画。[GOLD_BOND_STRATEGY_PLAN_2026-05-17.md](GOLD_BOND_STRATEGY_PLAN_2026-05-17.md)
 - 2026-05-17: **S2 DH Dyn統合シナリオ試算** — S2 CFD+DH: CAGR +32.35% (+9.85pp vs TQQQ)、OOS Sharpe 0.769 (+0.123)、IS-OOS Gap 5.4pp。ただしMaxDD -62.36% (-17.27pp)、Worst5Y -4.73% (-5.60pp)。高リターン・高リスクのトレードオフ確認。[S2_DH_INTEGRATION_2026-05-17.md](S2_DH_INTEGRATION_2026-05-17.md)
