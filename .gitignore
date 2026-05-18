@@ -39,3 +39,7 @@ NASDAQ_extended_to_2026.csv
 NASDAQ_extended.csv
 data/*.csv
 research_all_corrected.csv
+
+# Turtle Phase T2 daily equity curves (reproducible via src/turtle_t1_pure_long.py and src/turtle_t2_long_short.py)
+t1_equity_curve.csv
+t2_equity_curve.csv
