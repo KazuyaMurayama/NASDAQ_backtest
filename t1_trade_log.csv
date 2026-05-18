@@ -1,1 +1,2 @@
-SEE_LOCAL_FILE
+entry_date,system,side,entry_price,n_at_entry,pyramid_adds,exit_date,exit_price,exit_reason,gross_pnl,holding_days
+SEE_FULL_DATA_IN_LOCAL_REPO_t1_trade_log_csv,234_TRADES,1974-2026,,,,,,,,
