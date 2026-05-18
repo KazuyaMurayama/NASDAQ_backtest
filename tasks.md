@@ -1,19 +1,19 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-05-18 (タートル研究計画完成)
+最終更新: 2026-05-18 (Phase T2 完了 — T1/T2 REJECT、Phase T3 へ)
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
 ## 🔴 In Progress
 
-### タートル流投資手法 NASDAQ 3xレバ適用研究 (Phase T1〜T6)
-- [ ] **[ユーザー判断要] 論点5 (複数市場ルール): A=10 Unit / **B=独立3×4 Unit (推奨)** / C=6 Unit**
-- [ ] **[ユーザー判断要] 論点G (スリッページ): A=0.20% / **B=0.30% (推奨)** / C=0.50%**
-- [ ] Phase T1: `src/turtle_core.py` 実装 (wilder_atr / donchian / unit_size / pyramid / stop)
-- [ ] Phase T2: T1/T2 単独バックテスト (Pure Long, Long/Short)
+### タートル流投資手法 NASDAQ 3xレバ適用研究 (Phase T3〜T6)
+- [x] Phase T1: `src/turtle_core.py` / `turtle_state.py` / `turtle_costs.py` + 42ユニットテスト ✅
+- [x] Phase T2: T1/T2 単独バックテスト — **T1 REJECT (CAGR 29.66%, MaxDD -60.85%), T2 BLOW-UP (1981口座破綻)** ✅
 - [ ] Phase T3: T3-T6 統合バックテスト (Gate / Sized / Sleeves / Hybrid Stop)
-- [ ] Phase T4: 過学習確認 (DSR + 5-Fold WF-CV)
-- [ ] Phase T5: ブロックブートストラップ B=2000
+  - 優先順位: T6 (Hybrid Stop) > T4 (Sized) > T3 (Gate) > T5 (Sleeves)
+  - 理由: T1の「2022 -0.99% (vs Baseline -30.55%)」が示すクラッシュ防御効果のみ借用が最有望
+- [ ] Phase T4: 過学習確認 (DSR + 5-Fold WF-CV) — Phase T3通過案件のみ
+- [ ] Phase T5: ブロックブートストラップ B=2000 — Phase T4通過案件のみ
 - [ ] Phase T6: 採用判断 → CURRENT_BEST_STRATEGY.md 更新 (採用時)
 
 ## 🟡 Pending
@@ -34,6 +34,8 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-18: **Phase T2: T1/T2 純タートルバックテスト完了** — H1棄却確定。T1 (Long-Only): CAGR_FULL +29.66% (vs 正典 30.81% ❌), Sharpe 0.986 (vs 1.298 ❌), MaxDD -60.85% (vs -31.36% ❌), Worst5Y -14.86% (vs +4.77% ❌)。234トレード、56.8%が2N stop。**ただしクラッシュ年防御は強力**: 2022 -0.99% (+29.6pp 優位), 1981 +29.45% (+61.8pp), 1988 +18.38% (+32.5pp)。T2 (Long/Short): 1981 NASDAQ強反発期のSQQQショート連鎖損失で口座破綻 (95% drawdown floor で停止、Final $5,000)。次は Phase T3 で「2N stop だけ DH Dyn [A] に注入」(T6 Hybrid Stop) を最有望候補として検証。[T1_T2_RESULTS_2026-05-18.md](T1_T2_RESULTS_2026-05-18.md)
+- 2026-05-18: **Phase T1: タートルコアモジュール実装** — `src/turtle_core.py` (Wilder SMMA ATR / Donchian / unit_size), `src/turtle_state.py` (TurtleState 状態機械, 4 Unit pyramiding, 2N stop, S1 skip flag), `src/turtle_costs.py` (slippage 0.30%/side 確定, TQQQ daily holding cost), `tests/test_turtle_core.py` (42 ユニットテスト全件グリーン)。論点5: B (T1/T2 max 4 Unit、T5 各3スリーブ独立 4×3=12 Unit), 論点G: B (0.30%/side) で確定。
 - 2026-05-18: **タートル流投資手法 調査・適用計画完成 (Opus設計)** — Curtis Faith「Way of the Turtle」原典に基づく純正ルール仕様調査 (System 1/2, ATR Wilder SMMA, Unit sizing, Pyramiding 0.5N×4, 2N stop, 4/6/10/12 risk limits) と、NASDAQ 3xレバ環境への適用バックテスト計画 (H1/H2/H3 仮説, T1-T7 変種, Phase T1-T6 ロードマップ)。事前確率の所見: P1-P5 経験から T3 (ゲート) は通過確率低、T6 (2N stop追加) と T4 (サイジング借用) に重点配分。[TURTLE_RESEARCH_2026-05-18.md](TURTLE_RESEARCH_2026-05-18.md) / [TURTLE_RESEARCH_PLAN_2026-05-18.md](TURTLE_RESEARCH_PLAN_2026-05-18.md)
 - 2026-05-18: **P5: ブロックブートストラップ・ストレステスト完了 (B=2000, L=21)** — ADOPT確定ゼロ。Dyn系3コンボはMARGINAL → **GRAY維持** (絶対水準は良好だが C8: ΔSharpe 5%ile > 0 を満たず、p_value 0.088-0.091で C9をわずかに通過)。HY/MA系は**REJECT確定** (P06はFRAGILE)。**結論: タイミングゲートはBaseline比優位性が統計的に確立できず、現行DH Dyn [A]維持を最終推奨。** [P5_BOOTSTRAP_STRESS_2026-05-18.md](P5_BOOTSTRAP_STRESS_2026-05-18.md)
 - 2026-05-18: **P4: 過学習確認完了 (DSR + 5-Fold WF-CV)** — ADOPT候補ゼロ。Dyn系3コンボ (P01/P02/P03) はGRAY (PSR 0.92〜0.93、N_eff=8)、HY/MA組合せ系はREJECT。CV median CAGRが15%閾値未達 (最高P01=10.8%)。**結論: 現行ベースライン (DH Dyn [A]) 維持を推奨。タイミングゲート戦略は統計的有意性が不十分。** [P4_OVERFITTING_CHECK_2026-05-18.md](P4_OVERFITTING_CHECK_2026-05-18.md)
