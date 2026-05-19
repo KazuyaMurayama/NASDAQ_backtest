@@ -20,6 +20,7 @@
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-19: **S2_VZGated 年次リターン表生成 + CFD定義バグ修正** — CFD 3x/7x [固定] を純NASDAQから DH Dynポートフォリオ+固定CFDレバに修正（+9.74%→+23.20%、-39.27%→+41.36%）。サニティチェック4件PASS。[CFD_S2_YEARLY_RETURNS_2026-05-17.md](CFD_S2_YEARLY_RETURNS_2026-05-17.md) / [SESSION_SUMMARY_2026-05-19.md](SESSION_SUMMARY_2026-05-19.md)
 - 2026-05-17: **S2_VZGated Rolling Window CV 検証** — 46窓（1980〜2025, 5yr IS/1yr OOS）で検証。MaxDD勝率63%（S2>P2）、Sharpe勝率41%（1年窓誤差範囲内）、CAGR>0率72%（P2と同等）。危機年（1987/1990/2008/2011/2022）での優位確認。採用維持確定。[S2_ROLLING_CV_2026-05-17.md](S2_ROLLING_CV_2026-05-17.md)
 - 2026-05-16: **CFD動的レバレッジ S1/S2/S3/S4 バックテスト完了** — S2_VZGated 採用確定（OOS Sharpe 0.769, Worst5Y -4.75%, IS-OOS Gap 5.4pp）。P0検証3件（SOFR単位✅ / target_vol99.7%クリップ⚠️ / Worst5Y定義✅）。S1/S3/S4 は不採用。[SESSION_SUMMARY_2026-05-16.md](SESSION_SUMMARY_2026-05-16.md) / [CFD_DYNAMIC_LEVERAGE_GUIDE.md](CFD_DYNAMIC_LEVERAGE_GUIDE.md) / [ENH_LEVERAGE_BACKTEST_2026-05-16.md](ENH_LEVERAGE_BACKTEST_2026-05-16.md)
 - 2026-05-15: **CFD固定レバレッジ & 動的レバレッジ P1〜P5 バックテスト** — P2(vol-targeting, target_vol=0.8) が OOS Sharpe 0.757 でベースライン。[DYN_LEVERAGE_BACKTEST_2026-05-15.md](DYN_LEVERAGE_BACKTEST_2026-05-15.md) / [CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md](CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md)
