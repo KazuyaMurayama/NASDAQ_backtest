@@ -1,0 +1,52 @@
+======================================================================
+P10 5Y (10th-percentile 5-Year CAGR) Calculation
+All 10 Strategies - DH Dyn 2x3x [A] Comparison Table
+======================================================================
+Data: 1974-01-02 to 2026-03-26 (13169 days)
+DH Dyn signal: 1417 trades, 27.1/yr
+
+--- Strategy 1: S2_VZGated ---
+  P10_5Y=+7.32%  Worst5Y=-5.07%
+--- Strategy 2: P2 best (vol-target tv=0.8) ---
+  P10_5Y=+8.54%  Worst5Y=-5.22%
+--- Strategy 3: S4_RelVol (l_base=7, k_rel=2.0) ---
+  P10_5Y=+11.54%  Worst5Y=-0.87%
+--- Strategy 4: CFD 7x [fixed] ---
+  P10_5Y=+12.71%  Worst5Y=-3.81%
+--- Strategy 5: DH Dyn 2x3x [A] Scenario D ---
+  P10_5Y=+9.57%  Worst5Y=+2.36%
+--- Strategy 6: BH 1x (NASDAQ) ---
+  P10_5Y=+0.71%  Worst5Y=-16.77%
+
+--- Loading timing signals for P01/P02/P05 ---
+  HY spread: 0 NaN; CPI yoy: 0 NaN
+--- Strategy 7: P02_Dyn×CPI [mult] ---
+  P10_5Y=+8.54%  Worst5Y=+0.27% (ref: +0.49%)
+--- Strategy 8: P05_HY×CPI [mult] ---
+  P10_5Y=+11.10%  Worst5Y=+5.80% (ref: +6.04%)
+--- Strategy 9: P01_Dyn×HY [mult] ---
+  P10_5Y=+8.19%  Worst5Y=-0.47% (ref: -0.25%)
+--- Strategy 10: DH Dyn 2x3x [A+LT2] (LT2-N750-k0.5-modeB) ---
+  P10_5Y=+9.69%  Worst5Y=+2.59%
+
+Saved: C:\Users\user\Desktop\投資・不動産\nasdaq_backtest\p10_5y_results.csv
+
+======================================================================
+P10 5Y Results Summary
+======================================================================
+#    Strategy                                         P10_5Y Worst5Y(check)
+---------------------------------------------------------------------------
+1    S2_VZGated (tv=0.8, k=0.3, gate=0.5)             +7.32%         -5.07%
+2    P2 best (vol-target, tv=0.8)                     +8.54%         -5.22%
+3    S4_RelVol (l_base=7, k_rel=2.0)                 +11.54%         -0.87%
+4    CFD 7x (DH Dyn+7x fixed)                        +12.71%         -3.81%
+5    DH Dyn 2x3x [A] Scenario D (th=0.15)             +9.57%         +2.36%
+6    BH 1x (NASDAQ)                                   +0.71%        -16.77%
+7    P02_Dyn×CPI [mult]                               +8.54%         +0.27%
+8    P05_HY×CPI [mult]                               +11.10%         +5.80%
+9    P01_Dyn×HY [mult]                                +8.19%         -0.47%
+10   DH Dyn 2x3x [A+LT2] (LT2-N750-k0.5-modeB)        +9.69%         +2.59%
+
+Rolling window: 252×5 = 1260 trading days
+Total samples:  ~11909 (after warmup)
+P10_5Y = 10th percentile of rolling 5Y CAGR distribution

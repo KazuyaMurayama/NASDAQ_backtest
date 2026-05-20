@@ -1,0 +1,11 @@
+rank,strategy,P10_5Y,Worst5Y_check
+1,"S2_VZGated (tv=0.8, k=0.3, gate=0.5)",0.0732,-0.0507
+2,"P2 best (vol-target, tv=0.8)",0.0854,-0.0522
+3,"S4_RelVol (l_base=7, k_rel=2.0)",0.1154,-0.0087
+4,CFD 7x (DH Dyn+7x fixed),0.1271,-0.0381
+5,DH Dyn 2x3x [A] Scenario D (th=0.15),0.0957,0.0236
+6,BH 1x (NASDAQ),0.0071,-0.1677
+7,P02_Dyn×CPI [mult],0.0854,0.0027
+8,P05_HY×CPI [mult],0.1110,0.0580
+9,P01_Dyn×HY [mult],0.0819,-0.0047
+10,DH Dyn 2x3x [A+LT2] (LT2-N750-k0.5-modeB),0.0969,0.0259
