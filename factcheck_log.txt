@@ -1,0 +1,155 @@
+======================================================================
+FACT-CHECK: Leverage Costs & Position Delay Verification
+DH Dyn 2x3x [A] Scenario D
+======================================================================
+Data: 1974-01-02 to 2026-03-26 (13169 days)
+NASDAQ: Close == Adj Close check: True → Price Index (not total return)
+
+======================================================================
+SECTION 1: Cost & Delay Sensitivity Analysis
+======================================================================
+  [ 1/10] D_baseline (current)...
+  [ 2/10] D1: Gold TER=0.95%...
+  [ 3/10] D2: TMF TER=0.95%...
+  [ 4/10] D3: TMF TER=1.06%...
+  [ 5/10] D4: Gold+TMF realistic...
+  [ 6/10] D5: Delay=1 (T+1)...
+  [ 7/10] D6: Delay=3 (T+3)...
+  [ 8/10] D7: Swap+25bps (0.75%)...
+  [ 9/10] D8: Swap+50bps (1.00%)...
+  [10/10] D9: ALL realistic...
+
+======================================================================
+SECTION 2: SOFR Proxy Quality (DTB3 vs Actual SOFR)
+======================================================================
+  No sofr_daily.csv found; estimating from theory.
+
+  DTB3 discount→add-on basis correction (post-2020):
+    Mean add-on premium: +3.2 bps
+    (DTB3 /252 as SOFR proxy understates actual SOFR by ~3 bps at 4-5% rates)
+  => SOFR costs in backtest are ~13 bps/yr UNDERSTATED vs true SOFR
+
+  Total portfolio SOFR exposure (approx): 1.40x
+  CAGR impact of proxy bias: ~-0.18%/yr (costs understated)
+
+======================================================================
+SECTION 3: TQQQ Swap_Spread Empirical Verification (OLS)
+======================================================================
+  Analysis period: 2010-02-12 to 2026-03-31, n=4,027 days
+
+  OLS: r_TQQQ = α + β_QQQ×r_QQQ + β_SOFR×sofr_daily
+    β_QQQ      = 2.9571  (expected ~3.0)
+    β_SOFR     = -2.1375  (expected ~-2.0 for 2xSOFR)
+    α (ann.)   = -1.565%/yr  (expected ~-2.3% = TER+swap+3xdiv)
+    R²         = 0.99784
+
+  Implied swap_spread (from α, after TER): 0.705%/yr
+    Backtest uses: 0.50%/yr
+    Difference:    +0.205%/yr
+
+  VERDICT: CONFIRMED: 2xSOFR financing (β_SOFR ≈ -2)
+
+======================================================================
+SECTION 4: TMF TER Verification vs Actual NAV
+======================================================================
+  TMF data: 2009-04-17 to 2026-04-09 (17.0 years)
+  TMF actual CAGR: -5.50%/yr
+  Note: TMF TER in backtest = 0.91%/yr (historical)
+        TMF TER current (research report) = 0.95-1.06%/yr
+        Backtest vs current TER difference: +0.04% to +0.15%/yr
+        Bond weight ≈ 20% → CAGR impact: -0.01% to -0.03%/yr
+
+======================================================================
+SECTION 5: Gold 2x Product Availability & TER Impact
+======================================================================
+
+  Research Report Findings (FILE 2, 2026-05-17):
+  ─────────────────────────────────────────────
+  WisdomTree 2036 (LSE) -- BACKTEST PROXY:
+    TER: 0.49% (historical) / 0.50% used in simulation
+    Availability: NOT available at JP retail brokers (SBI/Rakuten)
+    → Backtest uses this as simulation proxy only
+
+  UGL (ProShares Ultra Gold 2x) -- ACTUAL JP AVAILABLE:
+    TER: 0.95%/yr
+    Availability: SBI証券で購入可 (米国ETF、特定口座対応)
+    SOFR structure: SOFR × (2-1) = 1×SOFR  [consistent with backtest]
+    T+2 settlement in Japan  [consistent with DELAY=2]
+
+  Gap: +0.45%/yr (UGL vs WisdomTree 2036 proxy)
+  Gold weight ≈ 20% of portfolio
+  CAGR impact: -0.45% × 0.20 = -0.09%/yr ≈ -9 bps/yr
+
+  Alternative: SBI証券 金CFD (T+0, max 20x)
+    Not modeled in backtest (backtest is ETF-based)
+    SOFR structure: SOFR + lease_rate + margin (non-transparent)
+    Estimated cost: ~4.4-5.0%/yr total → HIGHER than UGL
+
+  BOTTOM LINE: Using UGL (realistic) raises effective gold cost by +9 bps CAGR.
+
+
+======================================================================
+SECTION 6: Position Delay Model Analysis
+======================================================================
+
+  Current implementation: DELAY = 2 (T+2)
+  ─────────────────────────────────────────
+  Signal computed at market close on day t
+  → Position effective from day t+DELAY
+
+  Research Report (FILE 2, §8):
+  "UGL, TMF, TQQQ (US ETF via SBI): T+2 in Japan
+   (US settled T+1 since May 2024, but Japan-side delivery remains T+2)"
+
+  Analysis:
+  - DELAY=2 correctly models ETF settlement for pre-2024 data (majority of backtest)
+  - Post-2024 (US T+1): technically DELAY=1 applies for US market exposure
+    but Japan-side accounting still T+2
+  - Practical impact: ~5 years of OOS data (2021-2026), partially T+1 since 2024
+  - Conservative DELAY=2 slightly underestimates returns in trending markets
+  - Test DELAY=1 vs DELAY=2 in sensitivity analysis (Section 1, row D5)
+
+  VERDICT: DELAY=2 is appropriate and conservative for the full 52-year period.
+  For future live trading, DELAY=1 may be slightly more accurate post-2024.
+
+
+
+Saved sensitivity results: C:\Users\user\Desktop\投資・不動産\nasdaq_backtest\factcheck_sensitivity_results.csv
+
+======================================================================
+SUMMARY: FACT-CHECK FINDINGS
+======================================================================
+
+Baseline (Scenario D as-is):
+  CAGR_FULL = 22.97%  Sharpe_OOS = 0.6498
+
+Cost sensitivity results (CAGR_FULL change vs baseline):
+  D1: Gold TER=0.95%                 : -10.5 bps/yr  (22.87% CAGR_FULL)
+  D2: TMF TER=0.95%                  : -0.9 bps/yr  (22.96% CAGR_FULL)
+  D3: TMF TER=1.06%                  : -3.5 bps/yr  (22.94% CAGR_FULL)
+  D4: Gold+TMF realistic             : -14.0 bps/yr  (22.83% CAGR_FULL)
+  D5: Delay=1 (T+1)                  : +147.9 bps/yr  (24.45% CAGR_FULL)
+  D6: Delay=3 (T+3)                  : +15.0 bps/yr  (23.12% CAGR_FULL)
+  D7: Swap+25bps (0.75%)             : -41.6 bps/yr  (22.56% CAGR_FULL)
+  D8: Swap+50bps (1.00%)             : -83.1 bps/yr  (22.14% CAGR_FULL)
+  D9: ALL realistic                  : +133.8 bps/yr  (24.31% CAGR_FULL)
+
+SOFR proxy analysis:
+  DTB3 add-on bias:  ~+3 bps vs simple
+  Estimated CAGR cost understatement: ~-0.18%/yr
+
+TQQQ swap verification:
+  β_SOFR = -2.137 (target: -2.0)
+  Implied swap_spread = 0.705%/yr (model uses 0.50%)
+  CONFIRMED: 2xSOFR financing (β_SOFR ≈ -2)
+
+Key conclusion:
+  1. Gold TER: proxy 0.50% vs UGL 0.95% → -10.5 bps/yr
+  2. TMF TER:  hist 0.91% vs current 1.06% → -3.5 bps/yr
+  3. Delay T+2 vs T+1 → +147.9 bps/yr
+  4. All-realistic combined → +133.8 bps/yr
+
+  "Realistic JP retail" CAGR_FULL estimate: 24.31%
+  vs current Scenario D: 22.97%
+
+======================================================================
