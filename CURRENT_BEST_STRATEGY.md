@@ -4,80 +4,83 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-05-12
+最終更新日: 2026-05-21
 
 ---
 
 ## 現行ベスト戦略
 
-**戦略名: `DH Dyn 2x3x [A]`（Approach A・スリーブ独立型、リバランス閾値 0.15）**
+**戦略名: `S2_VZGated`（Vol-Zone ゲート型 CFD レバレッジ、tv=0.8, k_vz=0.3, gate_min=0.5）**
 
-### 主要指標 — Scenario D 補正済みベースライン (1974-01-02 〜 2026-03-26, 52.26年)
+### 主要指標 (Scenario D コスト補正済み基盤, 1974-01-02 〜 2026-03-26, 52.26年)
 
-> **注意:** 下記は `corrected_strategy_backtest.py` Scenario D の出力値。
-> コスト補正（SOFR financing + bond model + duration変動性）をすべて適用した最も現実的な推計。
+> **注意:** DH Dyn 2x3x [A] シグナル (Approach A, 閾値 0.15) の上に CFD Vol-Zone ゲートを適用したもの。
+> CFD 軸の指標は `cfd_leverage_backtest.py` + `compute_cfd_worst10y.py` の出力値。
 
-| 指標 | 値 |
-|---|---|
-| CAGR (FULL) | **+22.50%** |
-| Sharpe (FULL) | **0.993** |
-| MaxDD (FULL) | **-45.08%** |
-| Worst5Y CAGR (FULL) | +0.87% |
-| WinRate (FULL) | 83.0% |
-| 年間取引回数 | 約27回 (月2.3回) |
+| 指標 | 値 | 備考 |
+|---|---|---|
+| CAGR_IS (1974-2021) | **+32.94%** | In-sample |
+| CAGR_OOS (2021-2026) | **+27.57%** | Out-of-sample ← 10戦略中最高 |
+| Worst5Y CAGR (FULL) | −4.75% | 日次ローリング最悪窓 |
+| P10_5Y CAGR (FULL) | **+7.32%** | 下位10%パーセンタイル5年CAGR |
+| Worst10Y★ CAGR (FULL) | **+17.74%** | カレンダー年ベース最悪10年窓 |
+| MaxDD (FULL) | −62.4% | 最大ドローダウン |
+| Sharpe_OOS | **0.769** | OOS期間Sharpe比 |
+| 年間取引回数 | 約27回 (月2.3回) | 基底DH Dynシグナルと同じ |
 
-### 未補正ベースライン（参考: Scenario A）
+### ベスト戦略採用の根拠 (2026-05-21)
 
-| 指標 | 値 |
-|---|---|
-| CAGR (FULL) | +30.84% |
-| Sharpe (FULL) | 1.299 |
-| MaxDD (FULL) | -31.40% |
+| 評価軸 | S2_VZGated | 旧ベスト DH Dyn [A] Scenario D | 優位 |
+|---|---|---|---|
+| CAGR_OOS | **+27.57%** | +14.88% | S2 ◎ |
+| Sharpe_OOS | **0.769** | 0.646 | S2 ◎ |
+| Worst10Y★ | **+17.74%** | +14.30% | S2 ◎ |
+| P10_5Y | +7.32% | +9.57% | DH Dyn ○ |
+| Worst5Y | −4.75% | +0.87% | DH Dyn ○ |
+| MaxDD | −62.4% | −45.08% | DH Dyn ○ |
 
----
-
-## コスト補正内訳
-
-| 補正項目 | CAGR インパクト |
-|---|---|
-| SOFR financing drag（TQQQ+TMF 2xSOFR + Gold 1xSOFR） | **-8.13% CAGR**（主要因） |
-| Bond model補正（dgs10+dur7 → dgs30+dur17+splice_fix） | +0.38% CAGR |
-| Duration変動性補正（static D=17 → yield依存 Dmod） | -0.59% CAGR |
-| **合計補正** | **-8.34% CAGR**（対 未補正ベースライン 30.84%） |
-
----
-
-## 未モデル化コスト（実運用ではさらに低下）
-
-- **売買税ドラッグ**: -2.8% to -5.2% CAGR（年27回リバランス、日本税率20.315%）
-- **NISA**: TQQQ・TMF・Gold 2x いずれも新NISA不適用（3倍レバレッジ禁止）
-- **Gold商品乖離**: UGL TER 0.95% vs シミュProxy 0.49%（差0.46%/yr）
-- コスト定数の単一の真実: `src/product_costs.py`
+> OOS CAGR と Sharpe_OOS で圧倒的優位。ドローダウン耐性は DH Dyn [A] の方が高いため、リスク許容度に応じた使い分けが可能。
 
 ---
 
 ## 構成
 
-- シグナル: A2 Optimized (DD × AsymEWMA × TrendTV × SlopeMult × MomDecel × VIX_MR)
-- 配分: `daily = wn·lev·(r_nas·3 − dc) + wg·r_g2 + wb·r_b3`
-- 重み: `wn = clip(0.55 + 0.25·lev − 0.10·max(vz,0), 0.30, 0.90)`, `wg = wb = (1−wn)·0.5`
-- 経費率: TQQQ 0.86% / Gold2x 0.50% (sim proxy) / Bond3x 0.91%
-- SOFR financing: TQQQ 2xSOFR / TMF 2xSOFR / Gold2x 1xSOFR（v2補正済み）
-- DELAY: 2営業日
+- **シグナル基盤**: DH Dyn A2 Optimized (DD × AsymEWMA × TrendTV × SlopeMult × MomDecel × VIX_MR), threshold=0.15
+- **CFD レバレッジ**: `compute_L_s2_vz_gated(ret, vz, target_vol=0.8, k_vz=0.3, gate_min=0.5, n=20, l_min=1.0, l_max=7.0, step=0.5)`
+- **CFD スプレッド**: 低スプレッド想定 (`CFD_SPREAD_LOW`)
+- **配分**: `wn·lev_CFD·r_nas_cfd + wg·r_g2 + wb·r_b3`
+  - `wn`, `wg`, `wb`: DH Dyn [A] Approach A と同一 (`simulate_rebalance_A`)
+  - NAS スリーブのみ TQQQ → CFD に変更
+- **Gold 2x**: TER 0.50% (sim proxy) + 1×SOFR（UGL実費 0.95%、差=−10.5 bps/yr, §16参照）
+- **Bond 3x (TMF)**: TER 0.91% + 2×SOFR
+- **DELAY**: 2営業日
+- **実装**: `src/cfd_leverage_backtest.py`, `src/dynamic_leverage_strategies.py`
 
-### 一次根拠ファイル（GitHub 上の正典）
+---
+
+## コスト注意事項
+
+| 補正項目 | 影響 |
+|---|---|
+| SOFR financing drag (NAS CFD + Gold 1xSOFR) | CFD 軸にも適用 |
+| Gold TER ギャップ (proxy 0.50% → UGL 0.95%) | **−10.5 bps/yr** (§16) |
+| TMF TER ギャップ (0.91% → 1.06%) | −3.5 bps/yr (§16) |
+| スワップスプレッド推定差 (+20.5 bps) | −34 bps/yr 相当 (§16) |
+| 合計推定コスト過少計上 | **約 −66 bps/yr** → 現実 CAGR_OOS ≈ 26.9% 相当 |
+| 売買税ドラッグ (年27回、税率20.315%) | 別途 −2〜5% CAGR |
+| NISA | CFD は原則 NISA 不適用 |
+
+---
+
+## 一次根拠ファイル（GitHub 上の正典）
 
 | ファイル | 役割 | 日付 |
 |---|---|---|
-| [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 閾値 0.15 採用根拠 (ダブルチェック PASS 3/3) | 2026-04-21 |
-| [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較 + BRK ベンチマーク | 2026-04-21 |
-| [APPROACH_A_PROPOSAL_2026-04-20.md](APPROACH_A_PROPOSAL_2026-04-20.md) | Approach A 切替の設計書 | 2026-04-20 |
-| [src/corrected_strategy_backtest.py](src/corrected_strategy_backtest.py) | Scenario D 実装（SOFR+bond+duration+Gold補正） | 2026-05-12 |
+| [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) | 10戦略統合比較表 (§2 ◆BEST マーク) | 2026-05-21 |
+| [src/cfd_leverage_backtest.py](src/cfd_leverage_backtest.py) | S2_VZGated NAV 実装 | - |
+| [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) | `compute_L_s2_vz_gated` 定義 | - |
+| [src/corrected_strategy_backtest.py](src/corrected_strategy_backtest.py) | DH Dyn シグナル基盤 (Scenario D) | 2026-05-12 |
 | [src/product_costs.py](src/product_costs.py) | コスト定数の単一の真実 | 2026-05-12 |
-
-### 実運用
-- Googleスプレッドシート ID: `1YqwZ2EGKVFs36tTvUfup28g0GtXZwReiVOBI6eNzmVI`（タイトル: Dyn2x3x戦略）
-- 実装リポジトリ: https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 
 ---
 
@@ -92,8 +95,8 @@
 ### 絶対にやってはいけないこと
 
 - ❌ `R4_results.csv` を Sharpe 降順で並べて「トップ」を答える (CSV は実験ログであり結論ではない)
-- ❌ `FINAL_RESULTS_2026-02-06.md` の冒頭テーブルを「最終」として答える (2026-02-06 時点のスナップショット・廃止済み)
-- ❌ ファイル名に `FINAL` が含まれていることを理由に最新と判断する (このリポジトリでは `FINAL_` プレフィックスは廃止)
+- ❌ `FINAL_RESULTS_2026-02-06.md` の冒頭テーブルを「最終」として答える (廃止済み)
+- ❌ ファイル名に `FINAL` が含まれていることを理由に最新と判断する
 - ❌ MEMORY.md / nasdaq_best_strategy.md 内の固定記述を一次根拠にする (キャッシュであり一次情報ではない)
 
 ---
@@ -102,14 +105,14 @@
 
 これらが「ベスト」と答えられたら誤回答です。質問されても **過去の研究履歴として** のみ言及し、現行ベストとして提示しない:
 
-| 旧推奨 | 出典ファイル | 廃止理由 |
+| 旧推奨 | 廃止日 | 廃止理由 |
 |---|---|---|
-| `DH Dyn 2x3x [A]` CAGR 30.81% | 2026-05-11 版 `CURRENT_BEST_STRATEGY.md` | 2026-05-12 Scenario D 補正適用（Gold SOFR fix）で CAGR 22.50% に更新 |
-| `Ens2(Asym+Slope)` (CAGR 28.58%, Sharpe 1.031) | `FINAL_RESULTS_2026-02-06.md` | 2026-04-21 で `DH Dyn 2x3x [A] 閾値0.15` に置換 |
-| `Ens2(Slope+TrendTV)` | `FINAL_RESULTS_2026-02-06.md` | 同上 |
-| `DD+VT+VolSpike(1.5x)` | `R4_results.csv`, `R4_RESULTS_SUMMARY_2026-02-06.md` | 個別実験結果。最終結論ではない |
-| `MomDecel(40/120)+Ens2(S+T)` | GAS 旧版表記 | Approach A 確立で再定義済 |
-| `DD Dyn 2x3x [A] 閾値0.20` | `THRESHOLD_SWEEP_REPORT_2026-04-20.md` (古い) | 2026-04-21 で閾値0.15が優位と確認、`THRESHOLD_SWEEP_A_REPORT_2026-04-21.md` に置換 |
+| `DH Dyn 2x3x [A]` CAGR 22.50%, Sharpe 0.993 | 2026-05-21 | S2_VZGated が CAGR_OOS +27.57% / Sharpe_OOS 0.769 で上回ることを確認 |
+| `DH Dyn 2x3x [A]` CAGR 30.81% | 2026-05-12 | Scenario D 補正適用で CAGR 22.50% に更新 |
+| `Ens2(Asym+Slope)` (CAGR 28.58%, Sharpe 1.031) | 2026-04-21 | `DH Dyn 2x3x [A] 閾値0.15` に置換 |
+| `Ens2(Slope+TrendTV)` | 2026-04-21 | 同上 |
+| `DD+VT+VolSpike(1.5x)` | 2026-04-21 | 個別実験結果。最終結論ではない |
+| `DD Dyn 2x3x [A] 閾値0.20` | 2026-04-21 | 閾値0.15が優位と確認 |
 
 ---
 
@@ -117,15 +120,13 @@
 
 新規レポート作成時:
 
-1. **`FINAL_` プレフィックスは使用禁止** — 「FINAL」と名乗ったファイルが後で覆されると参照地獄になる
+1. **`FINAL_` プレフィックスは使用禁止**
 2. **`REPORT_YYYY-MM-DD` 形式または `<TOPIC>_YYYY-MM-DD.md` 形式を使用**
-3. **新レポートが旧レポートを置き換える時は、必ず旧レポート冒頭に SUPERSEDED ヘッダを追加** (本ファイル末尾のテンプレ参照)
+3. **新レポートが旧レポートを置き換える時は、必ず旧レポート冒頭に SUPERSEDED ヘッダを追加**
 4. **本ファイル (`CURRENT_BEST_STRATEGY.md`) を必ず同時更新**
 5. **`tasks.md` の Completed セクション末尾に1行追記**
 
 ### SUPERSEDED ヘッダのテンプレート
-
-旧レポートの H1 直下に以下を挿入する:
 
 ```markdown
 > ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
@@ -144,9 +145,10 @@
 - 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
-- 2026-05-12: Scenario D 補正適用。Gold 2x SOFR financing (1xSOFR) を追加。CAGR 30.84% → 22.50%, Sharpe 1.299 → 0.993, MaxDD -31.40% → -45.08%。`src/product_costs.py` をコスト定数の単一の真実として追加。
-- 2026-05-11: 初版作成。`THRESHOLD_SWEEP_A_REPORT_2026-04-21.md` を一次根拠として `DH Dyn 2x3x [A] 閾値0.15` を現行ベストに確定。
+- 2026-05-21: ベスト戦略を `DH Dyn 2x3x [A]` から `S2_VZGated` に更新。根拠: 10戦略統合比較表で CAGR_OOS +27.57% / Sharpe_OOS 0.769 が全戦略中トップ。旧ベストを廃止リストに移動。
+- 2026-05-12: Scenario D 補正適用。CAGR 30.84% → 22.50%, Sharpe 1.299 → 0.993, MaxDD -31.40% → -45.08%。
+- 2026-05-11: 初版作成。`DH Dyn 2x3x [A] 閾値0.15` を現行ベストに確定。
 
 ---
 
-*管理者: 男座員也（Kazuya Oza）*
+*管理者: Kazuya Murayama*
