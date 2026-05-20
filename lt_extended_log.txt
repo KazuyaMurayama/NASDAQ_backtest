@@ -1,0 +1,127 @@
+========================================================================
+LT Extended Sweep  (56 new configs: LT4/LT6/LT7 + N500/600/1500 + k0.7/1.0 + ModeC)
+========================================================================
+Data: 1974-01-02 to 2026-03-26 (13169 days)
+Assets ready. Starting sweep...
+
+Total new configs: 56
+[ 1/56] LT2-N500-k0.3-modeB... CAGR_OOS=+15.75%  Sharpe=0.695  MaxDD=-47.2%  W10Y=+15.21%  gap=+8.34pp
+[ 2/56] LT2-N500-k0.5-modeB... CAGR_OOS=+16.12%  Sharpe=0.709  MaxDD=-48.7%  W10Y=+15.53%  gap=+8.02pp
+[ 3/56] LT2-N500-k0.7-modeB... CAGR_OOS=+15.60%  Sharpe=0.695  MaxDD=-50.3%  W10Y=+15.32%  gap=+8.29pp
+[ 4/56] LT2-N500-k1.0-modeB... CAGR_OOS=+14.53%  Sharpe=0.666  MaxDD=-50.8%  W10Y=+15.23%  gap=+8.96pp
+[ 5/56] LT2-N600-k0.3-modeB... CAGR_OOS=+16.02%  Sharpe=0.699  MaxDD=-47.7%  W10Y=+15.48%  gap=+8.02pp
+[ 6/56] LT2-N600-k0.5-modeB... CAGR_OOS=+16.25%  Sharpe=0.705  MaxDD=-48.1%  W10Y=+15.77%  gap=+7.06pp
+[ 7/56] LT2-N600-k0.7-modeB... CAGR_OOS=+15.34%  Sharpe=0.677  MaxDD=-47.6%  W10Y=+15.39%  gap=+7.40pp
+[ 8/56] LT2-N600-k1.0-modeB... CAGR_OOS=+14.35%  Sharpe=0.650  MaxDD=-47.1%  W10Y=+14.95%  gap=+7.93pp
+[ 9/56] LT2-N750-k0.7-modeB... CAGR_OOS=+17.97%  Sharpe=0.740  MaxDD=-45.8%  W10Y=+13.83%  gap=+4.07pp
+[10/56] LT2-N750-k1.0-modeB... CAGR_OOS=+16.83%  Sharpe=0.702  MaxDD=-46.3%  W10Y=+13.60%  gap=+4.87pp
+[11/56] LT2-N1000-k0.7-modeB... CAGR_OOS=+18.13%  Sharpe=0.719  MaxDD=-48.8%  W10Y=+9.59%  gap=+2.37pp
+[12/56] LT2-N1000-k1.0-modeB... CAGR_OOS=+18.52%  Sharpe=0.720  MaxDD=-49.2%  W10Y=+8.84%  gap=+1.38pp
+[13/56] LT2-N1250-k0.7-modeB... CAGR_OOS=+17.17%  Sharpe=0.718  MaxDD=-46.4%  W10Y=+10.12%  gap=+3.45pp
+[14/56] LT2-N1250-k1.0-modeB... CAGR_OOS=+17.47%  Sharpe=0.722  MaxDD=-46.4%  W10Y=+9.09%  gap=+2.61pp
+[15/56] LT2-N1500-k0.3-modeB... CAGR_OOS=+16.61%  Sharpe=0.737  MaxDD=-46.4%  W10Y=+13.03%  gap=+5.81pp
+[16/56] LT2-N1500-k0.5-modeB... CAGR_OOS=+16.96%  Sharpe=0.764  MaxDD=-46.4%  W10Y=+11.41%  gap=+4.48pp
+[17/56] LT2-N1500-k0.7-modeB... CAGR_OOS=+17.10%  Sharpe=0.779  MaxDD=-46.4%  W10Y=+9.97%  gap=+3.89pp
+[18/56] LT2-N1500-k1.0-modeB... CAGR_OOS=+17.85%  Sharpe=0.814  MaxDD=-46.4%  W10Y=+8.40%  gap=+2.59pp
+[19/56] LT4-N500-k0.5-modeB... CAGR_OOS=+16.03%  Sharpe=0.712  MaxDD=-47.5%  W10Y=+15.35%  gap=+8.09pp
+[20/56] LT4-N500-k0.7-modeB... CAGR_OOS=+16.09%  Sharpe=0.715  MaxDD=-49.0%  W10Y=+15.48%  gap=+8.00pp
+[21/56] LT4-N500-k1.0-modeB... CAGR_OOS=+15.10%  Sharpe=0.688  MaxDD=-50.4%  W10Y=+15.31%  gap=+8.59pp
+[22/56] LT4-N750-k0.5-modeB... CAGR_OOS=+18.04%  Sharpe=0.760  MaxDD=-44.9%  W10Y=+13.61%  gap=+4.30pp
+[23/56] LT4-N750-k0.7-modeB... CAGR_OOS=+18.75%  Sharpe=0.776  MaxDD=-45.5%  W10Y=+13.47%  gap=+3.10pp
+[24/56] LT4-N750-k1.0-modeB... CAGR_OOS=+17.69%  Sharpe=0.735  MaxDD=-46.4%  W10Y=+13.78%  gap=+4.04pp
+[25/56] LT4-N1000-k0.5-modeB... CAGR_OOS=+16.87%  Sharpe=0.706  MaxDD=-48.0%  W10Y=+11.41%  gap=+4.97pp
+[26/56] LT4-N1000-k0.7-modeB... CAGR_OOS=+17.33%  Sharpe=0.712  MaxDD=-48.6%  W10Y=+10.36%  gap=+3.79pp
+[27/56] LT4-N1000-k1.0-modeB... CAGR_OOS=+18.65%  Sharpe=0.738  MaxDD=-49.3%  W10Y=+9.69%  gap=+1.70pp
+[28/56] LT4-N1250-k0.5-modeB... CAGR_OOS=+15.40%  Sharpe=0.679  MaxDD=-46.4%  W10Y=+12.00%  gap=+6.58pp
+[29/56] LT4-N1250-k0.7-modeB... CAGR_OOS=+15.73%  Sharpe=0.689  MaxDD=-46.4%  W10Y=+11.31%  gap=+5.55pp
+[30/56] LT4-N1250-k1.0-modeB... CAGR_OOS=+16.61%  Sharpe=0.714  MaxDD=-46.4%  W10Y=+10.45%  gap=+3.90pp
+[31/56] LT6-N500-k0.3-modeB... CAGR_OOS=+14.97%  Sharpe=0.676  MaxDD=-44.3%  W10Y=+14.07%  gap=+8.48pp
+[32/56] LT6-N500-k0.5-modeB... CAGR_OOS=+14.88%  Sharpe=0.687  MaxDD=-42.9%  W10Y=+13.45%  gap=+8.20pp
+[33/56] LT6-N500-k0.7-modeB... CAGR_OOS=+14.65%  Sharpe=0.692  MaxDD=-41.7%  W10Y=+12.85%  gap=+7.98pp
+[34/56] LT6-N500-k1.0-modeB... CAGR_OOS=+14.53%  Sharpe=0.708  MaxDD=-39.7%  W10Y=+11.82%  gap=+7.13pp
+[35/56] LT6-N750-k0.3-modeB... CAGR_OOS=+14.67%  Sharpe=0.665  MaxDD=-44.1%  W10Y=+13.72%  gap=+8.23pp
+[36/56] LT6-N750-k0.5-modeB... CAGR_OOS=+14.41%  Sharpe=0.670  MaxDD=-42.7%  W10Y=+13.24%  gap=+7.78pp
+[37/56] LT6-N750-k0.7-modeB... CAGR_OOS=+14.12%  Sharpe=0.674  MaxDD=-41.6%  W10Y=+12.52%  gap=+7.23pp
+[38/56] LT6-N750-k1.0-modeB... CAGR_OOS=+13.57%  Sharpe=0.674  MaxDD=-39.5%  W10Y=+11.48%  gap=+6.29pp
+[39/56] LT6-N1000-k0.3-modeB... CAGR_OOS=+14.26%  Sharpe=0.651  MaxDD=-43.7%  W10Y=+13.48%  gap=+8.10pp
+[40/56] LT6-N1000-k0.5-modeB... CAGR_OOS=+13.83%  Sharpe=0.649  MaxDD=-42.2%  W10Y=+12.42%  gap=+7.57pp
+[41/56] LT6-N1000-k0.7-modeB... CAGR_OOS=+13.34%  Sharpe=0.645  MaxDD=-40.7%  W10Y=+11.42%  gap=+7.17pp
+[42/56] LT6-N1000-k1.0-modeB... CAGR_OOS=+12.59%  Sharpe=0.636  MaxDD=-38.1%  W10Y=+9.91%  gap=+6.45pp
+[43/56] LT6-N1250-k0.3-modeB... CAGR_OOS=+14.06%  Sharpe=0.647  MaxDD=-43.6%  W10Y=+13.58%  gap=+8.52pp
+[44/56] LT6-N1250-k0.5-modeB... CAGR_OOS=+13.26%  Sharpe=0.633  MaxDD=-41.9%  W10Y=+12.62%  gap=+8.46pp
+[45/56] LT6-N1250-k0.7-modeB... CAGR_OOS=+12.49%  Sharpe=0.619  MaxDD=-40.4%  W10Y=+11.77%  gap=+8.35pp
+[46/56] LT6-N1250-k1.0-modeB... CAGR_OOS=+11.39%  Sharpe=0.598  MaxDD=-37.8%  W10Y=+10.53%  gap=+7.94pp
+[47/56] LT7-N750x1250-k0.3-modeB... CAGR_OOS=+16.83%  Sharpe=0.715  MaxDD=-45.5%  W10Y=+13.55%  gap=+5.90pp
+[48/56] LT7-N750x1250-k0.5-modeB... CAGR_OOS=+17.97%  Sharpe=0.745  MaxDD=-44.9%  W10Y=+12.95%  gap=+3.92pp
+[49/56] LT7-N750x1250-k0.7-modeB... CAGR_OOS=+18.39%  Sharpe=0.750  MaxDD=-44.6%  W10Y=+12.65%  gap=+3.05pp
+[50/56] LT7-N750x1250-k1.0-modeB... CAGR_OOS=+18.39%  Sharpe=0.745  MaxDD=-44.8%  W10Y=+12.53%  gap=+2.57pp
+[51/56] LT2-N750-k0.5-modeC... CAGR_OOS=+16.48%  Sharpe=0.714  MaxDD=-45.8%  W10Y=+12.28%  gap=+3.70pp
+[52/56] LT2-N750-k0.7-modeC... CAGR_OOS=+17.48%  Sharpe=0.739  MaxDD=-44.8%  W10Y=+12.61%  gap=+2.14pp
+[53/56] LT2-N750-k1.0-modeC... CAGR_OOS=+16.99%  Sharpe=0.715  MaxDD=-46.8%  W10Y=+11.07%  gap=+1.40pp
+[54/56] LT2-N1000-k0.5-modeC... CAGR_OOS=+13.26%  Sharpe=0.591  MaxDD=-47.3%  W10Y=+8.95%  gap=+5.74pp
+[55/56] LT2-N1000-k0.7-modeC... CAGR_OOS=+15.98%  Sharpe=0.670  MaxDD=-47.6%  W10Y=+6.48%  gap=+1.60pp
+[56/56] LT2-N1000-k1.0-modeC... CAGR_OOS=+17.42%  Sharpe=0.698  MaxDD=-48.1%  W10Y=+5.99%  gap=-0.97pp
+
+Saved: C:\Users\user\Desktop\ìäéëÅEïsìÆéY\nasdaq_backtest\lt_extended_results.csv
+
+========================================================================
+BASELINE (DH Dyn 2x3x [A] Scenario D):
+  CAGR_OOS=14.88%  Sharpe_OOS=0.6460  MaxDD=-45.08%
+Phase-1 Best: LT2-N750-k0.5-modeB  CAGR_OOS=18.87%  Sharpe=0.7766
+
+Top 10 by CAGR_OOS (this sweep):
+                  config  CAGR_IS  CAGR_OOS  CAGR_FULL  Sharpe_OOS  MaxDD_FULL  W5Y_FULL  W10Y_STAR  IS_OOS_GAP
+     LT4-N750-k0.7-modeB 0.218574  0.187539   0.215630    0.775859   -0.455298  0.029474   0.134698    0.031035
+    LT4-N1000-k1.0-modeB 0.203541  0.186517   0.201925    0.737918   -0.493252  0.024663   0.096885    0.017023
+    LT2-N1000-k1.0-modeB 0.198960  0.185202   0.197652    0.720181   -0.491677  0.015569   0.088381    0.013757
+LT7-N750x1250-k0.7-modeB 0.214443  0.183933   0.211549    0.749801   -0.446356  0.025981   0.126470    0.030510
+LT7-N750x1250-k1.0-modeB 0.209619  0.183869   0.207177    0.744826   -0.447590  0.025490   0.125327    0.025749
+    LT2-N1000-k0.7-modeB 0.204956  0.181283   0.202712    0.718621   -0.488372  0.026174   0.095863    0.023674
+     LT4-N750-k0.5-modeB 0.223409  0.180383   0.219317    0.760061   -0.448957  0.025662   0.136130    0.043026
+LT7-N750x1250-k0.5-modeB 0.218955  0.179718   0.215227    0.745222   -0.448715  0.023626   0.129460    0.039236
+     LT2-N750-k0.7-modeB 0.220439  0.179692   0.216566    0.740281   -0.458492  0.036348   0.138262    0.040747
+    LT2-N1500-k1.0-modeB 0.204310  0.178453   0.201859    0.813652   -0.463982  0.007001   0.084044    0.025857
+
+Top 10 by Sharpe_OOS (this sweep):
+                  config  CAGR_IS  CAGR_OOS  CAGR_FULL  Sharpe_OOS  MaxDD_FULL  W5Y_FULL  W10Y_STAR  IS_OOS_GAP
+    LT2-N1500-k1.0-modeB 0.204310  0.178453   0.201859    0.813652   -0.463982  0.007001   0.084044    0.025857
+    LT2-N1500-k0.7-modeB 0.209882  0.170952   0.206183    0.779487   -0.463982  0.017744   0.099708    0.038930
+     LT4-N750-k0.7-modeB 0.218574  0.187539   0.215630    0.775859   -0.455298  0.029474   0.134698    0.031035
+    LT2-N1500-k0.5-modeB 0.214313  0.169554   0.209996    0.764392   -0.463982  0.024450   0.114054    0.044759
+     LT4-N750-k0.5-modeB 0.223409  0.180383   0.219317    0.760061   -0.448957  0.025662   0.136130    0.043026
+LT7-N750x1250-k0.7-modeB 0.214443  0.183933   0.211549    0.749801   -0.446356  0.025981   0.126470    0.030510
+LT7-N750x1250-k0.5-modeB 0.218955  0.179718   0.215227    0.745222   -0.448715  0.023626   0.129460    0.039236
+LT7-N750x1250-k1.0-modeB 0.209619  0.183869   0.207177    0.744826   -0.447590  0.025490   0.125327    0.025749
+     LT2-N750-k0.7-modeB 0.220439  0.179692   0.216566    0.740281   -0.458492  0.036348   0.138262    0.040747
+     LT2-N750-k0.7-modeC 0.196149  0.174788   0.194121    0.738643   -0.447564  0.020898   0.126138    0.021360
+
+=== ACCEPTED (all gates C1-C7): 18 / 56 new configs ===
+
+BEST new candidate:
+  config: LT4-N750-k0.7-modeB
+  signal: LT4
+  N: 750
+  k_lt: 0.7000
+  mode: B
+  n_trades: 1417
+  CAGR_IS: 0.2186
+  CAGR_OOS: 0.1875
+  CAGR_FULL: 0.2156
+  Sharpe_OOS: 0.7759
+  MaxDD_FULL: -0.4553
+  W5Y_FULL: 0.0295
+  W10Y_STAR: 0.1347
+  IS_OOS_GAP: 0.0310
+
+=== COMBINED (Phase-1 + Extended): 33 / 128 total ===
+Top-5 combined (by Sharpe_OOS):
+                  config  CAGR_IS  CAGR_OOS  CAGR_FULL  Sharpe_OOS  MaxDD_FULL  W5Y_FULL  W10Y_STAR  IS_OOS_GAP
+     LT2-N750-k0.5-modeB 0.221200  0.188700   0.218100    0.776600   -0.447600  0.025900   0.133500    0.032500
+     LT4-N750-k0.7-modeB 0.218574  0.187539   0.215630    0.775859   -0.455298  0.029474   0.134698    0.031035
+     LT4-N750-k0.5-modeB 0.223409  0.180383   0.219317    0.760061   -0.448957  0.025662   0.136130    0.043026
+LT7-N750x1250-k0.7-modeB 0.214443  0.183933   0.211549    0.749801   -0.446356  0.025981   0.126470    0.030510
+LT7-N750x1250-k0.5-modeB 0.218955  0.179718   0.215227    0.745222   -0.448715  0.023626   0.129460    0.039236
+
+Saved: C:\Users\user\Desktop\ìäéëÅEïsìÆéY\nasdaq_backtest\lt_combined_results.csv
+
+========================================================================
