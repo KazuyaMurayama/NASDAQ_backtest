@@ -1,0 +1,115 @@
+======================================================================
+Long-Cycle Signal Sweep  (72 configs, DH Dyn 2x3x [A] Scenario D)
+======================================================================
+Data: 1974-01-02 to 2026-03-26 (13169 days)
+Assets ready. Starting sweep...
+
+[ 1/72] LT1-N750-k0.1-modeA... CAGR_OOS=+15.05%  Sharpe=0.720  MaxDD=-43.2%  W10Y=+11.84%
+[ 2/72] LT1-N750-k0.1-modeB... CAGR_OOS=+14.79%  Sharpe=0.678  MaxDD=-43.6%  W10Y=+12.25%
+[ 3/72] LT1-N750-k0.2-modeA... CAGR_OOS=+12.33%  Sharpe=0.659  MaxDD=-43.6%  W10Y=+8.17%
+[ 4/72] LT1-N750-k0.2-modeB... CAGR_OOS=+14.27%  Sharpe=0.688  MaxDD=-41.1%  W10Y=+10.03%
+[ 5/72] LT1-N750-k0.3-modeA... CAGR_OOS=+11.34%  Sharpe=0.631  MaxDD=-43.6%  W10Y=+6.59%
+[ 6/72] LT1-N750-k0.3-modeB... CAGR_OOS=+13.94%  Sharpe=0.704  MaxDD=-38.3%  W10Y=+7.68%
+[ 7/72] LT1-N750-k0.5-modeA... CAGR_OOS=+11.10%  Sharpe=0.638  MaxDD=-43.6%  W10Y=+6.44%
+[ 8/72] LT1-N750-k0.5-modeB... CAGR_OOS=+13.03%  Sharpe=0.701  MaxDD=-37.8%  W10Y=+6.08%
+[ 9/72] LT1-N1000-k0.1-modeA... CAGR_OOS=+13.33%  Sharpe=0.667  MaxDD=-46.4%  W10Y=+11.59%
+[10/72] LT1-N1000-k0.1-modeB... CAGR_OOS=+14.33%  Sharpe=0.666  MaxDD=-46.4%  W10Y=+12.06%
+[11/72] LT1-N1000-k0.2-modeA... CAGR_OOS=+10.81%  Sharpe=0.615  MaxDD=-46.4%  W10Y=+6.91%
+[12/72] LT1-N1000-k0.2-modeB... CAGR_OOS=+13.53%  Sharpe=0.670  MaxDD=-46.4%  W10Y=+9.55%
+[13/72] LT1-N1000-k0.3-modeA... CAGR_OOS=+9.74%  Sharpe=0.596  MaxDD=-46.4%  W10Y=+6.39%
+[14/72] LT1-N1000-k0.3-modeB... CAGR_OOS=+12.63%  Sharpe=0.667  MaxDD=-46.4%  W10Y=+7.03%
+[15/72] LT1-N1000-k0.5-modeA... CAGR_OOS=+9.45%  Sharpe=0.597  MaxDD=-46.4%  W10Y=+6.15%
+[16/72] LT1-N1000-k0.5-modeB... CAGR_OOS=+11.48%  Sharpe=0.658  MaxDD=-46.4%  W10Y=+5.75%
+[17/72] LT1-N1250-k0.1-modeA... CAGR_OOS=+13.31%  Sharpe=0.681  MaxDD=-46.4%  W10Y=+12.23%
+[18/72] LT1-N1250-k0.1-modeB... CAGR_OOS=+13.95%  Sharpe=0.658  MaxDD=-46.4%  W10Y=+12.19%
+[19/72] LT1-N1250-k0.2-modeA... CAGR_OOS=+9.71%  Sharpe=0.598  MaxDD=-46.4%  W10Y=+7.14%
+[20/72] LT1-N1250-k0.2-modeB... CAGR_OOS=+12.77%  Sharpe=0.654  MaxDD=-46.4%  W10Y=+9.71%
+[21/72] LT1-N1250-k0.3-modeA... CAGR_OOS=+8.86%  Sharpe=0.582  MaxDD=-46.4%  W10Y=+6.14%
+[22/72] LT1-N1250-k0.3-modeB... CAGR_OOS=+11.58%  Sharpe=0.644  MaxDD=-46.4%  W10Y=+7.25%
+[23/72] LT1-N1250-k0.5-modeA... CAGR_OOS=+7.53%  Sharpe=0.534  MaxDD=-46.4%  W10Y=+6.15%
+[24/72] LT1-N1250-k0.5-modeB... CAGR_OOS=+9.15%  Sharpe=0.583  MaxDD=-46.4%  W10Y=+5.73%
+[25/72] LT2-N750-k0.1-modeA... CAGR_OOS=+15.58%  Sharpe=0.692  MaxDD=-42.9%  W10Y=+13.68%
+[26/72] LT2-N750-k0.1-modeB... CAGR_OOS=+16.32%  Sharpe=0.701  MaxDD=-45.8%  W10Y=+14.21%
+[27/72] LT2-N750-k0.2-modeA... CAGR_OOS=+14.70%  Sharpe=0.663  MaxDD=-44.4%  W10Y=+12.96%
+[28/72] LT2-N750-k0.2-modeB... CAGR_OOS=+16.88%  Sharpe=0.721  MaxDD=-45.2%  W10Y=+14.08%
+[29/72] LT2-N750-k0.3-modeA... CAGR_OOS=+13.89%  Sharpe=0.635  MaxDD=-45.6%  W10Y=+12.57%
+[30/72] LT2-N750-k0.3-modeB... CAGR_OOS=+17.55%  Sharpe=0.743  MaxDD=-44.8%  W10Y=+13.85%
+[31/72] LT2-N750-k0.5-modeA... CAGR_OOS=+14.10%  Sharpe=0.644  MaxDD=-46.7%  W10Y=+11.89%
+[32/72] LT2-N750-k0.5-modeB... CAGR_OOS=+18.87%  Sharpe=0.777  MaxDD=-44.8%  W10Y=+13.35%
+[33/72] LT2-N1000-k0.1-modeA... CAGR_OOS=+13.85%  Sharpe=0.624  MaxDD=-46.4%  W10Y=+12.71%
+[34/72] LT2-N1000-k0.1-modeB... CAGR_OOS=+15.47%  Sharpe=0.670  MaxDD=-46.8%  W10Y=+13.92%
+[35/72] LT2-N1000-k0.2-modeA... CAGR_OOS=+14.18%  Sharpe=0.633  MaxDD=-46.4%  W10Y=+11.55%
+[36/72] LT2-N1000-k0.2-modeB... CAGR_OOS=+16.11%  Sharpe=0.687  MaxDD=-47.1%  W10Y=+12.84%
+[37/72] LT2-N1000-k0.3-modeA... CAGR_OOS=+11.16%  Sharpe=0.537  MaxDD=-46.4%  W10Y=+11.06%
+[38/72] LT2-N1000-k0.3-modeB... CAGR_OOS=+16.58%  Sharpe=0.698  MaxDD=-47.5%  W10Y=+11.91%
+[39/72] LT2-N1000-k0.5-modeA... CAGR_OOS=+14.50%  Sharpe=0.640  MaxDD=-46.4%  W10Y=+9.96%
+[40/72] LT2-N1000-k0.5-modeB... CAGR_OOS=+17.15%  Sharpe=0.703  MaxDD=-48.1%  W10Y=+10.33%
+[41/72] LT2-N1250-k0.1-modeA... CAGR_OOS=+14.07%  Sharpe=0.628  MaxDD=-46.4%  W10Y=+13.83%
+[42/72] LT2-N1250-k0.1-modeB... CAGR_OOS=+15.21%  Sharpe=0.665  MaxDD=-46.4%  W10Y=+14.02%
+[43/72] LT2-N1250-k0.2-modeA... CAGR_OOS=+14.11%  Sharpe=0.632  MaxDD=-46.4%  W10Y=+12.95%
+[44/72] LT2-N1250-k0.2-modeB... CAGR_OOS=+15.48%  Sharpe=0.675  MaxDD=-46.4%  W10Y=+13.11%
+[45/72] LT2-N1250-k0.3-modeA... CAGR_OOS=+14.42%  Sharpe=0.648  MaxDD=-46.4%  W10Y=+12.38%
+[46/72] LT2-N1250-k0.3-modeB... CAGR_OOS=+15.65%  Sharpe=0.680  MaxDD=-46.4%  W10Y=+12.32%
+[47/72] LT2-N1250-k0.5-modeA... CAGR_OOS=+15.11%  Sharpe=0.671  MaxDD=-46.4%  W10Y=+10.29%
+[48/72] LT2-N1250-k0.5-modeB... CAGR_OOS=+16.18%  Sharpe=0.694  MaxDD=-46.4%  W10Y=+11.05%
+[49/72] LT3-N750-k0.1-modeA... CAGR_OOS=+15.58%  Sharpe=0.687  MaxDD=-43.9%  W10Y=+13.67%
+[50/72] LT3-N750-k0.1-modeB... CAGR_OOS=+15.28%  Sharpe=0.669  MaxDD=-46.4%  W10Y=+14.28%
+[51/72] LT3-N750-k0.2-modeA... CAGR_OOS=+14.22%  Sharpe=0.651  MaxDD=-44.5%  W10Y=+14.25%
+[52/72] LT3-N750-k0.2-modeB... CAGR_OOS=+15.78%  Sharpe=0.687  MaxDD=-46.3%  W10Y=+14.25%
+[53/72] LT3-N750-k0.3-modeA... CAGR_OOS=+13.80%  Sharpe=0.643  MaxDD=-44.7%  W10Y=+13.21%
+[54/72] LT3-N750-k0.3-modeB... CAGR_OOS=+16.02%  Sharpe=0.697  MaxDD=-46.3%  W10Y=+14.19%
+[55/72] LT3-N750-k0.5-modeA... CAGR_OOS=+13.94%  Sharpe=0.655  MaxDD=-45.0%  W10Y=+12.96%
+[56/72] LT3-N750-k0.5-modeB... CAGR_OOS=+16.27%  Sharpe=0.711  MaxDD=-46.2%  W10Y=+13.98%
+[57/72] LT3-N1000-k0.1-modeA... CAGR_OOS=+14.26%  Sharpe=0.637  MaxDD=-46.4%  W10Y=+13.81%
+[58/72] LT3-N1000-k0.1-modeB... CAGR_OOS=+15.02%  Sharpe=0.659  MaxDD=-46.7%  W10Y=+14.26%
+[59/72] LT3-N1000-k0.2-modeA... CAGR_OOS=+14.23%  Sharpe=0.638  MaxDD=-46.4%  W10Y=+13.30%
+[60/72] LT3-N1000-k0.2-modeB... CAGR_OOS=+15.25%  Sharpe=0.668  MaxDD=-46.9%  W10Y=+14.17%
+[61/72] LT3-N1000-k0.3-modeA... CAGR_OOS=+14.52%  Sharpe=0.649  MaxDD=-46.4%  W10Y=+13.13%
+[62/72] LT3-N1000-k0.3-modeB... CAGR_OOS=+15.47%  Sharpe=0.677  MaxDD=-47.2%  W10Y=+13.98%
+[63/72] LT3-N1000-k0.5-modeA... CAGR_OOS=+13.51%  Sharpe=0.626  MaxDD=-46.4%  W10Y=+12.10%
+[64/72] LT3-N1000-k0.5-modeB... CAGR_OOS=+15.77%  Sharpe=0.688  MaxDD=-47.7%  W10Y=+13.41%
+[65/72] LT3-N1250-k0.1-modeA... CAGR_OOS=+14.34%  Sharpe=0.644  MaxDD=-46.4%  W10Y=+14.29%
+[66/72] LT3-N1250-k0.1-modeB... CAGR_OOS=+14.75%  Sharpe=0.653  MaxDD=-46.4%  W10Y=+14.41%
+[67/72] LT3-N1250-k0.2-modeA... CAGR_OOS=+13.84%  Sharpe=0.638  MaxDD=-46.4%  W10Y=+13.64%
+[68/72] LT3-N1250-k0.2-modeB... CAGR_OOS=+14.69%  Sharpe=0.656  MaxDD=-46.4%  W10Y=+14.47%
+[69/72] LT3-N1250-k0.3-modeA... CAGR_OOS=+12.46%  Sharpe=0.600  MaxDD=-46.4%  W10Y=+13.79%
+[70/72] LT3-N1250-k0.3-modeB... CAGR_OOS=+14.50%  Sharpe=0.654  MaxDD=-46.4%  W10Y=+14.25%
+[71/72] LT3-N1250-k0.5-modeA... CAGR_OOS=+12.45%  Sharpe=0.613  MaxDD=-46.4%  W10Y=+12.95%
+[72/72] LT3-N1250-k0.5-modeB... CAGR_OOS=+13.98%  Sharpe=0.645  MaxDD=-46.4%  W10Y=+13.67%
+
+Saved: C:\Users\user\Desktop\ìäéëÅEïsìÆéY\nasdaq_backtest\lt_sweep_results.csv
+
+======================================================================
+BASELINE (DH Dyn 2x3x [A] Scenario D):
+  CAGR_IS=23.36%  CAGR_OOS=14.88%  CAGR_FULL=22.50%  Sharpe_OOS=0.6460  MaxDD=-45.08%  W5Y=0.87%
+
+Top 10 by CAGR_OOS:
+              config  CAGR_IS  CAGR_OOS  CAGR_FULL  Sharpe_OOS  MaxDD_FULL  W5Y_FULL  W10Y_STAR  IS_OOS_GAP
+ LT2-N750-k0.5-modeB 0.221198  0.188696   0.218114    0.776586   -0.447590  0.025927   0.133457    0.032502
+ LT2-N750-k0.3-modeB 0.228670  0.175549   0.223518    0.742886   -0.448012  0.025320   0.138508    0.053121
+LT2-N1000-k0.5-modeB 0.213610  0.171516   0.209607    0.702688   -0.481477  0.031308   0.103289    0.042094
+ LT2-N750-k0.2-modeB 0.233602  0.168819   0.227206    0.721359   -0.451674  0.025543   0.140805    0.064783
+LT2-N1000-k0.3-modeB 0.223806  0.165833   0.218201    0.697532   -0.474524  0.038174   0.119118    0.057973
+ LT2-N750-k0.1-modeB 0.236762  0.163225   0.229396    0.701372   -0.457744  0.024698   0.142073    0.073537
+ LT3-N750-k0.5-modeB 0.228898  0.162722   0.222363    0.710612   -0.461862  0.026686   0.139806    0.066176
+LT2-N1250-k0.5-modeB 0.215038  0.161811   0.209960    0.694003   -0.463982  0.021077   0.110454    0.053227
+LT2-N1000-k0.2-modeB 0.230017  0.161100   0.223228    0.686946   -0.471025  0.032935   0.128364    0.068917
+ LT3-N750-k0.3-modeB 0.234419  0.160211   0.227008    0.697364   -0.462684  0.026225   0.141909    0.074208
+
+Top 10 by Sharpe_OOS:
+              config  CAGR_IS  CAGR_OOS  CAGR_FULL  Sharpe_OOS  MaxDD_FULL  W5Y_FULL  W10Y_STAR  IS_OOS_GAP
+ LT2-N750-k0.5-modeB 0.221198  0.188696   0.218114    0.776586   -0.447590  0.025927   0.133457    0.032502
+ LT2-N750-k0.3-modeB 0.228670  0.175549   0.223518    0.742886   -0.448012  0.025320   0.138508    0.053121
+ LT2-N750-k0.2-modeB 0.233602  0.168819   0.227206    0.721359   -0.451674  0.025543   0.140805    0.064783
+ LT1-N750-k0.1-modeA 0.207326  0.150533   0.201627    0.720172   -0.431878  0.040268   0.118363    0.056793
+ LT3-N750-k0.5-modeB 0.228898  0.162722   0.222363    0.710612   -0.461862  0.026686   0.139806    0.066176
+ LT1-N750-k0.3-modeB 0.192799  0.139416   0.187705    0.703763   -0.383431  0.023922   0.076755    0.053384
+LT2-N1000-k0.5-modeB 0.213610  0.171516   0.209607    0.702688   -0.481477  0.031308   0.103289    0.042094
+ LT2-N750-k0.1-modeB 0.236762  0.163225   0.229396    0.701372   -0.457744  0.024698   0.142073    0.073537
+ LT1-N750-k0.5-modeB 0.178130  0.130294   0.173572    0.700759   -0.378128  0.015162   0.060772    0.047836
+LT2-N1000-k0.3-modeB 0.223806  0.165833   0.218201    0.697532   -0.474524  0.038174   0.119118    0.057973
+
+=== ACCEPTED (all gates passed): 0 / 72 configs ===
+No config passed all gates. Long-cycle signal does not improve DH Dyn [A] under the specified acceptance criteria.
+
+======================================================================
