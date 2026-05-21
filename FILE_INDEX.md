@@ -2,13 +2,15 @@
 
 > ⚠️ このファイルは自動生成です。手動編集は次回更新で上書きされます。
 > 🎯 **最優先参照ファイル: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)** — 現行ベスト戦略の正典。「ベスト戦略は？」と問われたら必ずここから読むこと。
+> 📋 **戦略台帳: [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md)** — 全検証済み戦略（Active/Shortlisted/Rejected）の台帳。新検証着手前に重複チェック必須。
+> 📐 **評価基準: [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md)** — コスト・期間・指標計算の標準定義 (v1.0)。全検証はここの前提に従う。
 
 | 項目 | 値 |
 |---|---|
 | リポジトリ | KazuyaMurayama/NASDAQ_backtest |
 | ブランチ | main |
-| 総ファイル数 | 212 |
-| 最終更新 | 2026-05-11 |
+| 総ファイル数 | 214 |
+| 最終更新 | 2026-05-21 |
 | 管理者 | 男座員也（Kazuya Oza） |
 
 ---
@@ -18,9 +20,11 @@
 | 優先 | ファイル | 役割 |
 |---|---|---|
 | 1 | [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) | 現行ベスト戦略の正典 (Single Source of Truth) |
-| 2 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
-| 3 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 現行ベスト戦略の一次根拠 |
-| 4 | [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較・BRK ベンチマーク |
+| 2 | [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) | 全検証済み戦略の台帳（Active/Shortlisted/Rejected）。新検証着手前の重複チェック必須 |
+| 3 | [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) | 評価基準の正典 v1.0（コスト・期間・指標定義・参考値判定フロー） |
+| 4 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
+| 5 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | 現行ベスト戦略の一次根拠 |
+| 6 | [YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md) | 51年分の年次比較・BRK ベンチマーク |
 
 ## ⛔ SUPERSEDED ファイル（参照禁止・廃止済み）
 
