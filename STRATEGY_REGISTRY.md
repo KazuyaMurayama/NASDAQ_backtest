@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-21
+最終更新日: 2026-05-21 (A2/A3/A4 sweep + P4/S1 初評価追記)
 管理者: Kazuya Murayama
 
 ---
@@ -133,6 +133,11 @@
 | **Discrete_Leverage_Rejects** | 離散レバレッジ（2x/3x/5x ステップ）変種 | CFDLeverage / 離散化 | N/A | A | N/A | N/A | N/A | Rejected | 連続レバ（step=0.5）が同等以上の性能。離散化のメリット観測されず。 | [discrete_leverage_results.csv](discrete_leverage_results.csv) |
 | **Marugoto_Leverage** | "まるごとレバレッジ"（単純倍率） | CFDLeverage / 単純 | N/A | A | N/A | N/A | N/A | Rejected | 単純レバ倍はベンチマーク以下。DH Dyn シグナル統合が必須。 | [marugoto_leverage_results.csv](marugoto_leverage_results.csv) |
 | **Lev2x3x_Baseline** | 単純 2x/3x ベースライン | DH_Dyn / 単純 | N/A | A | N/A | N/A | N/A | Rejected | DH Dyn シグナルなしの単純 2x/3x ローテーション。CAGR / Sharpe ともに DH Dyn [A] に劣後。 | [lev2x3x_results.csv](lev2x3x_results.csv) |
+| **P4_Composite** | 三因子乗算型レバレッジ（SOFR×ボラ×モメンタム） | CFDLeverage / MultiFactorScore | 2026-05-21 | D | +13.69% (best) | +0.647 (best) | −47.74% (best) | Rejected | 24 config 全て S2_VZGated ベースライン（Sharpe +0.770）を下回る。三因子乗算の論理 AND 効果が過剰デレバをもたらしリターン低下。IS-OOS gap +8〜15 pp と大きく過剰適合傾向。dynamic_leverage_strategies.py で「本命」と記載されていたが実証的に棄却。 | [P4_COMPOSITE_SWEEP_2026-05-21.md](P4_COMPOSITE_SWEEP_2026-05-21.md), [p4_composite_sweep_results.csv](p4_composite_sweep_results.csv) |
+| **S1_Conviction** | A2 確信度スコア直接レバ変換 | CFDLeverage / A2Conviction | 2026-05-21 | D | +22.43% (best) | +0.645 (best) | −64.52% (best) | Rejected | 16 config 全て S2_VZGated ベースラインを下回る。IS-OOS gap +21 pp と致命的な過剰適合。target_vol パラメータは NASDAQ 通常ボラレンジ（σ≈13.6%）で全値飽和（dead parameter）。A2 raw スコア自体が IS 最適化バイアスを持つため直接レバ変換は不適。 | [S1_CONVICTION_SWEEP_2026-05-21.md](S1_CONVICTION_SWEEP_2026-05-21.md), [s1_conviction_sweep_results.csv](s1_conviction_sweep_results.csv) |
+| **S2_TV_Sweep_Rejects** | S2_VZGated target_vol スイープ落選パラメータ | CFDLeverage / Sweep | 2026-05-21 | D | N/A | N/A | N/A | Rejected | tv=0.80 が Sharpe_OOS 最高（+0.770）と確認。tv=1.00 は CAGR_OOS +28.42% と高いが IS-OOS gap +8.84 pp で過剰適合。tv<0.40 は vol-targeting 機能するが CAGR_OOS が半減。 | [A2_TV_SWEEP_2026-05-21.md](A2_TV_SWEEP_2026-05-21.md), [a2_tv_sweep_results.csv](a2_tv_sweep_results.csv) |
+| **S2_KVZ_Sweep_Rejects** | S2_VZGated k_vz スイープ（VIX ゲート感度） | CFDLeverage / Sweep | 2026-05-21 | D | N/A | N/A | N/A | Rejected | k_vz=0.10〜0.70 で Sharpe_OOS は +0.769〜+0.775 と極めてフラット。VIX ゲートの感度係数は dead parameter に近い。現行 k_vz=0.30 は安定中心値として妥当。 | [A3_KVZ_SWEEP_2026-05-21.md](A3_KVZ_SWEEP_2026-05-21.md), [a3_kvz_sweep_results.csv](a3_kvz_sweep_results.csv) |
+| **S2_GATEMIN_Sweep_Result** | S2_VZGated gate_min スイープ（VIX 下限） | CFDLeverage / Sweep | 2026-05-21 | D | N/A | N/A | N/A | Rejected | gate_min=0.20/0.35 が Sharpe_OOS +0.775（現行 0.50 の +0.770 を僅かに上回る）。VIX ゲートなし（gate_min=1.00）は Sharpe +0.759 と明確に劣後し VIX ゲートの有効性を確認。差分 +0.005 は微小のため現行設定を維持。S2+LT2 への影響は別途要確認。 | [A4_GATEMIN_SWEEP_2026-05-21.md](A4_GATEMIN_SWEEP_2026-05-21.md), [a4_gatemin_sweep_results.csv](a4_gatemin_sweep_results.csv) |
 
 ### §3.4 シグナル系実験（VIX / Regime / SOXL / DD等）
 
@@ -206,7 +211,7 @@
 ### CFDLeverage（CFD 動的レバレッジ）
 - **Active**: S2_VZGated+LT2 → §1
 - **Shortlisted**: S2_VZGated, P2_VolTarget, S4_RelVol, CFD_7x_Fixed → §2
-- **Rejected**: CFD_LMAX_Sweep_Rejects, CFD_NVOL_Sweep_Rejects, Discrete_Leverage_Rejects, Marugoto_Leverage, Lev2x3x_Baseline, E1_Ensemble_S2_Rejects, F1_Alloc_Sweep_Rejects → §3.3
+- **Rejected**: CFD_LMAX_Sweep_Rejects, CFD_NVOL_Sweep_Rejects, Discrete_Leverage_Rejects, Marugoto_Leverage, Lev2x3x_Baseline, E1_Ensemble_S2_Rejects, F1_Alloc_Sweep_Rejects, **P4_Composite** (三因子乗算、全24config S2未満), **S1_Conviction** (A2直接変換、IS-OOSgap+21pp), S2_TV/KVZ/GATEMIN_Sweep_Rejects → §3.3
 - **関連分析**: Leverage_Bin_Analysis_V1_V4 → §3.5
 
 ### LongCycleSignal（長期サイクル / モメンタム逆張り = LT2 系）
