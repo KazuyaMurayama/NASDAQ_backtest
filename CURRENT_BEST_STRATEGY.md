@@ -10,51 +10,61 @@
 
 ## 現行ベスト戦略
 
-**戦略名: `S2_VZGated`（Vol-Zone ゲート型 CFD レバレッジ、tv=0.8, k_vz=0.3, gate_min=0.5）**
+**戦略名: `S2_VZGated + LT2-N750-k0.5-modeB`（Vol-Zone ゲート型 CFD レバレッジ + 長期逆張りフィルタ）**
 
 ### 主要指標 (Scenario D コスト補正済み基盤, 1974-01-02 〜 2026-03-26, 52.26年)
 
-> **注意:** DH Dyn 2x3x [A] シグナル (Approach A, 閾値 0.15) の上に CFD Vol-Zone ゲートを適用したもの。
-> CFD 軸の指標は `cfd_leverage_backtest.py` + `compute_cfd_worst10y.py` の出力値。
+> **注意:** DH Dyn 2x3x [A] シグナル (Approach A, 閾値 0.15) の上に CFD Vol-Zone ゲートを適用し、
+> さらに LT2-N750-k0.5-modeB（長期モメンタム逆張りバイアス）を lev シグナルに重畳したもの。
+> CFD 軸の指標は `src/b1_s2_lt2.py` の出力値。
 
 | 指標 | 値 | 備考 |
 |---|---|---|
-| CAGR_IS (1974-2021) | **+32.94%** | In-sample |
-| CAGR_OOS (2021-2026) | **+27.57%** | Out-of-sample ← 10戦略中最高 |
-| Worst5Y CAGR (FULL) | −4.75% | 日次ローリング最悪窓 |
-| P10_5Y CAGR (FULL) | **+7.32%** | 下位10%パーセンタイル5年CAGR |
-| Worst10Y★ CAGR (FULL) | **+17.74%** | カレンダー年ベース最悪10年窓 |
-| MaxDD (FULL) | −62.4% | 最大ドローダウン |
-| Sharpe_OOS | **0.769** | OOS期間Sharpe比 |
+| CAGR_IS (1974-2021) | **+31.33%** | In-sample |
+| CAGR_OOS (2021-2026) | **+31.16%** | Out-of-sample ← Phase 1 全検証中最高 |
+| IS-OOS gap | **+0.18 pp** | 汎化性の高さを示す（S2_VZGated 単体: +6.04 pp） |
+| Worst5Y CAGR (FULL) | −2.83% | 日次ローリング最悪窓 |
+| P10_5Y CAGR (FULL) | **+9.36%** | 下位10%パーセンタイル5年CAGR |
+| Worst10Y★ CAGR (FULL) | **+18.10%** | カレンダー年ベース最悪10年窓 |
+| MaxDD (FULL) | −59.45% | 最大ドローダウン（S2 単体より改善） |
+| Sharpe_OOS | **0.858** | OOS期間Sharpe比 |
 | 年間取引回数 | 約27回 (月2.3回) | 基底DH Dynシグナルと同じ |
 
 ### ベスト戦略採用の根拠 (2026-05-21)
 
-| 評価軸 | S2_VZGated | 旧ベスト DH Dyn [A] Scenario D | 優位 |
+| 評価軸 | S2+LT2 (新ベスト) | S2_VZGated (旧ベスト) | 優位 |
 |---|---|---|---|
-| CAGR_OOS | **+27.57%** | +14.88% | S2 ◎ |
-| Sharpe_OOS | **0.769** | 0.646 | S2 ◎ |
-| Worst10Y★ | **+17.74%** | +14.30% | S2 ◎ |
-| P10_5Y | +7.32% | +9.57% | DH Dyn ○ |
-| Worst5Y | −4.75% | +0.87% | DH Dyn ○ |
-| MaxDD | −62.4% | −45.08% | DH Dyn ○ |
+| CAGR_OOS | **+31.16%** | +27.51% | S2+LT2 ◎ |
+| Sharpe_OOS | **0.858** | 0.770 | S2+LT2 ◎ |
+| IS-OOS gap | **+0.18 pp** | +6.04 pp | S2+LT2 ◎◎ |
+| Worst10Y★ | **+18.10%** | +17.74% | S2+LT2 ○ |
+| MaxDD | **−59.45%** | −63.37% | S2+LT2 ○ |
+| P10_5Y | **+9.36%** | +7.32% | S2+LT2 ○ |
+| Worst5Y | **−2.83%** | −5.07% | S2+LT2 ○ |
 
-> OOS CAGR と Sharpe_OOS で圧倒的優位。ドローダウン耐性は DH Dyn [A] の方が高いため、リスク許容度に応じた使い分けが可能。
+> 全指標で S2+LT2 が上回る。特に IS-OOS gap が 6.04 pp → 0.18 pp に崩落しており、
+> LT2 長期逆張りフィルタが過剰適合を強力に抑制していることを示す。
+> `src/b1_s2_lt2.py` にて A6/A1 サニティチェック (CAGR_OOS -0.00 pp) 通過。
 
 ---
 
 ## 構成
 
 - **シグナル基盤**: DH Dyn A2 Optimized (DD × AsymEWMA × TrendTV × SlopeMult × MomDecel × VIX_MR), threshold=0.15
+- **LT2 オーバーレイ (modeB)**:
+  - `lt_sig = compute_lt2(close, N=750)` — 750日モメンタム z スコア
+  - `lt_bias = signal_to_bias(lt_sig, k=0.5)` — `(-0.25 × z).clip(-0.5, +0.5)`
+  - `lev_mod = clip(lev_A + lt_bias, 0, 1)` — DH Dyn lev に ±0.25 バイアス
 - **CFD レバレッジ**: `compute_L_s2_vz_gated(ret, vz, target_vol=0.8, k_vz=0.3, gate_min=0.5, n=20, l_min=1.0, l_max=7.0, step=0.5)`
 - **CFD スプレッド**: 低スプレッド想定 (`CFD_SPREAD_LOW`)
-- **配分**: `wn·lev_CFD·r_nas_cfd + wg·r_g2 + wb·r_b3`
+- **配分**: `wn·lev_mod·L_s2·r_nas_cfd + wg·r_g2 + wb·r_b3`
   - `wn`, `wg`, `wb`: DH Dyn [A] Approach A と同一 (`simulate_rebalance_A`)
-  - NAS スリーブのみ TQQQ → CFD に変更
+  - `lev_mod`: LT2-modeB 適用後の DH Dyn レバレッジ
+  - `L_s2`: VZ ゲート CFD 動的レバレッジ (1x〜7x)
 - **Gold 2x**: TER 0.50% (sim proxy) + 1×SOFR（UGL実費 0.95%、差=−10.5 bps/yr, §16参照）
 - **Bond 3x (TMF)**: TER 0.91% + 2×SOFR
 - **DELAY**: 2営業日
-- **実装**: `src/cfd_leverage_backtest.py`, `src/dynamic_leverage_strategies.py`
+- **実装**: `src/b1_s2_lt2.py`, `src/cfd_leverage_backtest.py`, `src/dynamic_leverage_strategies.py`, `src/long_cycle_signal.py`
 
 ---
 
@@ -66,7 +76,7 @@
 | Gold TER ギャップ (proxy 0.50% → UGL 0.95%) | **−10.5 bps/yr** (§16) |
 | TMF TER ギャップ (0.91% → 1.06%) | −3.5 bps/yr (§16) |
 | スワップスプレッド推定差 (+20.5 bps) | −34 bps/yr 相当 (§16) |
-| 合計推定コスト過少計上 | **約 −66 bps/yr** → 現実 CAGR_OOS ≈ 26.9% 相当 |
+| 合計推定コスト過少計上 | **約 −66 bps/yr** → 現実 CAGR_OOS ≈ 30.5% 相当 |
 | 売買税ドラッグ (年27回、税率20.315%) | 別途 −2〜5% CAGR |
 | NISA | CFD は原則 NISA 不適用 |
 
@@ -76,9 +86,14 @@
 
 | ファイル | 役割 | 日付 |
 |---|---|---|
-| [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) | 10戦略統合比較表 (§2 ◆BEST マーク) | 2026-05-21 |
+| [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md) | B1 検証レポート（3戦略比較・判定 PASS） | 2026-05-21 |
+| [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) | 11戦略統合比較表 (§2 ◆BEST マーク) | 2026-05-21 |
+| [A6_LMAX_SWEEP_2026-05-21.md](A6_LMAX_SWEEP_2026-05-21.md) | l_max ロバストネス確認 (PASS) | 2026-05-21 |
+| [A1_NVOL_SWEEP_2026-05-21.md](A1_NVOL_SWEEP_2026-05-21.md) | n_vol ロバストネス確認 (n=20 最適確認) | 2026-05-21 |
+| [src/b1_s2_lt2.py](src/b1_s2_lt2.py) | S2+LT2 NAV 実装・サニティチェック込み | 2026-05-21 |
 | [src/cfd_leverage_backtest.py](src/cfd_leverage_backtest.py) | S2_VZGated NAV 実装 | - |
 | [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) | `compute_L_s2_vz_gated` 定義 | - |
+| [src/long_cycle_signal.py](src/long_cycle_signal.py) | `compute_lt2`, `signal_to_bias`, `apply_lt_mode_b` 定義 | - |
 | [src/corrected_strategy_backtest.py](src/corrected_strategy_backtest.py) | DH Dyn シグナル基盤 (Scenario D) | 2026-05-12 |
 | [src/product_costs.py](src/product_costs.py) | コスト定数の単一の真実 | 2026-05-12 |
 
@@ -107,6 +122,7 @@
 
 | 旧推奨 | 廃止日 | 廃止理由 |
 |---|---|---|
+| `S2_VZGated` CAGR_OOS +27.57%, Sharpe_OOS 0.769 | 2026-05-21 | S2+LT2 が CAGR_OOS +31.16% / Sharpe_OOS 0.858 / IS-OOS gap 0.18pp で全指標上回ることを確認 |
 | `DH Dyn 2x3x [A]` CAGR 22.50%, Sharpe 0.993 | 2026-05-21 | S2_VZGated が CAGR_OOS +27.57% / Sharpe_OOS 0.769 で上回ることを確認 |
 | `DH Dyn 2x3x [A]` CAGR 30.81% | 2026-05-12 | Scenario D 補正適用で CAGR 22.50% に更新 |
 | `Ens2(Asym+Slope)` (CAGR 28.58%, Sharpe 1.031) | 2026-04-21 | `DH Dyn 2x3x [A] 閾値0.15` に置換 |
@@ -145,6 +161,7 @@
 - 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- 2026-05-21: ベスト戦略を `S2_VZGated` から `S2_VZGated + LT2-N750-k0.5-modeB` に更新。根拠: B1 検証で CAGR_OOS +31.16% / Sharpe_OOS 0.858 / IS-OOS gap 0.18pp が全指標で S2 単体を上回ることを確認（`src/b1_s2_lt2.py`）。旧ベスト S2_VZGated を廃止リストに移動。
 - 2026-05-21: ベスト戦略を `DH Dyn 2x3x [A]` から `S2_VZGated` に更新。根拠: 10戦略統合比較表で CAGR_OOS +27.57% / Sharpe_OOS 0.769 が全戦略中トップ。旧ベストを廃止リストに移動。
 - 2026-05-12: Scenario D 補正適用。CAGR 30.84% → 22.50%, Sharpe 1.299 → 0.993, MaxDD -31.40% → -45.08%。
 - 2026-05-11: 初版作成。`DH Dyn 2x3x [A] 閾値0.15` を現行ベストに確定。
