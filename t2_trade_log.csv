@@ -1,0 +1,14 @@
+# T2 Trade Log (stub)
+# Full 127-row trade log (98 short + 29 long) is reproducible by running:
+#   cd nasdaq_backtest && python3 src/turtle_t2_long_short.py
+# Output: t2_trade_log.csv with columns:
+#   entry_date, system, side (long/short), entry_price, n_at_entry,
+#   pyramid_adds, exit_date, exit_price, exit_reason, gross_pnl, holding_days
+#
+# Summary statistics (from T1_T2_RESULTS_2026-05-18.md):
+#   Total trades   : 127 (long 29 / short 98)
+#   2N stop hits   : 80 (63.0%)
+#   Win rate       : 35.4% (45 winners)
+#   Avg holding    : 12.9 days
+#   Account ruin   : 1981-08-24 (95% drawdown floor hit during NASDAQ rally)
+#   Final equity   : $5,000 (from initial $100,000)
