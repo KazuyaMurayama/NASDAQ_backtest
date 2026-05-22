@@ -528,3 +528,125 @@
 ---
 
 _自動生成: 2026-05-02 | 手動更新: 2026-05-11 (CURRENT_BEST_STRATEGY.md追加・SUPERSEDED マーキング) | 管理者: 男座員也（Kazuya Oza）_
+
+---
+
+## ブランチマージ追加ファイル（2026-05-22）
+
+以下のファイルはブランチ `claude/review-best-strategy-Jcjd5` からコピーされました。
+
+### Turtle 戦略 (src) — 7件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `src/turtle_core.py` | 2.6 KB | タートル取引戦略 |
+| `src/turtle_costs.py` | 3.0 KB | タートル取引戦略 |
+| `src/turtle_data.py` | 5.7 KB | タートル取引戦略 |
+| `src/turtle_sim.py` | 26.9 KB | タートル取引戦略 |
+| `src/turtle_state.py` | 6.8 KB | タートル取引戦略 |
+| `src/turtle_t1_pure_long.py` | 3.6 KB | タートル取引戦略 |
+| `src/turtle_t2_long_short.py` | 3.7 KB | タートル取引戦略 |
+
+### CFD/Dynamic Leverage (src) — 7件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `src/cfd_leverage_backtest.py` | 41.3 KB | CFD・動的レバレッジ戦略 |
+| `src/dyn_lev_backtest.py` | 16.0 KB | CFD・動的レバレッジ戦略 |
+| `src/enh_lev_backtest.py` | 17.3 KB | CFD・動的レバレッジ戦略 |
+| `src/dynamic_leverage_strategies.py` | 14.8 KB | CFD・動的レバレッジ戦略 |
+| `src/gen_cfd_yearly_returns.py` | 10.2 KB | CFD・動的レバレッジ戦略 |
+| `src/gen_s2_yearly_returns.py` | 13.0 KB | CFD・動的レバレッジ戦略 |
+| `src/sleeves_extended.py` | 5.7 KB | CFD・動的レバレッジ戦略 |
+
+### S2/H1-H5/スイープ系 (src) — 15件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `src/s2_dh_integration.py` | 10.8 KB | 検証・スイープスクリプト |
+| `src/s2_low_vol_sweep.py` | 7.7 KB | 検証・スイープスクリプト |
+| `src/s2_rolling_cv.py` | 13.5 KB | 検証・スイープスクリプト |
+| `src/s4_sharpe_sweep.py` | 9.8 KB | 検証・スイープスクリプト |
+| `src/run_hypotheses_H1_H5.py` | 13.3 KB | 検証・スイープスクリプト |
+| `src/h4_wgwb_sweep.py` | 13.9 KB | 検証・スイープスクリプト |
+| `src/c_nasdaq_heavy_sweep.py` | 6.4 KB | 検証・スイープスクリプト |
+| `src/c2_nasdaq_heavy_sweep.py` | 7.8 KB | 検証・スイープスクリプト |
+| `src/d_h4_extended_sweep.py` | 6.4 KB | 検証・スイープスクリプト |
+| `src/compute_worst_best_10y.py` | 7.9 KB | 検証・スイープスクリプト |
+| `src/p0_verify_critical.py` | 9.2 KB | 検証・スイープスクリプト |
+| `src/p1_fetch_timing_data.py` | 8.2 KB | 検証・スイープスクリプト |
+| `src/p2_single_signal_backtest.py` | 22 B | 検証・スイープスクリプト |
+| `src/p4_overfitting_check.py` | 31.2 KB | 検証・スイープスクリプト |
+| `src/p5_bootstrap_stress.py` | 21.9 KB | 検証・スイープスクリプト |
+
+### テスト (tests) — 2件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `tests/__init__.py` | 0 B | ユニットテスト |
+| `tests/test_turtle_core.py` | 12.9 KB | ユニットテスト |
+
+### CFD・レバレッジ検証レポート (md) — 9件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `CFD_DYNAMIC_LEVERAGE_GUIDE.md` | 6.3 KB | CFDバックテスト結果 |
+| `CFD_LEVERAGE_BACKTEST_2026-05-15.md` | 7.8 KB | CFDバックテスト結果 |
+| `CFD_LEVERAGE_BACKTEST_6x7x_2026-05-15.md` | 12.4 KB | CFDバックテスト結果 |
+| `CFD_LEVERAGE_PROCEDURE_2026-05-15.md` | 13.7 KB | CFDバックテスト結果 |
+| `CFD_S2_YEARLY_RETURNS_2026-05-17.md` | 5.1 KB | CFDバックテスト結果 |
+| `CFD_YEARLY_RETURNS_2026-05-15.md` | 4.2 KB | CFDバックテスト結果 |
+| `DYN_LEVERAGE_BACKTEST_2026-05-15.md` | 5.3 KB | CFDバックテスト結果 |
+| `ENH_LEVERAGE_BACKTEST_2026-05-15.md` | 6.3 KB | CFDバックテスト結果 |
+| `ENH_LEVERAGE_BACKTEST_2026-05-16.md` | 5.0 KB | CFDバックテスト結果 |
+
+### Turtle・タイミング戦略レポート (md) — 6件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `TURTLE_RESEARCH_2026-05-18.md` | 17.1 KB | タートル戦略研究 |
+| `TURTLE_RESEARCH_PLAN_2026-05-18.md` | 25.5 KB | タートル戦略研究 |
+| `A_DH_STANDALONE_VERIFY_2026-05-18.md` | 4.9 KB | タートル戦略研究 |
+| `T1_T2_RESULTS_2026-05-18.md` | 9.7 KB | タートル戦略研究 |
+| `TIMING_STRATEGY_RESEARCH_PLAN_2026-05-18.md` | 11.5 KB | タートル戦略研究 |
+| `GOLD_BOND_STRATEGY_PLAN_2026-05-17.md` | 14.5 KB | タートル戦略研究 |
+
+### S2/H1-H5/P0-P5 検証レポート (md) — 11件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `S2_DH_INTEGRATION_2026-05-17.md` | 3.9 KB | 戦略検証レポート |
+| `S2_LOW_VOL_SWEEP_2026-05-17.md` | 2.8 KB | 戦略検証レポート |
+| `S2_ROLLING_CV_2026-05-17.md` | 10.5 KB | 戦略検証レポート |
+| `S4_SHARPE_SWEEP_2026-05-17.md` | 1.7 KB | 戦略検証レポート |
+| `H1_H5_SUMMARY_2026-05-17.md` | 3.7 KB | 戦略検証レポート |
+| `H4_WGWB_SWEEP_2026-05-17.md` | 7.4 KB | 戦略検証レポート |
+| `P1_DATA_FETCH_RESULTS_2026-05-18.md` | 4.8 KB | 戦略検証レポート |
+| `P2_SINGLE_SIGNAL_RESULTS_2026-05-18.md` | 6.7 KB | 戦略検証レポート |
+| `P3_COMBINATION_RESULTS_2026-05-18.md` | 8.6 KB | 戦略検証レポート |
+| `P4_OVERFITTING_CHECK_2026-05-18.md` | 4.4 KB | 戦略検証レポート |
+| `P5_BOOTSTRAP_STRESS_2026-05-18.md` | 3.2 KB | 戦略検証レポート |
+
+### セッションサマリー (md) — 3件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `SESSION_SUMMARY_2026-05-16.md` | 7.7 KB | セッション作業記録 |
+| `SESSION_SUMMARY_2026-05-18.md` | 11.1 KB | セッション作業記録 |
+| `SESSION_SUMMARY_2026-05-19.md` | 6.4 KB | セッション作業記録 |
+
+### スイープ・検証結果 CSV — 11件
+
+| ファイル | サイズ | 説明 |
+|---|---|---|
+| `C2_NASDAQ_CAP_SWEEP_2026-05-18.csv` | 6.1 KB | 検証データ CSV |
+| `C_NASDAQ_HEAVY_SWEEP_2026-05-17.csv` | 3.9 KB | 検証データ CSV |
+| `D_H4_EXTENDED_SWEEP_2026-05-17.csv` | 9.2 KB | 検証データ CSV |
+| `H4_WGWB_SWEEP_2026-05-17.csv` | 5.5 KB | 検証データ CSV |
+| `P4_CV_RESULTS_2026-05-18.csv` | 3.2 KB | 検証データ CSV |
+| `P4_DSR_RESULTS_2026-05-18.csv` | 1.3 KB | 検証データ CSV |
+| `P5_BOOTSTRAP_SUMMARY_2026-05-18.csv` | 2.3 KB | 検証データ CSV |
+| `t1_trade_log.csv` | 658 B | 検証データ CSV |
+| `t1_yearly_returns.csv` | 1.3 KB | 検証データ CSV |
+| `t2_trade_log.csv` | 682 B | 検証データ CSV |
+| `t2_yearly_returns.csv` | 556 B | 検証データ CSV |
