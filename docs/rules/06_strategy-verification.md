@@ -13,8 +13,14 @@
 
 ## Step 2: 評価基準の確認（30秒）
 1. `EVALUATION_STANDARD.md` の `§0 標準前提サマリ` を読む
-2. 検証スクリプトの冒頭コメントに必ず明記:
-   - `# Evaluation Standard: v1.0`
+2. **9指標チェックリスト** ([docs/rules/08_evaluation-metrics.md](08_evaluation-metrics.md)):
+   - [ ] CAGR_IS / CAGR_OOS / CAGR_FULL を出力するか？
+   - [ ] Sharpe_OOS, MaxDD, Worst10Y★, P10_5Y▷, IS-OOS gap を出力するか？
+   - [ ] Trades/yr を記録するか？
+   - [ ] WFA実施時は WFA_CI95_lo と WFA_WFE を追加するか？
+   - [ ] **禁止指標（Stable_Sharpe/WinRate_yr/WorstK5/IR_vs_BH）を使っていないか？**
+3. 検証スクリプトの冒頭コメントに必ず明記:
+   - `# Evaluation Standard: v1.1`（v1.0 は廃止）
    - `# Cost Scenario: D`（または逸脱理由）
    - `# IS: 1974-01-02〜2021-05-07 / OOS: 2021-05-08〜現在`
 

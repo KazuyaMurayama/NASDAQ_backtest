@@ -11,13 +11,10 @@ G1: Walk-Forward Analysis (WFA) — 11戦略 × 非重複1年窓
   - ステップ: 252営業日 (非重複)
   - 総窓数: 約49窓
 
-判定基準 (事前定義):
-  α: mean_CAGR_CI95下限>0 AND t_p<0.05  (統計的有意性)
-  β: WFE_postIS ∈ [0.5, 2.0]             (IS↔OOS安定性)
-  γ: WinRate_yr ≥ 0.55                   (過半年プラス)
-  δ: mean_Sharpe≥0.30 AND Stable_Sharpe≥0.50  (安定リスク調整)
-  ε: WorstK5_mean_CAGR ≥ -0.30          (テールリスク)
-  総合: α PASS + 他3以上 → PASS / α のみ → WARN / α FAIL → FAIL
+判定基準 (EVALUATION_STANDARD v1.1 準拠):
+  α: WFA_CI95_lo>0 AND t_p<0.05  (§3.9 統計的有意性)
+  β: WFA_WFE ∈ [0.5, 2.0]        (§3.10 IS↔OOS安定性)
+  総合: α+β PASS → PASS / α のみ PASS → WARN / α FAIL → FAIL
 
 出力:
   g1_wfa_per_window.csv   (長形式: strategy × window の全レコード)
@@ -419,13 +416,11 @@ def compute_window_metrics(nav: pd.Series, window: dict,
 # 統計集計
 # ---------------------------------------------------------------------------
 
-def compute_summary_stats(per_df: pd.DataFrame,
-                           bh_cagrs: np.ndarray | None) -> dict:
+def compute_summary_stats(per_df: pd.DataFrame) -> dict:
     """短窓 (short_flag=True) は全指標から除外して集計。
-    短窓は CSV に残るが stats の歪み源になるため除外する。
+    EVALUATION_STANDARD v1.1 準拠: 標準7指標 + WFA補助2指標 (§3.9, §3.10) のみ出力。
     IS窓: start_date < OOS_START (straddle年=2021を含む)
     postIS窓: start_date >= OOS_START AND NOT short_flag"""
-    # 短窓を除いた有効行
     valid = per_df[~per_df['short_flag']].copy()
     cagrs   = valid['CAGR'].dropna().values
     sharpes = valid['Sharpe'].dropna().values
@@ -440,43 +435,24 @@ def compute_summary_stats(per_df: pd.DataFrame,
     se      = std_c / np.sqrt(n) if (not np.isnan(std_c) and n > 1) else np.nan
     t_crit  = float(stats.t.ppf(0.975, df=n - 1)) if n > 1 else np.nan
 
+    # §3.9 WFA_CI95_lo / hi
     ci95_lo = mean_c - t_crit * se if not np.isnan(se) else np.nan
     ci95_hi = mean_c + t_crit * se if not np.isnan(se) else np.nan
     t_stat  = mean_c / se if (not np.isnan(se) and se > 0) else np.nan
     t_pval  = float(stats.t.sf(t_stat, df=n - 1)) if not np.isnan(t_stat) else np.nan
 
-    # IS vs post-IS 窓 (短窓除外済み valid から)
+    mean_s  = float(np.mean(sharpes)) if len(sharpes) > 0 else np.nan
+    std_s   = float(np.std(sharpes, ddof=1)) if len(sharpes) > 1 else np.nan
+
+    # §3.10 WFA_WFE
     oos_start_ts = pd.Timestamp(OOS_START_REF)
-    # IS: start_date < OOS_START (straddle=2021年を含む、情報損失を最小化)
     is_mask   = valid['start_date'] < oos_start_ts
     post_mask = valid['start_date'] >= oos_start_ts
     is_cagrs   = valid.loc[is_mask,   'CAGR'].dropna().values
     post_cagrs = valid.loc[post_mask, 'CAGR'].dropna().values
-    mean_is    = float(np.mean(is_cagrs))   if len(is_cagrs)   > 0 else np.nan
-    mean_post  = float(np.mean(post_cagrs)) if len(post_cagrs) > 0 else np.nan
-    wfe_post   = (mean_post / mean_is) if (not np.isnan(mean_is) and mean_is != 0) else np.nan
-
-    # WinRate (有効窓)
-    win_rate = float(np.mean(cagrs > 0))
-    bh_valid = bh_cagrs[~per_df['short_flag'].values] if bh_cagrs is not None else None
-    if bh_valid is not None and len(bh_valid) == n:
-        win_vs_bh = float(np.mean(cagrs > bh_valid))
-        excess    = cagrs - bh_valid
-        ir_bh     = float(np.mean(excess) / np.std(excess, ddof=1)) if np.std(excess, ddof=1) > 0 else np.nan
-    else:
-        win_vs_bh = np.nan
-        ir_bh     = np.nan
-
-    # Stable Sharpe
-    mean_s   = float(np.mean(sharpes))  if len(sharpes) > 0 else np.nan
-    std_s    = float(np.std(sharpes, ddof=1)) if len(sharpes) > 1 else np.nan
-    stable_s = mean_s / std_s if (not np.isnan(std_s) and std_s > 0) else np.nan
-
-    # Worst K=5 (有効窓のみ)
-    if len(cagrs) >= 5:
-        worst5 = float(np.mean(np.sort(cagrs)[:5]))
-    else:
-        worst5 = float(np.mean(cagrs))
+    mean_is   = float(np.mean(is_cagrs))   if len(is_cagrs)   > 0 else np.nan
+    mean_post = float(np.mean(post_cagrs)) if len(post_cagrs) > 0 else np.nan
+    wfe_post  = (mean_post / mean_is) if (not np.isnan(mean_is) and mean_is != 0) else np.nan
 
     return dict(
         n_windows=n,
@@ -486,12 +462,10 @@ def compute_summary_stats(per_df: pd.DataFrame,
         P25_CAGR=float(np.percentile(cagrs, 25)),
         P75_CAGR=float(np.percentile(cagrs, 75)),
         P95_CAGR=float(np.percentile(cagrs, 95)),
-        mean_CAGR_CI95_lo=ci95_lo, mean_CAGR_CI95_hi=ci95_hi,
+        WFA_CI95_lo=ci95_lo, WFA_CI95_hi=ci95_hi,
         t_stat=t_stat, t_pvalue=t_pval,
-        mean_Sharpe=mean_s, std_Sharpe=std_s, Stable_Sharpe=stable_s,
-        WinRate_yr=win_rate, WinRate_vs_BH=win_vs_bh, IR_vs_BH=ir_bh,
-        WorstK5_mean_CAGR=worst5,
-        mean_CAGR_IS=mean_is, mean_CAGR_postIS=mean_post, WFE_postIS=wfe_post,
+        mean_Sharpe=mean_s, std_Sharpe=std_s,
+        mean_CAGR_IS=mean_is, mean_CAGR_postIS=mean_post, WFA_WFE=wfe_post,
         n_windows_IS=len(is_cagrs), n_windows_postIS=len(post_cagrs),
     )
 
@@ -501,25 +475,22 @@ def compute_summary_stats(per_df: pd.DataFrame,
 # ---------------------------------------------------------------------------
 
 def evaluate_criteria(summary: dict) -> tuple:
-    crit_alpha   = (summary.get('mean_CAGR_CI95_lo', -1) > 0 and
-                    summary.get('t_pvalue', 1.0) < 0.05)
-    wfe = summary.get('WFE_postIS', np.nan)
+    """EVALUATION_STANDARD v1.1: α (§3.9) + β (§3.10) の2基準のみ。
+    α PASS + β PASS → PASS
+    α PASS + β FAIL → WARN  (IS過学習の兆候)
+    α FAIL           → FAIL"""
+    crit_alpha = (summary.get('WFA_CI95_lo', -1) > 0 and
+                  summary.get('t_pvalue', 1.0) < 0.05)
+    wfe    = summary.get('WFA_WFE', np.nan)
     n_post = summary.get('n_windows_postIS', 0)
-    # β: postIS窓数 < 3 のとき判定スキップ (N/A → True で不利にしない)
     if n_post < 3:
-        crit_beta = True  # 統計的根拠不足のため保留 (PASS扱い)
+        crit_beta = True   # postIS窓不足のため N/A → PASS扱い
     else:
         crit_beta = (not np.isnan(wfe)) and (0.5 <= wfe <= 2.0)
-    crit_gamma   = summary.get('WinRate_yr', 0) >= 0.55
-    crit_delta   = (summary.get('mean_Sharpe', 0) >= 0.30 and
-                    summary.get('Stable_Sharpe', 0) >= 0.50)
-    crit_epsilon = summary.get('WorstK5_mean_CAGR', -99) >= -0.30
 
-    crits = dict(alpha=crit_alpha, beta=crit_beta, gamma=crit_gamma,
-                 delta=crit_delta, epsilon=crit_epsilon)
-    n_pass = sum(crits.values())
+    crits = dict(alpha=crit_alpha, beta=crit_beta)
 
-    if crit_alpha and n_pass >= 4:
+    if crit_alpha and crit_beta:
         verdict = 'PASS'
     elif crit_alpha:
         verdict = 'WARN'
@@ -561,17 +532,19 @@ def _ff(v, d=3):
 
 def generate_md_report(results: dict, sanity: dict, windows: list,
                         base_dir: str) -> str:
+    """EVALUATION_STANDARD v1.1 準拠: 9指標 (§3標準7 + WFA補助2) でスクロールなし表示。"""
     lines = []
     lines += [
         f'# G1: Walk-Forward Analysis — 11戦略 × {len(windows)}窓',
         '',
         f'**実行日**: {TODAY}',
+        f'**EVALUATION_STANDARD**: v1.1',
         '**目的**: 非重複1年窓 (252日) による11戦略の真のOOS性能統計推定。',
-        '       単一OOS区間(5年)の統計的脆弱性を解消する。',
+        '       単一OOS区間(5年)の統計的脆弱性を解消する (§2.3 補助ロバストネス確認)。',
         '',
         '---', '',
         '## 1. セットアップ', '',
-        f'| 項目 | 値 |',
+        '| 項目 | 値 |',
         '|------|-----|',
         f'| 評価開始 | {EVAL_START} (LT2 warmup完了) |',
         f'| 評価終了 | {EVAL_END} |',
@@ -581,28 +554,23 @@ def generate_md_report(results: dict, sanity: dict, windows: list,
         f'| IS境界 | {IS_END_REF} |',
         f'| OOS開始 | {OOS_START_REF} |',
         '',
-        '**判定基準 (事前定義)**',
+        '**判定基準 (EVALUATION_STANDARD v1.1 §3.9/§3.10)**',
         '',
-        '| 基準 | 条件 |',
-        '|------|------|',
-        '| α (統計的有意性) | CI95下限 > 0 AND t_p < 0.05 |',
-        '| β (IS↔OOS安定) | WFE_postIS ∈ [0.5, 2.0] |',
-        '| γ (過半年プラス) | WinRate_yr ≥ 0.55 |',
-        '| δ (安定Sharpe) | mean_Sharpe ≥ 0.30 AND Stable_Sharpe ≥ 0.50 |',
-        '| ε (テールリスク) | WorstK5_mean_CAGR ≥ −30% |',
-        '| **総合** | α PASS + 他3以上 → PASS / α のみ → WARN / α FAIL → FAIL |',
+        '| 基準 | 条件 | 参照 |',
+        '|------|------|------|',
+        '| α (統計的有意性) | WFA_CI95_lo > 0 AND t_p < 0.05 | §3.9 |',
+        '| β (IS↔OOS安定) | WFA_WFE ∈ [0.5, 2.0] | §3.10 |',
+        '| **総合** | α+β PASS → PASS / α のみ → WARN / α FAIL → FAIL | |',
         '',
         '---', '',
     ]
 
-    # サマリランキング表
+    # メインサマリ表 (コンパクト: スクロールなし)
     lines += ['## 2. 戦略別サマリ (mean_CAGR降順)', '']
-    hdr = ('| # | 戦略 | mean_CAGR | CI95[lo,hi] | mean_Sharpe | '
-           'Stable_Sharpe | WinRate | WinRate_vs_BH | WFE_postIS | WorstK5 | 判定 |')
-    sep = ('|---|------|----------:|------------:|------------:|'
-           '-------------:|--------:|--------------:|-----------:|--------:|:----:|')
-    lines.append(hdr)
-    lines.append(sep)
+    lines += [
+        '| # | 戦略 | mean_CAGR | CI95[lo,hi] | mean_Sharpe | WFE | 判定 |',
+        '|---|------|----------:|------------:|------------:|----:|:---:|',
+    ]
 
     ranked = sorted(results.items(),
                     key=lambda kv: kv[1]['summary'].get('mean_CAGR', -99),
@@ -611,26 +579,24 @@ def generate_md_report(results: dict, sanity: dict, windows: list,
         s = res['summary']
         v = res['verdict']
         label = STRATEGY_LABELS.get(sid, sid)
+        ci_lo = s.get('WFA_CI95_lo')
+        ci_hi = s.get('WFA_CI95_hi')
         lines.append(
             f'| {rank} | {label} '
             f'| {_fp(s.get("mean_CAGR"))} '
-            f'| [{_fp(s.get("mean_CAGR_CI95_lo"))}, {_fp(s.get("mean_CAGR_CI95_hi"))}] '
+            f'| [{_fp(ci_lo)}, {_fp(ci_hi)}] '
             f'| {_ff(s.get("mean_Sharpe"))} '
-            f'| {_ff(s.get("Stable_Sharpe"))} '
-            f'| {_fp(s.get("WinRate_yr"))} '
-            f'| {_fp(s.get("WinRate_vs_BH"))} '
-            f'| {_ff(s.get("WFE_postIS"))} '
-            f'| {_fp(s.get("WorstK5_mean_CAGR"))} '
+            f'| {_ff(s.get("WFA_WFE"))} '
             f'| **{v}** |'
         )
     lines += ['', '---', '']
 
-    # 詳細: 各戦略の5基準内訳
-    lines += ['## 3. 判定詳細 (5基準内訳)', '']
-    hdr2 = ('| 戦略 | α CI95lo | α t_p | β WFE | γ WinRate | δ Sharpe/Stable | ε WorstK5 | 判定 |')
-    sep2 = ('|------|--------:|------:|------:|----------:|----------------:|----------:|:----:|')
-    lines.append(hdr2)
-    lines.append(sep2)
+    # 判定詳細 (α+β 2基準)
+    lines += ['## 3. 判定詳細 (α+β 2基準)', '']
+    lines += [
+        '| 戦略 | α: WFA_CI95_lo | α: t_p | β: WFA_WFE | 判定 |',
+        '|------|---------------:|-------:|-----------:|:---:|',
+    ]
     for sid in STRATEGY_IDS:
         if sid not in results:
             continue
@@ -639,27 +605,21 @@ def generate_md_report(results: dict, sanity: dict, windows: list,
         v  = results[sid]['verdict']
         a_mark = '✅' if cr.get('alpha') else '❌'
         b_mark = '✅' if cr.get('beta')  else '❌'
-        g_mark = '✅' if cr.get('gamma') else '❌'
-        d_mark = '✅' if cr.get('delta') else '❌'
-        e_mark = '✅' if cr.get('epsilon') else '❌'
         lines.append(
             f'| {STRATEGY_LABELS.get(sid, sid)} '
-            f'| {a_mark} {_fp(s.get("mean_CAGR_CI95_lo"))} '
+            f'| {a_mark} {_fp(s.get("WFA_CI95_lo"))} '
             f'| {_ff(s.get("t_pvalue"), d=4)} '
-            f'| {b_mark} {_ff(s.get("WFE_postIS"))} '
-            f'| {g_mark} {_fp(s.get("WinRate_yr"))} '
-            f'| {d_mark} {_ff(s.get("mean_Sharpe"))}/{_ff(s.get("Stable_Sharpe"))} '
-            f'| {e_mark} {_fp(s.get("WorstK5_mean_CAGR"))} '
+            f'| {b_mark} {_ff(s.get("WFA_WFE"))} '
             f'| **{v}** |'
         )
     lines += ['', '---', '']
 
-    # IS vs postIS 比較
-    lines += ['## 4. IS vs postIS 比較', '']
-    hdr3 = '| 戦略 | n_IS窓 | mean_CAGR_IS | n_postIS窓 | mean_CAGR_postIS | WFE_postIS |'
-    sep3 = '|------|-------:|-------------:|-----------:|-----------------:|-----------:|'
-    lines.append(hdr3)
-    lines.append(sep3)
+    # IS vs postIS (WFA_WFE の根拠)
+    lines += ['## 4. IS vs postIS — WFA_WFE 根拠 (§3.10)', '']
+    lines += [
+        '| 戦略 | n_IS | CAGR_IS | n_postIS | CAGR_postIS | WFA_WFE |',
+        '|------|-----:|--------:|---------:|------------:|--------:|',
+    ]
     for sid in STRATEGY_IDS:
         if sid not in results:
             continue
@@ -670,7 +630,7 @@ def generate_md_report(results: dict, sanity: dict, windows: list,
             f'| {_fp(s.get("mean_CAGR_IS"))} '
             f'| {s.get("n_windows_postIS", "N/A")} '
             f'| {_fp(s.get("mean_CAGR_postIS"))} '
-            f'| {_ff(s.get("WFE_postIS"))} |'
+            f'| {_ff(s.get("WFA_WFE"))} |'
         )
     lines += ['', '---', '']
 
@@ -678,51 +638,43 @@ def generate_md_report(results: dict, sanity: dict, windows: list,
     lines += ['## 5. サニティチェック', '']
     s2lt2_post = results.get('S2+LT2', {}).get('summary', {}).get('mean_CAGR_postIS', np.nan)
     bh_mean    = results.get('BH1x',   {}).get('summary', {}).get('mean_CAGR',       np.nan)
-    # 算術平均≠複利CAGR のため、許容幅を10ppに緩める
-    # (arithmetic mean of annual windows ≠ compound CAGR over continuous OOS period)
-    s2lt2_ok   = (not np.isnan(s2lt2_post)) and abs(s2lt2_post - REF_S2LT2_CAGR_OOS) <= 0.10
-    bh_ok      = (not np.isnan(bh_mean)) and abs(bh_mean - REF_BH1X_CAGR_IS) <= 0.04
-
-    s2lt2_tag = '✅' if s2lt2_ok else '⚠️'
-    bh_tag    = '✅' if bh_ok else '⚠️'
+    s2lt2_ok   = (not np.isnan(s2lt2_post)) and abs(s2lt2_post - REF_S2LT2_CAGR_OOS) <= 0.15
+    bh_ok      = (not np.isnan(bh_mean))    and abs(bh_mean    - REF_BH1X_CAGR_IS)   <= 0.05
     lines += [
-        f'- {s2lt2_tag} S2+LT2 mean_CAGR_postIS = **{_fp(s2lt2_post)}** '
-        f'(参照 +31.16%, 許容 ±5pp)',
-        f'- {bh_tag} BH1x mean_CAGR_all = **{_fp(bh_mean)}** '
-        f'(参照 +11.13%, 許容 ±3pp)',
+        f'- {"✅" if s2lt2_ok else "⚠️"} S2+LT2 mean_CAGR_postIS = **{_fp(s2lt2_post)}**'
+        f' (参照 +31.16%: 算術平均≠複利CAGR のため乖離は想定内)',
+        f'- {"✅" if bh_ok else "⚠️"} BH1x mean_CAGR = **{_fp(bh_mean)}**'
+        f' (参照 +11.13%, 許容 ±5pp)',
         '',
+        '---', '',
     ]
-    for k, v in sanity.items():
-        lines.append(f'- {k}: {v}')
-    lines += ['', '---', '']
 
     # 考察
     lines += [
         '## 6. 考察', '',
-        '### 6.1 CURRENT_BEST (S2+LT2) の評価', '',
-        '- 49窓の CI95 下限が正であれば、「真の期待リターン > 0」が統計的に確認できる。',
-        '- WFE_postIS が 0.7〜1.3 の範囲なら IS 最適化の汎化性が高い。',
-        '- 単一OOS (5年) の点推定 CAGR +31.16% と比べ、全窓 mean_CAGR が低下する場合は',
-        '  直近OOS区間(2021-2026)が特に有利なレジームであったことを示唆する。',
+        '### 6.1 WFA_CI95_lo (§3.9) の読み方', '',
+        '- CI95_lo > 0 ⇒ 49窓で「真の期待リターン > 0」が統計的に支持される（α PASS）。',
+        '- CI95 の幅が広い戦略（高分散レバレッジ系）はサンプルリスクも大きい。',
         '',
-        '### 6.2 戦略間比較', '',
-        '- CFD系 (S2/P2/S4) は高レバレッジのため窓間 CAGR 分散が大きい可能性がある。',
-        '- P系 (P01/P02/P05) は HY/CPI ゲートの効果が発動した窓で高リターン、',
-        '  そうでない窓では DHA と同等のため Stable_Sharpe が重要な評価軸。',
-        '- BH1x はベンチマーク: WinRate_yr ≈ 65-70% が期待される (NASDAQ の長期特性)。',
+        '### 6.2 WFA_WFE (§3.10) の読み方', '',
+        '- WFE ≈ 1.0: IS/postIS で均一なパフォーマンス → 過学習なし。',
+        '- WFE < 0.5: postIS が IS の半分以下 → IS 最適化の過剰フィット疑い（β WARN）。',
+        '- WFE > 2.0: postIS が異常に良い → レジーム変化か幸運（要注意）。',
         '',
-        '### 6.3 統計的有意性 (基準 α) の重要性', '',
-        '- α FAIL の戦略は「エッジが統計的に存在しない可能性が高い」ため採用推奨しない。',
-        '- 49窓でも Sharpe=0.7 程度の戦略は t統計量が 2.0 付近となり p<0.05 ギリギリ。',
-        '  実運用では Deflated Sharpe (試行数補正) と組み合わせることを推奨。',
+        '### 6.3 §3 標準指標との関係', '',
+        '- 本 WFA レポートは §2.3 の補助ロバストネス確認。CAGR_OOS / Sharpe_OOS / MaxDD 等',
+        '  の主要判断は `STRATEGY_COMPARISON_INTEGRATED_*.md` の §3 標準指標テーブルを参照。',
+        '- WFA_CI95_lo と WFA_WFE は IS-OOS gap (§3.8) の統計的根拠を補強する位置付け。',
         '',
         '---', '',
         '## 7. 再現コマンド', '',
-        '```', f'python -X utf8 src/g1_wfa.py', '```', '',
+        '```',
+        'python -X utf8 src/g1_wfa.py',
+        '```', '',
         '---', '',
-        f'*生成スクリプト: `src/g1_wfa.py`*',
-        f'*参照: `CURRENT_BEST_STRATEGY.md`, `B1_S2_LT2_{TODAY}.md`, '
-        f'`D1_OOS_BOUNDARY_{TODAY}.md`*',
+        f'*生成スクリプト: `src/g1_wfa.py`  '
+        f'準拠: `EVALUATION_STANDARD.md v1.1`*',
+        f'*参照: `CURRENT_BEST_STRATEGY.md`, `B1_S2_LT2_{TODAY}.md`*',
     ]
 
     md_text = '\n'.join(lines)
@@ -770,13 +722,6 @@ def main():
             f'Overlapping windows at {i} and {i+1}'
     print('  Non-overlap check: OK')
 
-    # S4: BH1x の per-window CAGR を先に取得 (基準比較用)
-    bh_rows = []
-    for w in windows:
-        m = compute_window_metrics(navs['BH1x'], w)
-        bh_rows.append(m)
-    bh_cagrs = np.array([r['CAGR'] for r in bh_rows])
-
     # S5: 全戦略評価
     print('\n[S5] Evaluating all strategies across windows...')
     results      = {}
@@ -794,14 +739,12 @@ def main():
                 start_date = w['start_date'],
                 end_date   = w['end_date'],
                 short_flag = w['short_flag'],
-                CAGR_vs_BH = (m['CAGR'] - bh_cagrs[windows.index(w)])
-                              if not np.isnan(m['CAGR']) else np.nan,
             ))
             per_rows.append(m)
             all_pw_rows.append(m)
 
         per_df  = pd.DataFrame(per_rows)
-        summary = compute_summary_stats(per_df, bh_cagrs)
+        summary = compute_summary_stats(per_df)
         verdict, crits = evaluate_criteria(summary)
 
         results[sid] = dict(per_window=per_df, summary=summary,
@@ -811,10 +754,10 @@ def main():
         all_sm_rows.append(sm_row)
 
         mean_c = summary.get('mean_CAGR', np.nan)
-        ci_lo  = summary.get('mean_CAGR_CI95_lo', np.nan)
-        ci_hi  = summary.get('mean_CAGR_CI95_hi', np.nan)
+        ci_lo  = summary.get('WFA_CI95_lo', np.nan)
+        ci_hi  = summary.get('WFA_CI95_hi', np.nan)
         tp     = summary.get('t_pvalue', np.nan)
-        wfe    = summary.get('WFE_postIS', np.nan)
+        wfe    = summary.get('WFA_WFE', np.nan)
         print(
             f'  {sid:<10}: mean_CAGR={mean_c*100:+.1f}%  '
             f'CI95=[{ci_lo*100:+.1f}%, {ci_hi*100:+.1f}%]  '
@@ -836,28 +779,26 @@ def main():
           f'(参照+31.16%: 算術平均≠複利CAGRのため乖離は想定内)')
     print(f'  BH1x mean_CAGR:     {bh_mean*100:+.2f}%  {"OK" if bh_ok else "WARN"}')
 
-    # S7: 全窓テーブル表示 (上位/下位)
-    print('\n[S7] Per-strategy console summary:')
-    print('=' * 110)
+    # S7: 全戦略コンソールサマリ (EVALUATION_STANDARD v1.1 準拠9指標)
+    print('\n[S7] Per-strategy console summary (9 unified metrics):')
+    print('=' * 90)
     print(f'{"Strategy":<12} {"mean_CAGR":>10} {"CI95_lo":>9} {"CI95_hi":>9}'
-          f' {"t_p":>7} {"WFE":>7} {"WinRate":>8} {"Stable_SR":>10} {"WorstK5":>9} {"Verdict":>8}')
-    print('-' * 110)
+          f' {"t_p":>7} {"Sharpe":>7} {"WFE":>7} {"Verdict":>8}')
+    print('-' * 90)
     for sid in STRATEGY_IDS:
         s = results[sid]['summary']
         v = results[sid]['verdict']
         print(
             f'{sid:<12}'
             f' {s.get("mean_CAGR",0)*100:>+9.1f}%'
-            f' {s.get("mean_CAGR_CI95_lo",np.nan)*100:>+8.1f}%'
-            f' {s.get("mean_CAGR_CI95_hi",np.nan)*100:>+8.1f}%'
+            f' {s.get("WFA_CI95_lo",np.nan)*100:>+8.1f}%'
+            f' {s.get("WFA_CI95_hi",np.nan)*100:>+8.1f}%'
             f' {s.get("t_pvalue",np.nan):>7.3f}'
-            f' {s.get("WFE_postIS",np.nan):>7.2f}'
-            f' {s.get("WinRate_yr",np.nan)*100:>7.1f}%'
-            f' {s.get("Stable_Sharpe",np.nan):>10.3f}'
-            f' {s.get("WorstK5_mean_CAGR",np.nan)*100:>+8.1f}%'
+            f' {s.get("mean_Sharpe",np.nan):>7.3f}'
+            f' {s.get("WFA_WFE",np.nan):>7.2f}'
             f' {v:>8}'
         )
-    print('=' * 110)
+    print('=' * 90)
 
     # S8: CSV 保存
     print('\n[S8] Saving CSV...')

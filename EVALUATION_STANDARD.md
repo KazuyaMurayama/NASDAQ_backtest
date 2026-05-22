@@ -4,8 +4,8 @@
 > **新しい戦略検証・改良・比較を行う前に、必ず §0 を読み、各セクションの定義に従ってください。**
 > **本書と矛盾する実装・レポートは「非標準」として §1.3 / §6 の参考値ルールが適用されます。**
 
-- バージョン: **v1.0**
-- 発行日: 2026-05-21
+- バージョン: **v1.1**
+- 発行日: 2026-05-22
 - 管理者: Kazuya Murayama
 - 一次関連ファイル: [`CURRENT_BEST_STRATEGY.md`](CURRENT_BEST_STRATEGY.md), [`src/product_costs.py`](src/product_costs.py), [`tasks.md`](tasks.md), [`FILE_INDEX.md`](FILE_INDEX.md)
 
@@ -42,6 +42,9 @@
 - [ ] DELAY=2 を使用したか
 - [ ] §5 のレポートテンプレに沿ったか
 - [ ] CURRENT_BEST_STRATEGY.md と整合確認したか
+- [ ] **9指標チェック**: CAGR/Sharpe/MaxDD/Worst10Y★/P10_5Y▷/IS-OOS gap/Trades/yr を全て出したか
+- [ ] **禁止指標不使用**: Stable_Sharpe/WinRate_yr/WorstK5_mean_CAGR/IR_vs_BH を使っていないか
+- [ ] **WFA実施時**: WFA_CI95_lo (§3.9) と WFA_WFE (§3.10) を追加したか
 
 ---
 
@@ -223,7 +226,36 @@ IS-OOS gap = CAGR_IS - CAGR_OOS    （単位: percentage point, pp）
 - 目安: < +2 pp（優秀）、+2〜+5 pp（許容）、> +5 pp（過剰適合疑い）、> +10 pp（過剰適合確定）
 - 現行ベストの IS-OOS gap は `CURRENT_BEST_STRATEGY.md` を参照（OOS 延長で変化するため本書に固定値を持たない）
 
-### §3.9 コード参照（指標の正典）
+### §3.9 WFA_CI95_lo（WFA補助: 統計的有意性下限）
+
+```
+# 非重複1年窓 N 本の CAGR 配列 {c_1, ..., c_N} に対して (短窓除外後)
+mean_c = mean(cagrs)
+se     = std(cagrs, ddof=1) / sqrt(N)
+t_crit = t.ppf(0.975, df=N-1)
+WFA_CI95_lo = mean_c - t_crit * se
+```
+
+- **t 分布 95% 信頼区間の下限**。正値 ⇒ 「真の年率期待リターン > 0」が統計的に支持される（α基準）
+- 実装ファイル: `src/g1_wfa.py` (`compute_summary_stats`)
+- **注意**: 窓数 N ≈ 49 では自由度 48 の t 分布を使用。t_p < 0.05 も同時確認すること
+
+### §3.10 WFA_WFE（WFA補助: IS→OOS汎化効率）
+
+```
+WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
+        / mean(CAGR of windows where start_date <  OOS_START)
+```
+
+- **Walk-Forward Efficiency**。IS窓の平均 CAGR に対する postIS窓の平均 CAGR の比率
+- 許容範囲: **0.5 ≤ WFE ≤ 2.0**（β基準）
+  - < 0.5: IS 過学習の強い兆候（OOS で IS の半分以下）
+  - > 2.0: 異常な OOS 好調（レジーム変化・幸運の可能性）
+  - postIS 窓数 < 3 の場合は N/A 扱い（判定スキップ）
+- 実装ファイル: `src/g1_wfa.py` (`compute_summary_stats`)
+- IS 境界: 2021-05-07 / OOS 開始: 2021-05-08（§2.1 と整合）
+
+### §3.11 コード参照（指標の正典）
 
 | 指標 | 実装ファイル |
 |---|---|
@@ -231,6 +263,7 @@ IS-OOS gap = CAGR_IS - CAGR_OOS    （単位: percentage point, pp）
 | Worst5Y / P10_5Y | `src/cfd_leverage_backtest.py` |
 | Worst10Y★ | `src/compute_cfd_worst10y.py`（カレンダー年実装の正典）/ `src/b1_s2_lt2.py`（呼出側） |
 | Trades/yr | `src/dynamic_leverage_strategies.py` (`simulate_rebalance_A`) |
+| WFA_CI95_lo / WFA_WFE | `src/g1_wfa.py` (`compute_summary_stats`) |
 
 新しい指標を追加する場合は、本書 §3 に式・コード参照・注意事項を追記してから採用する。
 
@@ -382,6 +415,7 @@ START
 | 版 | 日付 | 主な変更 |
 |---|---|---|
 | v1.0 | 2026-05-21 | 初版発行。Scenario D を現行標準として確定。Worst10Y★ をカレンダー年方式に統一。Sharpe Rf=0 の過大評価注意を明文化。参考値判定フロー（§6）を導入。 |
+| v1.1 | 2026-05-22 | §3.9 WFA_CI95_lo・§3.10 WFA_WFE を WFA補助指標として追加（旧§3.9 コード参照を §3.11 に繰り下げ）。非標準WFA指標（Stable_Sharpe・WinRate_yr・WorstK5_mean_CAGR・IR_vs_BH）を廃止。統一指標セットを7+2=9指標に確定。 |
 
 ### 今後の改訂方針
 

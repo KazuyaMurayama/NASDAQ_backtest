@@ -22,6 +22,17 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 - ❌ ファイル名に `FINAL` を含むからといって最新と判定する（`FINAL_` プレフィックスは廃止）
 - ❌ CSV を Sharpe 降順で並べて「トップ」と回答する
 
+## 📊 評価指標ルール（厳守・スキップ禁止）
+
+戦略評価・比較・WFA の**すべての場面**で以下を遵守すること:
+
+1. **9指標のみ使用** ([docs/rules/08_evaluation-metrics.md](docs/rules/08_evaluation-metrics.md) 参照)
+   - 標準7: CAGR(IS/OOS/FULL), Sharpe_OOS, MaxDD, Worst10Y★, P10_5Y▷, IS-OOS gap, Trades/yr
+   - WFA補助2: WFA_CI95_lo (§3.9), WFA_WFE (§3.10)
+2. **禁止指標** (ユーザー明示指示なしに評価・ランキングで使用禁止):
+   Stable_Sharpe / WinRate_yr / WorstK5_mean_CAGR / IR_vs_BH
+3. **根拠**: [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) v1.1 §3
+
 ## 🔬 新検証アイデア着手前プロトコル（必須・スキップ禁止）
 
 新規戦略・改善アイデア・パラメータ探索を着手する前に **4ステップを順次実施**（重複チェック→評価基準確認→差分仮説→登録）。詳細・例外は [docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md)。**スキップ時は重複研究扱いで結果は採用候補から除外。**
@@ -41,6 +52,7 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 | 05 | [docs/rules/05_git-and-execution.md](docs/rules/05_git-and-execution.md) | Git操作・実行計画 |
 | 06 | [docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md) | 新検証アイデア着手前プロトコル |
 | 07 | [docs/rules/07_doc-naming-and-dates.md](docs/rules/07_doc-naming-and-dates.md) | ドキュメント命名・日付ルール |
+| 08 | [docs/rules/08_evaluation-metrics.md](docs/rules/08_evaluation-metrics.md) | 評価指標ルール（9指標厳守） |
 
 ## プロジェクト概要
 
