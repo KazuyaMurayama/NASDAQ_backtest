@@ -88,7 +88,7 @@
 | ファイル | 役割 | 日付 |
 |---|---|---|
 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md) | B1 検証レポート（3戦略比較・判定 PASS） | 2026-05-21 |
-| [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) | 11戦略統合比較表 (§2 ◆BEST マーク) | 2026-05-21 |
+| [STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md) | 12戦略統合比較表 — 統一9指標フレームワーク (§2 ◆BEST マーク) | 2026-05-22 |
 | [A6_LMAX_SWEEP_2026-05-21.md](A6_LMAX_SWEEP_2026-05-21.md) | l_max ロバストネス確認 (PASS) | 2026-05-21 |
 | [A1_NVOL_SWEEP_2026-05-21.md](A1_NVOL_SWEEP_2026-05-21.md) | n_vol ロバストネス確認 (n=20 最適確認) | 2026-05-21 |
 | [src/b1_s2_lt2.py](src/b1_s2_lt2.py) | S2+LT2 NAV 実装・サニティチェック込み | 2026-05-21 |

@@ -1,3 +1,9 @@
+> ⛔ **このドキュメントは SUPERSEDED (置換済み) です**
+> - 廃止日: 2026-05-22
+> - 後継ファイル: [STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md)
+> - 現行ベスト戦略: [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
+> - 廃止理由: EVALUATION_STANDARD v1.1 統一9指標フレームワーク適用 + N1500ベスト追加
+
 # 10戦略 統合比較レポート (CFD軸 × DH Dyn軸)
 
 作成日: 2026-05-19
