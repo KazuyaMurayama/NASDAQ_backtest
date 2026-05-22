@@ -10,42 +10,42 @@
 
 ## 現行ベスト戦略
 
-**戦略名: `S2_VZGated + LT2-N1500-k0.5-modeB`（Vol-Zone ゲート型 CFD レバレッジ + 超長期逆張りフィルタ）**
+**戦略名: `S2_VZGated + LT2-N750-k0.5-modeB`（Vol-Zone ゲート型 CFD レバレッジ + 長期逆張りフィルタ）**
 
 ### 主要指標 (Scenario D コスト補正済み基盤, 1974-01-02 〜 2026-03-26, 52.26年)
 
 > **注意:** DH Dyn 2x3x [A] シグナル (Approach A, 閾値 0.15) の上に CFD Vol-Zone ゲートを適用し、
-> さらに LT2-N1500-k0.5-modeB（長期モメンタム逆張りバイアス、N=1500日 ≈ 6年）を lev シグナルに重畳したもの。
-> CFD 軸の指標は `src/b1_s2_lt2.py` の出力値（B6 N-sweep、N=1500 行）。
+> さらに LT2-N750-k0.5-modeB（長期モメンタム逆張りバイアス、N=750日 ≈ 3年）を lev シグナルに重畳したもの。
+> CFD 軸の指標は `src/b1_s2_lt2.py` の出力値（B1 検証、B6 N-sweep N=750 サニティ確認済み）。
 
 | 指標 | 値 | 備考 |
 |---|---|---|
-| CAGR_IS (1974-2021) | +30.79% | In-sample（OOS とほぼ同値、過剰適合なし） |
-| CAGR_OOS (2021-2026) | **+30.84%** | Out-of-sample |
-| Sharpe_OOS | **0.885** | OOS期間Sharpe比 ← 全14戦略中最高 |
-| MaxDD (FULL) | −63.37% | 最大ドローダウン |
-| Worst10Y★ CAGR (FULL) | +16.60% | カレンダー年ベース最悪10年窓 |
-| P10_5Y▷ CAGR (FULL) | **+9.9%** | 5年CAGR 分布 P10 (B6 N=1500 行より) |
-| IS-OOS gap | **−0.05 pp** | OOS が IS を僅かに上回る = 本プロジェクト全期間で最強の汎化性 |
+| CAGR_OOS (2021-2026) | **+31.16%** | Out-of-sample |
+| Sharpe_OOS | **0.858** | OOS期間Sharpe比 |
+| MaxDD (FULL) | **−59.45%** | 最大ドローダウン |
+| Worst10Y★ CAGR (FULL) | **+18.10%** | カレンダー年ベース最悪10年窓 |
+| P10_5Y▷ CAGR (FULL) | +9.4% | 5年CAGR 分布 P10 (B1より) |
+| IS-OOS gap | **+0.18 pp** | 過剰適合なし（< 2pp 優秀域） |
 | Trades/yr | 約27回 (月2.3回) | 基底DH Dynシグナルと同じ |
-| WFA_CI95_lo | — *(要計算)* | G1 WFA 再実行 (N=1500) 待ち — §3.12 Phase A |
-| WFA_WFE | — *(要計算)* | 同上 |
+| CAGR_IS (1974-2021) | +31.33% | In-sample |
+| WFA_CI95_lo | — | G1_WFA_2026-05-21 参照（S2+LT2 行） |
+| WFA_WFE | — | 同上 |
 
-### ベスト戦略採用の根拠 (2026-05-22)
+### ベスト戦略選定根拠 (2026-05-22 確定)
 
-| 評価軸 | S2+LT2_N1500 (新ベスト) | S2+LT2_N750 (旧ベスト) | 優位 |
+| 評価軸 | N=750 **◆ BEST** | N=1500 (候補) | 優位 |
 |---|---|---|---|
-| Sharpe_OOS | **0.885** | 0.858 | N1500 ◎ |
-| IS-OOS gap | **−0.05 pp** | +0.18 pp | N1500 ◎◎ |
-| CAGR_OOS | +30.84% | **+31.16%** | N750（差 −0.32pp は誤差範囲） |
-| MaxDD | −63.37% | **−59.45%** | N750（差 −3.92pp） |
-| Worst10Y★ | +16.60% | **+18.10%** | N750（差 −1.50pp） |
+| CAGR_OOS | **+31.16%** | +30.84% | **N750 +0.32pp** |
+| MaxDD | **−59.45%** | −63.37% | **N750 −3.92pp 改善** |
+| Worst10Y★ | **+18.10%** | +16.60% | **N750 +1.50pp** |
+| P10_5Y▷ | +9.4% | +9.9% | N1500 *(+0.5pp、軽微)* |
+| Sharpe_OOS | 0.858 | **0.885** | N1500 (+0.027、補助指標) |
+| IS-OOS gap | +0.18pp | −0.05pp | N1500 *(両者とも十分小)* |
 
-> Evaluation Standard v1.0 で最重要の Sharpe_OOS と IS-OOS gap で N=1500 が勝利。
-> 特に IS-OOS gap −0.05pp は OOS が IS を上回るレベルで、本プロジェクト史上最高の汎化性を示す。
-> MaxDD / Worst10Y★ の劣後は許容範囲（MaxDD>−70%, Worst10Y★>+15% の guardrail を満たす）。
-> N=1500（≈6年窓）は N=750（≈3年窓）より長く、レジーム依存の過剰適合に対し構造的によりロバスト。
-> B6 N-sweep（6 config）で N=750 サニティチェック CAGR_OOS +31.16% を完全再現（diff 0.00pp）し検証完了。
+> **N750 採用理由**: CAGR_OOS・MaxDD・Worst10Y★ の 3 主要軸で全て N750 が優位。
+> Sharpe_OOS の差（0.027）は補助指標であり、リスク指標（MaxDD −3.92pp）の改善が優先される。
+> IS-OOS gap は N750 の +0.18pp も「優秀域（< 2pp）」であり、過剰適合の懸念なし。
+> N1500 は **SHORTLISTED** として保持（別ファイル `B6_S2_LT2_N_SWEEP_2026-05-22.md` 参照）。
 
 ---
 
@@ -53,7 +53,7 @@
 
 - **シグナル基盤**: DH Dyn A2 Optimized (DD × AsymEWMA × TrendTV × SlopeMult × MomDecel × VIX_MR), threshold=0.15
 - **LT2 オーバーレイ (modeB)**:
-  - `lt_sig = compute_lt2(close, N=1500)` — 1500日（≈6年）モメンタム z スコア
+  - `lt_sig = compute_lt2(close, N=750)` — 750日（≈3年）モメンタム z スコア
   - `lt_bias = signal_to_bias(lt_sig, k=0.5)` — `(-0.25 × z).clip(-0.5, +0.5)`
   - `lev_mod = clip(lev_A + lt_bias, 0, 1)` — DH Dyn lev に ±0.25 バイアス
 - **CFD レバレッジ**: `compute_L_s2_vz_gated(ret, vz, target_vol=0.8, k_vz=0.3, gate_min=0.5, n=20, l_min=1.0, l_max=7.0, step=0.5)`
