@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-22 (B3/B4/B5/B6 sweep + P1/P3/P5/S3/S4 棄却追記; Active を S2+LT2-N1500-k0.5 へ昇格)
+最終更新日: 2026-05-22 (E2 Hybrid Shortlisted 追加; B3/B4/B5/B6 sweep + P1/P3/P5/S3/S4 棄却追記; Active を S2+LT2-N1500-k0.5 へ昇格)
 管理者: Kazuya Murayama
 
 ---
@@ -95,8 +95,9 @@
 | **S2_VZGated+LT4_N750_k0.7** | S2_VZGated + LT4-N=750, k_lt=0.7（LT4 系最良） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +30.50% | 0.850 | N/A | Shortlisted | B3 LT4 N×k_lt スイープ 9/9 が S2 単体（+0.770）超え、最良が CAGR_OOS +30.50% / Sharpe +0.850 / IS-OOS gap +0.60pp と Active 級。LT2-N1500 比で Sharpe −0.035, gap +0.65pp と総合僅差敗北。 | [b3_s2_lt4_sweep_results.csv](b3_s2_lt4_sweep_results.csv) |
 | **S2_VZGated+LT6_N500_k0.7** | S2_VZGated + LT6-N=500, k_lt=0.7（LT6 系最良） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +27.35% | 0.820 | −54.38% | Shortlisted | B4 LT6 N×k_lt スイープ 9/9 が S2 単体超え。最良値は MaxDD −54.38% / Worst10Y★ +17.06% と健闘するが IS-OOS gap +5.73pp で過剰適合傾向。N=750/k=0.7 変種（Sharpe +0.801, gap +4.13pp）のほうがロバスト性で勝る。 | [b4_s2_lt6_sweep_results.csv](b4_s2_lt6_sweep_results.csv) |
 | **S2_VZGated+LT7_k0.5** | S2_VZGated + LT7-k_lt=0.5（dual MA cross, N_short=750, N_long=1250 固定） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +29.42% | 0.814 | −60.39% | Shortlisted | B5 LT7 k_lt スイープ 3/3 が S2 単体超え。dual MA cross 構造を導入したが Sharpe では LT2/LT4 に劣後、N=1500 比で +0.071 差。複雑度に見合う優位性なし、ロバスト性検証ためのスイープ規模（3 config）も小さく要注意。 | [b5_s2_lt7_sweep_results.csv](b5_s2_lt7_sweep_results.csv) |
+| **Hybrid_S2LT2_P05_70_30** | S2+LT2-N1500（70%）+ P05_HY×CPI（30%）固定ウェイトブレンド | Hybrid / Multi-Strategy | 2026-05-22 | [非標準コスト] | +30.51%‡ | 0.881‡ | −62.1% | Shortlisted | E2 検証（3基準）で 2/3 改善（MaxDD +1.3pp, IS-OOS gap 維持）。Sharpe_OOS 0.881 < 0.885 で基準(i)不合格。§1.3 により Active 昇格不可（Shortlisted 上限）。S2+LT2-N1500 単独継続を推奨。 | [E2_HYBRID_70_30_2026-05-22.md](E2_HYBRID_70_30_2026-05-22.md), [e2_hybrid_70_30_results.csv](e2_hybrid_70_30_results.csv), [src/e2_hybrid_70_30.py](src/e2_hybrid_70_30.py) |
 
-> ‡ FULL期間 Sharpe は未計算。P4系 (P01/P02/P05) の OOS 期間 (2021/5〜2026/3) Sharpe を記載。
+> ‡ FULL期間 Sharpe は未計算。P4系 (P01/P02/P05) の OOS 期間 (2021/5〜2026/3) Sharpe を記載。Hybrid_S2LT2_P05_70_30 の ‡ は §1.3 非標準コスト継承による参考値扱い。
 
 ---
 
@@ -281,6 +282,10 @@
 ### 検証 / Robustness（最終戦略の補強実験）
 - **Rejected**（独立戦略ではない補強実験）: D1_OOS_Boundary_Variants, Overfitting_Validation, Threshold_Tax_Sensitivity, Financing_Cost_Variants, Realistic_Product_Variants, Factcheck_Sensitivity, TQQQ_Verification, Validation_Crisis_Full_OOS → §3.3, §3.5
 
+### Hybrid / Multi-Strategy（複数戦略の固定ウェイトブレンド）
+- **Shortlisted**: Hybrid_S2LT2_P05_70_30（**[非標準コスト]**） → §2
+- 結論: S2+LT2-N1500 の 70/30 ブレンドは MaxDD・IS-OOS gap を小改善するが Sharpe_OOS が僅かに低下。§1.3 制約で Active 昇格不可。**S2+LT2-N1500 単独継続が最優先**。
+
 ### Sweep / Optimization（パラメータ最適化過去ログ）
 - **Rejected**: Approach_A_Sweep, Phase1_Opt_Tier1_3, Grid_Search_Legacy, A6_LMAX, A1_NVOL, B2_KLT, F1_Alloc, E1_Ensemble → §3.3, §3.5
 
@@ -341,7 +346,7 @@
 | ファイル | 役割 |
 |---|---|
 | [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) | Active の単一の真実 |
-| [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) | 11戦略統合比較表 |
+| [STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md) | 12戦略統合比較表（統一9指標、v1.1準拠） |
 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md) | Active 採用判定（PASS） |
 | [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) | 評価基準の標準定義 |
 | [FILE_INDEX.md](FILE_INDEX.md) | リポジトリ全体のファイル索引 |
@@ -353,6 +358,7 @@
 
 ## 変更履歴
 
+- 2026-05-22 (E2): §2 Shortlisted に `Hybrid_S2LT2_P05_70_30` を追加（E2 検証 2/3 基準改善・Shortlisted 判定）。§5 逆引きに「Hybrid / Multi-Strategy」新テーマ追加。一次根拠ファイルを 2026-05-22 版に更新。
 - 2026-05-22: Active を `S2_VZGated+LT2_N750` → `S2_VZGated+LT2_N1500` に昇格（B6 N-sweep で Sharpe_OOS +0.885 / IS-OOS gap −0.05pp が最良と確認）。§2 Shortlisted に B3/B4/B5 最良 config + 旧 Active N=750 を追加（計5件）。§3.3 Rejected に P1/P3/P5/S3/S4 と B3〜B6 落選 config を追加。逆引きインデックス（CFDLeverage / LongCycleSignal）を更新。
 - 2026-05-21: 初版作成。Active = `S2_VZGated+LT2`。Shortlisted 10件、Rejected カテゴリ別整理、Deferred 空、逆引きインデックス整備。
 
