@@ -6,6 +6,13 @@ EVALUATION_STANDARD §3.12 / §5.6 準拠 (v1.1, 2026-05-22)
 統一指標セット（9指標）:
   1. CAGR_OOS    2. Sharpe  3. MaxDD  4. W10Y★
   5. P10▷        6. Gap     7. Tr     8. CI95_lo  9. WFE
+
+提供フォーマッタ:
+  - MD_HEADER_1P  / fmt_row_1p   : 1パラメータ sweep（b6 等）
+  - MD_HEADER_2P  / fmt_row_2p   : 2パラメータ sweep（b3/b4/b5/b7/b8 等）
+  - MD_HEADER_STRAT / fmt_row_strat : 戦略横並び比較（e2_hybrid / STRATEGY_COMPARISON 等）
+
+CAGR は CAGR_OOS の1列のみ。CAGR_IS / CAGR_FULL を MD ヘッダに含めると v1.1 違反。
 """
 import numpy as np
 
@@ -66,6 +73,13 @@ MD_HEADER_2P = (
     '|--:|-----:|-------------:|-------:|------:|--------------:|-----:|--------------:|---:|-----------:|----:|',
 )
 
+# 戦略横並び比較表（複数戦略を1行ずつ並べる: e2_hybrid / STRATEGY_COMPARISON 等）
+# 列順・列幅は MD_HEADER_1P/2P と完全に一致させる（§3.12）
+MD_HEADER_STRAT = (
+    '| Strategy | CAGR<br>_OOS | Sharpe | MaxDD | Worst<br>10Y★ | P10▷ | IS-OOS<br>gap | Tr | CI95<br>_lo | WFE |',
+    '|:---------|-------------:|-------:|------:|--------------:|-----:|--------------:|---:|-----------:|----:|',
+)
+
 # WFA 未計算注記（テーブル下に挿入）
 MD_WFA_NOTE = (
     '*CI95_lo / WFE: `—` は WFA 未計算（`§3.12` 促進ゲート待ち）。'
@@ -102,6 +116,39 @@ def fmt_row_1p(param_label, r, ref_s2=0.770, ref_lt2=0.885):
         f'| {_fp1(r["CAGR_OOS"])} '
         f'| {_ff2(r["Sharpe_OOS"])}{mark} '
         f'| {_fp1(r["MaxDD_FULL"])} '
+        f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r["P10_5Y"])} '
+        f'| {_gap_pp(r["IS_OOS_gap"])} '
+        f'| {_tr(r.get("Trades_yr"))} '
+        f'| {_wfa(r.get("WFA_CI95_lo"))} '
+        f'| {_wfa(r.get("WFA_WFE"))} |'
+    )
+
+
+def fmt_row_strat(label, r, ref_s2=0.770, ref_lt2=0.885,
+                  sharpe_ref_mark=None, maxdd_ref_mark=None):
+    """戦略横並び比較表の1戦略1行を返す (MD_HEADER_STRAT と対で使う)。
+
+    Parameters
+    ----------
+    label : str
+        戦略名。Markdown 装飾（**...**）と §1.3 参考値マーカ（‡）は呼び出し側で付与する。
+    r : dict
+        必須キー: CAGR_OOS, Sharpe_OOS, MaxDD_FULL, Worst10Y_star,
+                  P10_5Y, IS_OOS_gap, Trades_yr, WFA_CI95_lo, WFA_WFE
+    sharpe_ref_mark : str | None
+        Sharpe 値の直後に付けるマーカ。§1.3 参考値戦略には '‡' を渡す。
+    maxdd_ref_mark : str | None
+        MaxDD 値の直後に付けるマーカ。§1.3 参考値戦略には '‡' を渡す。
+    """
+    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+    s_sfx = sharpe_ref_mark or ''
+    m_sfx = maxdd_ref_mark  or ''
+    return (
+        f'| {label} '
+        f'| {_fp1(r["CAGR_OOS"])} '
+        f'| {_ff2(r["Sharpe_OOS"])}{mark}{s_sfx} '
+        f'| {_fp1(r["MaxDD_FULL"])}{m_sfx} '
         f'| {_fp1(r["Worst10Y_star"])} '
         f'| {_fp1(r["P10_5Y"])} '
         f'| {_gap_pp(r["IS_OOS_gap"])} '

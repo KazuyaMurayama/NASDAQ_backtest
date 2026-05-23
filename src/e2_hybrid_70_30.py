@@ -34,6 +34,8 @@ sys.modules['multitasking'] = _m
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from _sweep_format import MD_HEADER_STRAT, fmt_row_strat, MD_WFA_NOTE  # §3.12 標準フォーマッタ
+
 import numpy as np
 import pandas as pd
 
@@ -257,30 +259,29 @@ def generate_report(results, sanity_s2_ok, sanity_p05_ok,
         '',
         '## §2 統合比較表 — 9指標 (EVALUATION_STANDARD v1.1)',
         '',
-        '> 単位: CAGR系/MaxDD/Worst10Y★/P10▷ = %, IS-OOS gap = pp, Tr = 回/年',
+        '> 単位: CAGR_OOS/MaxDD/Worst10Y★/P10▷ = %, IS-OOS gap = pp, Tr = 回/年',
+        '> CAGR_IS / CAGR_FULL は CSV (`e2_hybrid_70_30_results.csv`) に保存。MDは CAGR_OOS のみ（§3.12）。',
         '',
-        '| 戦略 | CAGR<br>IS | CAGR<br>OOS | CAGR<br>FULL | Sh<br>OOS | Max<br>DD | W10<br>★ | P10<br>▷ | IS-OOS<br>gap | Tr |',
-        '|------|---:|---:|---:|---:|---:|---:|---:|---:|---:|',
+        MD_HEADER_STRAT[0],
+        MD_HEADER_STRAT[1],
     ]
 
     for r in results:
         label = r['label']
+        is_ref = label in ('P05_HY×CPI', 'Hybrid_70_30')
         if label == 'Hybrid_70_30':
-            label = '**Hybrid 70/30 ‡**'
+            label_md = '**Hybrid 70/30 ‡**'
         elif label == 'P05_HY×CPI':
-            label = 'P05_HY×CPI ‡'
-        lines.append(
-            f'| {label} '
-            f'| {_fp(r["CAGR_IS"], 1)} '
-            f'| {_fp(r["CAGR_OOS"], 1)} '
-            f'| {_fp(r["CAGR_FULL"], 1)} '
-            f'| {_ff(r["Sharpe_OOS"])} '
-            f'| {_fp(r["MaxDD_FULL"], 1)} '
-            f'| {_fp(r["Worst10Y_star"], 1)} '
-            f'| {_fp(r["P10_5Y"], 1)} '
-            f'| {r["IS_OOS_gap"]*100:+.2f} '
-            f'| {r["Trades_yr"]:.0f} |'
-        )
+            label_md = 'P05_HY×CPI ‡'
+        else:
+            label_md = label
+        lines.append(fmt_row_strat(
+            label_md, r,
+            sharpe_ref_mark='‡' if is_ref else None,
+            maxdd_ref_mark='‡'  if is_ref else None,
+        ))
+
+    lines += ['', MD_WFA_NOTE]
 
     lines += [
         '',
