@@ -163,6 +163,7 @@
 - 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- 2026-05-23: B9 (gold_frac×wn_min 2D sweep) で gf=0.65 が Sharpe_OOS +0.944 を記録(PASS)。ただし IS-OOS gap=-5.05ppはGold 2021-2026強気エクスポージャ偏重の疑いあり、リスク3指標が同時悪化のためWFA完了まで Shortlisted 保留・REF維持。詳細: `B9_COMPARISON_2026-05-23.md`
 - 2026-05-22: ベスト戦略を `S2_VZGated + LT2-N750-k0.5-modeB` から `S2_VZGated + LT2-N1500-k0.5-modeB` に更新。根拠: B6 N-sweep（6 config）で N=1500 が Sharpe_OOS +0.885（全14戦略中最高）/ IS-OOS gap −0.05pp（OOS が IS を上回る・本プロジェクト史上最高の汎化性）を達成。CAGR_OOS は N=750 比 −0.32pp と僅差、MaxDD/Worst10Y★ 劣後は guardrail 内。同セッション B3/B4/B5 LT4/LT6/LT7 派生も全 Active 未満で Shortlisted 化、P1/P3/P5/S3/S4 は S2 単体未満で全棄却（[b6_s2_lt2_N_sweep_results.csv](b6_s2_lt2_N_sweep_results.csv)）。
 - 2026-05-21: ベスト戦略を `S2_VZGated` から `S2_VZGated + LT2-N750-k0.5-modeB` に更新。根拠: B1 検証で CAGR_OOS +31.16% / Sharpe_OOS 0.858 / IS-OOS gap 0.18pp が全指標で S2 単体を上回ることを確認（`src/b1_s2_lt2.py`）。旧ベスト S2_VZGated を廃止リストに移動。
 - 2026-05-21: ベスト戦略を `DH Dyn 2x3x [A]` から `S2_VZGated` に更新。根拠: 10戦略統合比較表で CAGR_OOS +27.57% / Sharpe_OOS 0.769 が全戦略中トップ。旧ベストを廃止リストに移動。
