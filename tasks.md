@@ -10,7 +10,6 @@
 ## 🟡 Pending
 
 ### 短期（実装フェーズ）
-- [ ] **STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加**（gen_f8r5_yearly_returns.py 作成 → gen_strategy_comparison.py 更新 → MD再生成）
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更, nasdaq-strategy-gas 側)
 - [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026, 完全性のため）
@@ -37,6 +36,7 @@
 - ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- 2026-05-24: **比較MD更新 v1.5 + E4 Active 復帰** — `src/gen_f8r5_yearly_returns.py` 新規作成・`f8r5_yearly_returns.csv` 生成。`src/gen_strategy_comparison.py` を8戦略に拡張（F8-R5 ✅列追加・E4 ◆復帰・F7v3+E4 ✅降格）。Trades/yr 182-183回(E4比7倍)・OOS偶然性疑い・IS-OOS gap拡大を棄却理由として CURRENT_BEST_STRATEGY.md・STRATEGY_REGISTRY.md 更新。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)
 - 2026-05-24: **他セッション引き継ぎ改善** — `RESEARCH_CONTEXT.md` 新規作成（実験系統図 A〜H 系列、採用チェーン、棄却サマリ、未着手方向性）。`FILE_INDEX.md` を 2026-05-21〜05-24 で追加された A〜H/P/S系 全ファイル（実装・MD・CSV）で更新。`tasks.md` Pending を中期・長期・着手禁止カテゴリで再構成。[RESEARCH_CONTEXT.md](RESEARCH_CONTEXT.md)
 - 2026-05-24: **G5 WFA for F8 R5_CALM_BOOST PASS → 正式 Active 昇格** — CI95_lo=+27.92%, WFE=+1.208 (α∩β PASS)。Sharpe_OOS=+0.934、CAGR_OOS=+36.83%。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G5_WFA_F8R5_2026-05-24.md](G5_WFA_F8R5_2026-05-24.md)
 - 2026-05-24: **比較MD更新 v1.4** — F7v3+E4列追加（gen_f7v3_yearly_returns.py作成, gen_strategy_comparison.py更新, 7戦略構成へ拡張）。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)
