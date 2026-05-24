@@ -8,12 +8,36 @@
 （なし）
 
 ## 🟡 Pending
-- [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
+
+### 短期（実装フェーズ）
+- [ ] **STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加**（gen_f8r5_yearly_returns.py 作成 → gen_strategy_comparison.py 更新 → MD再生成）
+- [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更, nasdaq-strategy-gas 側)
 - [ ] 2026年データへの拡張（継続監視）
-- [ ] Ens2 戦略の OOS 検証（2022-2026）
-- [ ] STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加（gen_f8r5_yearly_returns.py 作成 → gen_strategy_comparison.py 更新 → MD再生成）
+- [ ] Ens2 戦略の OOS 検証（2022-2026, 完全性のため）
+
+### 中期（新検証アイデア候補）
+> 着手前に必ず [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) §3 Rejected で重複チェック、[docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md) の4ステップを実施。
+
+- [ ] **F10 候補**: F8 R5_CALM_BOOST の cap 値細分（calm=0.15→0.20 / bear-VZ=完全停止 等）
+- [ ] **F8 + F7v3 ハイブリッド検討**: 静的 cap と動的 cap の時間軸切替（DD閾値ベース等）
+- [ ] **VZ_thr 感度再評価**: 現状 ±0.7 固定。±0.5 / ±0.9 で順位入替えあるかスイープ
+- [ ] **LT2 N × F8 cap 交差感度**: B6 (N) と F8 (cap regime) を同時グリッド最適化（交互作用未検証）
+- [ ] **Trades/yr 削減策**: F8 で 182 trades/yr 過多。新リバランスバンド設計（過去 Partial/Frequency 棄却済み、別アプローチ必須）
+- [ ] **Sharpe with Rf>0 再評価**: Rf=4% でランキング入替えあるか（EVALUATION_STANDARD §3.2 注意事項）
+- [ ] **P-series 標準コスト再評価**: P01/P02/P05 を Scenario D 統一前提で再計算 → Shortlisted 残存可否判定
+- [ ] **G6 WFA 候補**: H4/H5 等の H系を WFA で再評価（過去は単純 OOS のみで棄却。復活可能性は低いが念のため）
+
+### 長期・体系整備
+- [ ] [docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md) の4ステップに従ったテンプレ化（PR チェックリスト統合）
+- [ ] RESEARCH_CONTEXT.md の系統図を四半期ごとに更新（採用チェーン §2.2 を最新化）
+
+### ⛔ 着手禁止（過去致命的失敗）
+- ❌ アンサンブル系（Ens2 派生）— max_lev=3.0系は MaxDD -77% 超で実運用不可
+- ❌ A2 ConvictionScore 直接レバ変換（S系）— S3 で IS-OOS gap +22.39pp 致命的過剰適合確認済み
+- ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- 2026-05-24: **他セッション引き継ぎ改善** — `RESEARCH_CONTEXT.md` 新規作成（実験系統図 A〜H 系列、採用チェーン、棄却サマリ、未着手方向性）。`FILE_INDEX.md` を 2026-05-21〜05-24 で追加された A〜H/P/S系 全ファイル（実装・MD・CSV）で更新。`tasks.md` Pending を中期・長期・着手禁止カテゴリで再構成。[RESEARCH_CONTEXT.md](RESEARCH_CONTEXT.md)
 - 2026-05-24: **G5 WFA for F8 R5_CALM_BOOST PASS → 正式 Active 昇格** — CI95_lo=+27.92%, WFE=+1.208 (α∩β PASS)。Sharpe_OOS=+0.934、CAGR_OOS=+36.83%。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G5_WFA_F8R5_2026-05-24.md](G5_WFA_F8R5_2026-05-24.md)
 - 2026-05-24: **比較MD更新 v1.4** — F7v3+E4列追加（gen_f7v3_yearly_returns.py作成, gen_strategy_comparison.py更新, 7戦略構成へ拡張）。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)
 - 2026-05-24: **G4 WFA for F7-v3 A:tilt=2.0 PASS → 正式 Active 昇格** — CI95_lo=+27.15%, WFE=+1.203 (α∩β PASS)。CAGR_OOS=+36.30%, Sharpe_OOS=+0.926。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md)
