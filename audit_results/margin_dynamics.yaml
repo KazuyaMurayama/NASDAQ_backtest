@@ -1,0 +1,50 @@
+scenarios:
+- name: (1) 超低資本 1x入金・L_s2実値
+  deposit_mult: 1.0
+  leverage_mode: actual
+  forced_liquidation_events: 0
+  warning_days: 0
+  min_margin_ratio: .nan
+  min_margin_date: '1974-01-02'
+  pass: true
+- name: (2) 適切資本 2x入金・L_s2実値
+  deposit_mult: 2.0
+  leverage_mode: actual
+  forced_liquidation_events: 0
+  warning_days: 0
+  min_margin_ratio: .nan
+  min_margin_date: '1974-01-02'
+  pass: true
+- name: (3) 余裕資本 3x入金・L_s2実値
+  deposit_mult: 3.0
+  leverage_mode: actual
+  forced_liquidation_events: 0
+  warning_days: 0
+  min_margin_ratio: .nan
+  min_margin_date: '1974-01-02'
+  pass: true
+- name: (4) 適切資本 2x入金・L=5固定
+  deposit_mult: 2.0
+  leverage_mode: fixed5
+  forced_liquidation_events: 0
+  warning_days: 0
+  min_margin_ratio: 3.9646
+  min_margin_date: '1974-07-11'
+  pass: true
+- name: (5) 適切資本 2x入金・L=7固定
+  deposit_mult: 2.0
+  leverage_mode: fixed7
+  forced_liquidation_events: 0
+  warning_days: 0
+  min_margin_ratio: 2.8319
+  min_margin_date: '1974-07-11'
+  pass: true
+summary:
+  generated_date: '2026-05-24'
+  baseline_scenario: (2) 適切資本 2x入金・L_s2実値
+  baseline_pass: true
+  risk_level: LOW
+  min_deposit_mult_actual_leverage: 0.706
+  recommendation: L_s2実値ベースの強制清算ゼロ最低倍率 0.71x に対し、1.5 倍バッファの 2.0x 以上の入金を推奨。固定L=7使用時はさらに高い倍率が必要。
+  pass_count: 5
+  total_scenarios: 5

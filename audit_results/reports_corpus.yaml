@@ -1,0 +1,206 @@
+kurikku365_nasdaq:
+  name: くりっく株365 NASDAQ100
+  category: exchange_futures_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  funding_rate_ann: 0.0492
+  funding_confidence: disclosed
+  sofr_spread_est: 0.0133
+  sofr_spread_confidence: estimated
+  margin_per_lot_jpy: 8960
+  margin_confidence: disclosed
+  commission_per_trade_jpy: 30
+  commission_confidence: disclosed
+  max_leverage_theoretical: 33
+  max_leverage_confidence: estimated
+  settlement: T+2
+  tax_group: B
+  nisa_eligible: false
+  note: くりっく株365のfunding_rateはポジション全体に対する年率コスト（先物ロール相当）
+  available_at_sbi: true
+sbi_cfd_nq100:
+  name: SBI CFD 米国NQ100
+  category: otc_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  spread_pt: 1.58
+  spread_confidence: disclosed
+  max_leverage: 10
+  max_leverage_confidence: disclosed
+  funding_ann: null
+  funding_confidence: not_disclosed
+  funding_est_sofr_spread: null
+  settlement: T+0
+  tax_group: B
+  nisa_eligible: false
+  reference_asset: E-mini NASDAQ100 CME先物
+  available_at_sbi: true
+  note: オーバーナイト金利は非公開。価格調整額（先物ロール）との二重計上疑惑あり
+ig_cfd_nasdaq:
+  name: IG証券 CFD NASDAQ100
+  category: otc_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  spread_pt: 2.0
+  spread_confidence: disclosed
+  funding_ann: 0.0659
+  funding_confidence: disclosed
+  sofr_spread: 0.03
+  sofr_spread_confidence: disclosed
+  max_leverage: 10
+  settlement: T+0
+  tax_group: B
+  nisa_eligible: false
+  available_at_sbi: false
+rakuten_cfd_nasdaq:
+  name: 楽天証券 CFD 米国NAS100
+  category: otc_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  spread_pt: 1.7
+  spread_confidence: disclosed
+  funding_ann: 0.065
+  funding_confidence: disclosed
+  sofr_spread: 0.03
+  sofr_spread_confidence: estimated
+  max_leverage: 10
+  settlement: T+0
+  tax_group: B
+  nisa_eligible: false
+  available_at_sbi: false
+gmo_cfd_nasdaq:
+  name: GMOクリック証券 CFD NASDAQ100
+  category: otc_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  spread_pt: 1.8
+  spread_confidence: disclosed
+  funding_ann: null
+  funding_confidence: disclosed
+  roll_cost_est_ann: 0.045
+  roll_cost_confidence: estimated
+  method: roll_cost
+  max_leverage: 10
+  settlement: T+0
+  tax_group: B
+  nisa_eligible: false
+  available_at_sbi: false
+dmm_cfd_nasdaq:
+  name: DMM CFD NASDAQ100
+  category: otc_cfd
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  spread_pt: 2.0
+  spread_confidence: disclosed
+  funding_ann: null
+  funding_confidence: disclosed
+  roll_cost_est_ann: 0.045
+  roll_cost_confidence: estimated
+  method: roll_cost
+  max_leverage: 10
+  settlement: T+0
+  tax_group: B
+  nisa_eligible: false
+  available_at_sbi: false
+tqqq:
+  name: ProShares UltraPro QQQ (TQQQ)
+  category: leveraged_etf
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  ter: 0.0086
+  ter_confidence: disclosed
+  sofr_multiplier: 2.0
+  sofr_multiplier_confidence: estimated
+  dividend_yield: 0.003
+  dividend_confidence: disclosed
+  nisa_eligible: false
+  tax_group: A
+  vol_drag: true
+  available_at_sbi: true
+  internal_cost_est_ann: 0.0723
+  internal_cost_confidence: estimated
+qld:
+  name: ProShares Ultra QQQ (QLD)
+  category: leveraged_etf
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  ter: 0.0095
+  ter_confidence: disclosed
+  sofr_multiplier: 1.0
+  sofr_multiplier_confidence: estimated
+  vol_drag: true
+  nisa_eligible: false
+  tax_group: A
+  available_at_sbi: true
+ugl_gold2x:
+  name: ProShares Ultra Gold (UGL) 2x
+  category: leveraged_etf
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  ter: 0.0095
+  ter_confidence: disclosed
+  sofr_multiplier: 1.0
+  swap_spread: 0.005
+  nisa_eligible: false
+  tax_group: A
+  available_at_sbi: true
+  bt_sim_product: WisdomTree 2036 LSE
+  bt_sim_ter: 0.0049
+  bt_sim_ter_confidence: disclosed
+  ter_gap: 0.0046
+  note: バックテストのシムproxy(WisdomTree 2036 LSE, 0.49%)はSBI証券では取引不可。実際はUGL(0.95%)を使用
+wisdomtree_gold2x_lse:
+  name: WisdomTree 2036 2x Gold ETP (LSE)
+  category: leveraged_etp
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  ter: 0.0049
+  ter_confidence: disclosed
+  available_at_sbi: false
+  available_at_jp_retail: false
+  note: バックテストのシムproxyとして使用。日本個人投資家には実質購入不可（LSE上場）
+tmf:
+  name: Direxion Daily 20+ Year Treasury Bull 3x (TMF)
+  category: leveraged_etf
+  source_report: 2026-05-15_nasdaq-4x-leverage-products.md
+  ter_sim: 0.0091
+  ter_sim_confidence: disclosed
+  ter_current: 0.0106
+  ter_current_confidence: disclosed
+  ter_gap: 0.0015
+  sofr_multiplier: 2.0
+  swap_spread: 0.005
+  dividend_yield: 0.035
+  nisa_eligible: false
+  tax_group: A
+  available_at_sbi: true
+  note: シム値0.91%（旧TER）vs現行1.06%。差分15bps/yr
+sbi_cfd_regulation:
+  name: SBI CFD 規制・証拠金仕様
+  category: regulation
+  source_report: 2026-05-20_sbi-cfd-nasdaq-8x-9x-leverage-guide.md
+  max_leverage_personal: 10
+  max_leverage_confidence: disclosed
+  margin_rate_min: 0.1
+  margin_confidence: disclosed
+  forced_liquidation_trigger_pct: 100.0
+  liquidation_confidence: disclosed
+  margin_call: false
+  lot_value_jpy_approx: 4200000
+  lot_value_confidence: estimated
+  min_lot: 0.01
+sbi_cfd_lc_stress:
+  name: SBI CFD ロスカット耐久テスト（レポート記載値）
+  category: stress_test
+  source_report: 2026-05-20_sbi-cfd-nasdaq-8x-9x-leverage-guide.md
+  scenarios:
+  - deposit_jpy: 1000000
+    leverage: 9.0
+    lc_drop_pct: 1.2
+  - deposit_jpy: 2000000
+    leverage: 4.5
+    lc_drop_pct: 13.6
+  - deposit_jpy: 2700000
+    leverage: 3.3
+    lc_drop_pct: 22.2
+  confidence: disclosed
+  note: ポジション900万円固定での各入金額別ロスカット耐久率
+bt_cost_model:
+  name: バックテスト現行コストモデル(Scenario D)
+  category: backtest_model
+  source_report: src/product_costs.py
+  cfd_spread_low: 0.002
+  cfd_spread_confidence: disclosed
+  cfd_note: これはスプレッド相当値であり、オーバーナイト金利（funding）は別途SOFR×(L-1)として計上
+  sofr_proxy: DTB3 (FRED 3M T-bill)
+  delay_days: 2
