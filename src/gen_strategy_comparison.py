@@ -1,14 +1,16 @@
 """
 gen_strategy_comparison.py — 戦略パフォーマンス比較表（6戦略 統一フォーマット）
-EVALUATION_STANDARD §3.12 準拠 (v1.1, 2026-05-24)
+EVALUATION_STANDARD §3.12 準拠 (v1.2, 2026-05-24)
 
 出力: STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md
   §1 比較前提
   §2 9指標比較表 (6戦略 × 9指標)  ← MD_HEADER_STRAT 使用
-  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き（E4 年次リターン TBD）
+  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き（E4 列は最左に統合）
   §4 OOS期間 詳細分析
   §5 採用判断サマリー
   §6 一次根拠ファイル
+
+# E4 列は gen_e4_yearly_returns.py でも単独生成可能。ここで統合的に管理。
 """
 import csv
 import os
@@ -139,11 +141,43 @@ row_dha  = fmt_row_strat('DH Dyn 2x3x [A]',                              dh_a)
 
 
 # ---------------------------------------------------------------------------
-# §3 年次リターン表（ソース: B9_YEARLY_RETURNS + CFD_S2_YEARLY_RETURNS）
+# §3 年次リターン表（ソース: gen_e4_yearly_returns.py + B9_YEARLY_RETURNS + CFD_S2_YEARLY_RETURNS）
 # ---------------------------------------------------------------------------
+# E4 列は最左（年の次）に配置。gen_e4_yearly_returns.py で生成した
+# e4_yearly_returns.csv を最優先ソースとし、CSV 不在時は static fallback を使用する。
 
-# fmt: (year, b9_winner, n750, bh_1x, s2_vzg, dh_a)
-YEARLY = [
+# E4 Regime k_lt 年次リターン（gen_e4_yearly_returns.py 実行結果 2026-05-24）
+_E4_STATIC = {
+    1974:  +19.1, 1975:   -1.8, 1976: +103.0, 1977:  -11.7, 1978: +150.2,
+    1979:  +20.9, 1980:  +82.5, 1981:  -38.0, 1982:  +99.2, 1983:   +9.2,
+    1984:  -19.4, 1985: +174.0, 1986:  +52.7, 1987:  +71.9, 1988:  -25.6,
+    1989:  +63.9, 1990:  -40.5, 1991:  +83.6, 1992:  +62.5, 1993:   -1.9,
+    1994:   -8.8, 1995: +164.6, 1996:  +49.9, 1997:  +63.4, 1998:  +91.6,
+    1999:  +81.1, 2000:   -9.9, 2001:   -6.9, 2002:  +14.6, 2003: +117.9,
+    2004:  +14.8, 2005:  -14.0, 2006:  +51.7, 2007:  +28.0, 2008:  +21.4,
+    2009:  +52.8, 2010: +107.2, 2011:   -5.1, 2012:  +39.3, 2013:  +36.1,
+    2014:  +13.8, 2015:  -32.3, 2016:   -7.9, 2017:  +95.2, 2018:   -8.3,
+    2019:  +66.0, 2020:  +81.3,
+    2021:  +30.5, 2022:  -25.9, 2023:  +98.3, 2024:  +58.5, 2025:  +54.4,
+    2026:   -7.7,
+}
+
+
+def _load_e4_yearly():
+    """e4_yearly_returns.csv があれば優先、なければ static fallback を返す。"""
+    csv_path = os.path.join(BASE, 'e4_yearly_returns.csv')
+    if os.path.exists(csv_path):
+        out = {}
+        for r in csv.DictReader(open(csv_path, encoding='utf-8')):
+            out[int(r['year'])] = float(r['e4_return_pct'])
+        return out
+    return dict(_E4_STATIC)
+
+
+_E4_YR = _load_e4_yearly()
+
+# fmt: (year, e4, b9_winner, n750, bh_1x, s2_vzg, dh_a)
+_BASE_YEARLY = [
     # yr   B9-W     N750     BH     S2-VZG   DH-A
     (1974, +26.2,  +19.1,  -35.4,  +10.4,  +10.4),
     (1975,  -5.3,   -2.5,  +29.8,   -3.2,   -5.0),
@@ -201,14 +235,19 @@ YEARLY = [
     (2026,   -9.9,   -9.7,   -7.9,  -18.3,  -11.7),
 ]
 
+# E4 列を最左に挿入: (year, e4, b9w, n750, bh, s2_vzg, dh_a)
+YEARLY = [(yr, _E4_YR.get(yr, float('nan')), b9w, n750r, bhr, s2r, dhar)
+          for (yr, b9w, n750r, bhr, s2r, dhar) in _BASE_YEARLY]
+
 OOS_START = 2021
 
 
 def yr_row(rec):
-    yr, b9w, n750r, bhr, s2r, dhar = rec
+    yr, e4, b9w, n750r, bhr, s2r, dhar = rec
     tag = ' [OOS]' if yr >= OOS_START else ''
     return (
         f'| {yr}{tag} '
+        f'| {e4:+.1f} '
         f'| {b9w:+.1f} '
         f'| {n750r:+.1f} '
         f'| {bhr:+.1f} '
@@ -238,9 +277,9 @@ def f3(v):
 
 oos_b9w   = [r for r in YEARLY if r[0] >= OOS_START]
 oos_lines = []
-for yr, b9w, n750r, bhr, s2r, dhar in oos_b9w:
+for yr, e4, b9w, n750r, bhr, s2r, dhar in oos_b9w:
     oos_lines.append(
-        f'| {yr} [OOS] | {b9w:+.1f}% | {n750r:+.1f}% | {bhr:+.1f}% | {s2r:+.1f}% | {dhar:+.1f}% |'
+        f'| {yr} [OOS] | {e4:+.1f}% | {b9w:+.1f}% | {n750r:+.1f}% | {bhr:+.1f}% | {s2r:+.1f}% | {dhar:+.1f}% |'
     )
 oos_table = '\n'.join(oos_lines)
 
@@ -335,19 +374,18 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 ## §3 年次リターン表（1974–2026）[単位: %]
 
 > `[OOS]` = OOS期間（2021年以降）
-> 各列: E4 Regime k_lt ◆ = 現行ベスト（年次リターン TBD, WFA pending）
-> 他5戦略は参照用。E4 列は次回更新で追加予定。
+> E4 列は `src/gen_e4_yearly_returns.py` で生成（暦年ベース、CFD レバレッジ S2_VZGated + LT2-N750 + Regime k_lt）。
 
-| 年 | B9-Winner<br>✅⚠ | S2+LT2<br>N750（旧◆） | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
-|:---|---:|---:|---:|---:|---:|
+| 年 | E4 Regime<br>k_lt ◆ | B9-Winner<br>✅⚠ | S2+LT2<br>N750（旧◆） | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
+|:---|---:|---:|---:|---:|---:|---:|
 {yearly_rows}
 
 ---
 
 ## §4 OOS期間（2021–2026）詳細
 
-| 年 | B9-Winner | S2+LT2-N750◆ | BH 1x | S2_VZGated | DH Dyn [A] |
-|:---|---:|---:|---:|---:|---:|
+| 年 | E4 Regime ◆ | B9-Winner | S2+LT2-N750（旧◆） | BH 1x | S2_VZGated | DH Dyn [A] |
+|:---|---:|---:|---:|---:|---:|---:|
 {oos_table}
 
 **注目ポイント**:
@@ -404,6 +442,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 | 版 | 日付 | 変更内容 |
 |----|------|---------|
+| v1.2 | 2026-05-24 | E4 年次リターン列を §3/§4 に追加（`src/gen_e4_yearly_returns.py` にて計算）。 |
 | v1.1 | 2026-05-24 | E4 Regime k_lt を新 BEST ◆ として追加（6戦略へ拡張）。N750 を旧◆参照行へ。WFA TBD。 |
 | v1.0 | 2026-05-23 | 初版。5戦略統一フォーマット（9指標＋年次リターン）。 |
 

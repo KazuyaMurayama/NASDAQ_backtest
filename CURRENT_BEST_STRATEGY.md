@@ -28,8 +28,8 @@
 | IS-OOS gap | **−1.81 pp** | OOS が IS を上回る（最高水準の汎化性） |
 | Trades/yr | 約27回 (月2.3回) | 基底DH Dynシグナルと同じ |
 | CAGR_IS (1974-2021) | +31.72% | In-sample |
-| WFA_CI95_lo | **TBD** | E4 WFA 未実行（g3_wfa_e4.py 待ち） |
-| WFA_WFE | **TBD** | 同上 |
+| WFA_CI95_lo | **+26.51%** | G3 WFA 50窓、α PASS（t_p=0.0000） |
+| WFA_WFE | **+1.131** | G3 WFA、β PASS（0.5 ≤ WFE ≤ 2.0）|
 
 ### ベスト戦略選定根拠 (2026-05-24 確定)
 
@@ -45,7 +45,7 @@
 > **E4 採用理由**: 9 指標中 5 つ（CAGR_OOS / Sharpe_OOS / Worst10Y★ / P10_5Y / IS-OOS gap）で E4 が優位。
 > MaxDD の −0.56pp 劣後は微小で guardrail 内（PASS 基準 −64.5% に対し −60.0% は十分余裕）。
 > IS-OOS gap −1.81pp（OOS > IS）は本プロジェクト史上最高水準の汎化性。
-> WFA 未実行のため、Active 確定は WFA PASS (CI95_lo>0 ∧ 0.5≤WFE≤2.0) を条件とする暫定昇格。
+> **G3 WFA (2026-05-24) PASS**: CI95_lo = +26.51%（>0 α PASS, t_p=0.0000）/ WFE = +1.131（0.5–2.0 β PASS）→ **正式 Active 確定**。
 
 ---
 
@@ -91,6 +91,10 @@
 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 sweep レポート（採用根拠・64 config PASS 12） | 2026-05-24 |
 | [e4_regime_klt_results.csv](e4_regime_klt_results.csv) | E4 sweep 65行 raw 結果 | 2026-05-24 |
 | [src/e4_regime_klt.py](src/e4_regime_klt.py) | E4 Regime k_lt 実装 | 2026-05-24 |
+| [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md) | G3 WFA レポート（CI95_lo=+26.51% / WFE=+1.131 / PASS） | 2026-05-24 |
+| [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv) | G3 WFA サマリ（E4 + REF-N750） | 2026-05-24 |
+| [g3_wfa_e4_per_window.csv](g3_wfa_e4_per_window.csv) | G3 WFA 50窓 × 2戦略 per-window 指標 | 2026-05-24 |
+| [src/g3_wfa_e4.py](src/g3_wfa_e4.py) | G3 WFA 実行スクリプト | 2026-05-24 |
 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md) | B1 検証レポート（3戦略比較・判定 PASS） | 2026-05-21 |
 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-22.md) | 12戦略統合比較表 — 統一9指標フレームワーク (§2 ◆BEST マーク) | 2026-05-22 |
 | [A6_LMAX_SWEEP_2026-05-21.md](A6_LMAX_SWEEP_2026-05-21.md) | l_max ロバストネス確認 (PASS) | 2026-05-21 |
@@ -168,6 +172,7 @@
 - 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- 2026-05-24 (G3 WFA): E4 Regime k_lt の WFA が PASS (α∩β)。CI95_lo = +26.51%（>0, t_p=0.0000 α PASS）, WFE = +1.131（β PASS）。暫定 Active → **正式 Active 確定**。REF-N750 サニティ CI95_lo +25.73% / WFE +1.145 は G1 参照値と完全一致（diff -0.00pp / +0.000）。詳細: `G3_WFA_E4_2026-05-24.md`, `g3_wfa_e4_summary.csv`
 - 2026-05-24: ベスト戦略を `S2_VZGated + LT2-N750-k0.5-modeB` から `S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7)` に更新。根拠: E4 sweep（64 config）で 12 config が全 5 基準 PASS。採用 config は Worst10Y★ +18.67% と MaxDD −60.01% を同時最良化。IS-OOS gap −1.81pp は OOS が IS を上回る本プロジェクト史上最高の汎化性。WFA 未実行のため暫定昇格。詳細: `E4_REGIME_KLT_SWEEP_2026-05-24.md`
 - 2026-05-23: B9 (gold_frac×wn_min 2D sweep) で gf=0.65 が Sharpe_OOS +0.944 を記録(PASS)。ただし IS-OOS gap=-5.05ppはGold 2021-2026強気エクスポージャ偏重の疑いあり、リスク3指標が同時悪化のためWFA完了まで Shortlisted 保留・REF維持。詳細: `B9_COMPARISON_2026-05-23.md`
 - 2026-05-22: ベスト戦略を `S2_VZGated + LT2-N750-k0.5-modeB` から `S2_VZGated + LT2-N1500-k0.5-modeB` に更新。根拠: B6 N-sweep（6 config）で N=1500 が Sharpe_OOS +0.885（全14戦略中最高）/ IS-OOS gap −0.05pp（OOS が IS を上回る・本プロジェクト史上最高の汎化性）を達成。CAGR_OOS は N=750 比 −0.32pp と僅差、MaxDD/Worst10Y★ 劣後は guardrail 内。同セッション B3/B4/B5 LT4/LT6/LT7 派生も全 Active 未満で Shortlisted 化、P1/P3/P5/S3/S4 は S2 単体未満で全棄却（[b6_s2_lt2_N_sweep_results.csv](b6_s2_lt2_N_sweep_results.csv)）。

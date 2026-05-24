@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-24 (Active を N750固定k → E4 Regime k_lt に昇格; N750固定k を Shortlisted へ移動)
+最終更新日: 2026-05-24 (E4 Regime k_lt の G3 WFA PASS → 正式 Active 確定; CI95_lo=+26.51%, WFE=+1.131)
 管理者: Kazuya Murayama
 
 ---
@@ -70,7 +70,7 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | **+33.53%** | **0.891** | −60.01% | **Active (暫定, WFA pending)** | E4 sweep 64 config 中 5/6 主要指標で N=750 固定k を上回り、Worst10Y★ +18.67% / MaxDD −60.01% を同時最良化。IS-OOS gap −1.81pp は本プロジェクト史上最高の汎化性。MaxDD は N750 比 −0.56pp 劣後だが guardrail (−64.5%) 内。WFA 未実行のため暫定 Active、CI95_lo>0 ∧ 0.5≤WFE≤2.0 確認後に正式昇格。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [e4_regime_klt_results.csv](e4_regime_klt_results.csv), [src/e4_regime_klt.py](src/e4_regime_klt.py), [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) |
+| **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | **+33.53%** | **0.891** | −60.01% | **Active (WFA PASS 確定)** | E4 sweep 64 config 中 5/6 主要指標で N=750 固定k を上回り、Worst10Y★ +18.67% / MaxDD −60.01% を同時最良化。IS-OOS gap −1.81pp は本プロジェクト史上最高の汎化性。MaxDD は N750 比 −0.56pp 劣後だが guardrail (−64.5%) 内。**G3 WFA PASS (2026-05-24): CI95_lo=+26.51% (α PASS, t_p=0.0000), WFE=+1.131 (β PASS)** → 正式 Active 確定。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [e4_regime_klt_results.csv](e4_regime_klt_results.csv), [src/e4_regime_klt.py](src/e4_regime_klt.py), [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md), [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv), [src/g3_wfa_e4.py](src/g3_wfa_e4.py), [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) |
 
 ---
 
@@ -364,6 +364,7 @@
 
 ## 変更履歴
 
+- 2026-05-24 (G3 WFA): E4 Regime k_lt の WFA が α∩β PASS (CI95_lo=+26.51%, t_p=0.0000, WFE=+1.131)。暫定 Active → **正式 Active 確定**。REF-N750 サニティ CI95_lo +25.73% / WFE +1.145 は G1 参照値と完全一致（diff -0.00pp / +0.000）。§1 Active 行から「暫定」表記を削除、CI95_lo / WFE 実測値を記入。Evidence に G3 関連ファイル 3点を追記。
 - 2026-05-24: Active を `S2_VZGated+LT2_N750` → `S2_VZGated+LT2_N750_E4RegimeKLT` に暫定昇格（E4 sweep 64 config / 12 PASS / 採用 config: k_lo=0.1, k_hi=0.8, vz_thr=0.7）。旧 Active は §2 Shortlisted へ移動（WFA PASS 済みで fallback 価値あり）。§5 逆引きに新テーマ `VolRegime` 追加。E4 WFA 完了次第、暫定→正式 Active へ確定予定。
 - 2026-05-23: Active を `S2_VZGated+LT2_N1500` → `S2_VZGated+LT2_N750` に差し戻し（コミット 8503200）。CAGR_OOS +31.16%・MaxDD −59.45%・Worst10Y★ +18.10% のリスク主要軸で N=750 が優位と再確認。N=1500 は Sharpe_OOS 最高値（+0.885）の実績で Shortlisted に移動。
 - 2026-05-22 (E2): §2 Shortlisted に `Hybrid_S2LT2_P05_70_30` を追加（E2 検証 2/3 基準改善・Shortlisted 判定）。§5 逆引きに「Hybrid / Multi-Strategy」新テーマ追加。一次根拠ファイルを 2026-05-22 版に更新。
