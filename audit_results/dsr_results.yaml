@@ -1,0 +1,20 @@
+strategy: S2_VZGated+LT2-N750-k0.5-modeB
+oos_period:
+  start: '2021-05-10'
+  end: '2026-03-26'
+  T: 1225
+moments:
+  SR_daily: 0.05405281
+  SR_annual: 0.858062
+  skewness: -0.516393
+  kurtosis_raw: 8.990245
+bh1x_SR_annual: 0.5406
+psr:
+  sr_b_0.0: 0.968554
+  sr_b_0.5: 0.781167
+  sr_b_bh1x: 0.754317
+dsr:
+  n50: 0.001055
+  n150: 4.3e-05
+  n500: 1.0e-06
+verdict: FAIL
