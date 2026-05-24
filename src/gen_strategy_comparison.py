@@ -1,11 +1,11 @@
 """
-gen_strategy_comparison.py — 戦略パフォーマンス比較表（5戦略 統一フォーマット）
-EVALUATION_STANDARD §3.12 準拠 (v1.1, 2026-05-23)
+gen_strategy_comparison.py — 戦略パフォーマンス比較表（6戦略 統一フォーマット）
+EVALUATION_STANDARD §3.12 準拠 (v1.1, 2026-05-24)
 
-出力: STRATEGY_PERFORMANCE_COMPARISON_2026-05-23.md
+出力: STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md
   §1 比較前提
-  §2 9指標比較表 (5戦略 × 9指標)  ← MD_HEADER_STRAT 使用
-  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き
+  §2 9指標比較表 (6戦略 × 9指標)  ← MD_HEADER_STRAT 使用
+  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き（E4 年次リターン TBD）
   §4 OOS期間 詳細分析
   §5 採用判断サマリー
   §6 一次根拠ファイル
@@ -30,6 +30,7 @@ def read_csv(fname):
 
 b9_rows = read_csv('b9_s2lt2_goldfrac_results.csv')
 b1_rows = read_csv('b1_s2_lt2_results.csv')
+e4_rows = read_csv('e4_regime_klt_results.csv')
 g1_map  = {r['strategy']: r for r in read_csv('g1_wfa_summary.csv')}
 g2_map  = {r['strategy']: r for r in read_csv('g2_wfa_b9_summary.csv')}
 
@@ -39,6 +40,15 @@ def find_b9(gf, wn):
         if abs(float(r['gold_frac']) - gf) < 0.001 and abs(float(r['wn_min']) - wn) < 0.001:
             return r
     raise ValueError(f'B9 row not found: gf={gf}, wn={wn}')
+
+
+def find_e4(klo, khi, vzthr):
+    for r in e4_rows:
+        if (abs(float(r['k_lo']) - klo) < 0.001 and
+                abs(float(r['k_hi']) - khi) < 0.001 and
+                abs(float(r['vz_thr']) - vzthr) < 0.001):
+            return r
+    raise ValueError(f'E4 row not found: k_lo={klo}, k_hi={khi}, vz_thr={vzthr}')
 
 
 def metrics(cagr_oos, sharpe, maxdd, worst10y, p10, gap, tr, ci95=None, wfe=None):
@@ -55,6 +65,16 @@ def metrics(cagr_oos, sharpe, maxdd, worst10y, p10, gap, tr, ci95=None, wfe=None
         'WFA_WFE':       wfe if wfe is not None else nan,
     }
 
+
+# 0. E4 Regime k_lt ◆ (NEW BEST, k_lo=0.1, k_hi=0.8, vz_thr=0.7)
+_e4r = find_e4(0.1, 0.8, 0.7)
+e4_klt = metrics(
+    float(_e4r['CAGR_OOS']), float(_e4r['Sharpe_OOS']),
+    float(_e4r['MaxDD_FULL']), float(_e4r['Worst10Y_star']),
+    float(_e4r['P10_5Y']), float(_e4r['IS_OOS_gap']),
+    float(_e4r['Trades_yr']),
+    None, None,   # WFA TBD
+)
 
 # 1. B9-Winner (gf=0.65, wn_min=0.20)
 _b9r = find_b9(0.65, 0.20)
@@ -110,11 +130,12 @@ dh_a = metrics(
 
 hdr1, hdr2 = MD_HEADER_STRAT
 
-row_b9w  = fmt_row_strat('**B9-Winner (gf=0.65, wn=0.20) ✅⚠**', b9_winner)
-row_n750 = fmt_row_strat('**S2+LT2-N750 ◆**',                   n750)
-row_bh   = fmt_row_strat('BH 1x（ベンチマーク）',               bh_1x)
-row_s2   = fmt_row_strat('S2_VZGated',                           s2_vzg)
-row_dha  = fmt_row_strat('DH Dyn 2x3x [A]',                     dh_a)
+row_e4   = fmt_row_strat('**E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7) ◆**', e4_klt)
+row_b9w  = fmt_row_strat('B9-Winner (gf=0.65, wn=0.20) ✅⚠',            b9_winner)
+row_n750 = fmt_row_strat('S2+LT2-N750（旧◆）',                           n750)
+row_bh   = fmt_row_strat('BH 1x（ベンチマーク）',                         bh_1x)
+row_s2   = fmt_row_strat('S2_VZGated',                                    s2_vzg)
+row_dha  = fmt_row_strat('DH Dyn 2x3x [A]',                              dh_a)
 
 
 # ---------------------------------------------------------------------------
@@ -243,11 +264,12 @@ for metric_name, extract, fmt_fn in [
     ('WFA CI95_lo', lambda m: m['WFA_CI95_lo'], pct),
 ]:
     strats = {
-        'B9-Winner': extract(b9_winner),
-        'N750 ◆':   extract(n750),
-        'S2_VZGated': extract(s2_vzg),
-        'DH Dyn [A]': extract(dh_a),
-        'BH 1x':     extract(bh_1x),
+        'E4 Regime ◆': extract(e4_klt),
+        'B9-Winner':   extract(b9_winner),
+        'N750 (旧◆)': extract(n750),
+        'S2_VZGated':  extract(s2_vzg),
+        'DH Dyn [A]':  extract(dh_a),
+        'BH 1x':       extract(bh_1x),
     }
     best = _best_label(strats)
     metric_summary_rows.append(f'| {metric_name} | {best} |')
@@ -260,10 +282,10 @@ metric_summary = '\n'.join(metric_summary_rows)
 # ---------------------------------------------------------------------------
 
 report = f"""\
-# 戦略パフォーマンス比較表 — 5戦略 統一評価フレームワーク
+# 戦略パフォーマンス比較表 — 6戦略 統一評価フレームワーク
 
 作成日: 2026-05-23
-最終更新日: 2026-05-23
+最終更新日: 2026-05-24
 EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 生成スクリプト: `src/gen_strategy_comparison.py`
 
@@ -279,7 +301,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 | **コスト** | Scenario D（`src/product_costs.py` 2026-05-12 基準） |
 | **DELAY** | 2営業日（look-ahead bias 対策） |
 | **Sharpe Rf** | 0 |
-| **CURRENT_BEST** | S2+LT2-N750-k0.5-modeB（◆） |
+| **CURRENT_BEST** | E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)（◆, 暫定 WFA pending） |
 | **WFA** | G1: 49窓, G2: 49窓（252日 calendar-year-anchored non-overlapping） |
 
 | 凡例 | 意味 |
@@ -291,13 +313,15 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §2 9指標比較表（5戦略 × 9指標）
+## §2 9指標比較表（6戦略 × 9指標）
 
 > **単位**: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年
 > ★ = Sharpe_OOS > +0.885 / ◎ = > +0.770（S2ベースライン）
+> WFA_CI95_lo / WFA_WFE に `—` は TBD または未実施
 
 {hdr1}
 {hdr2}
+{row_e4}
 {row_b9w}
 {row_n750}
 {row_bh}
@@ -311,9 +335,10 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 ## §3 年次リターン表（1974–2026）[単位: %]
 
 > `[OOS]` = OOS期間（2021年以降）
-> 各列: B9-Winner = gf=0.65/wn_min=0.20 / S2+LT2-N750◆ = 現行ベスト / 他3戦略は参照用
+> 各列: E4 Regime k_lt ◆ = 現行ベスト（年次リターン TBD, WFA pending）
+> 他5戦略は参照用。E4 列は次回更新で追加予定。
 
-| 年 | B9-Winner<br>✅⚠ | S2+LT2<br>N750◆ | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
+| 年 | B9-Winner<br>✅⚠ | S2+LT2<br>N750（旧◆） | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
 |:---|---:|---:|---:|---:|---:|
 {yearly_rows}
 
@@ -342,15 +367,16 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 {metric_summary}
 
 **判定**:
-- **現行ベスト維持: S2+LT2-N750 ◆**
-  - Sharpe, MaxDD, Worst10Y★, P10 の複合バランス最優秀
-  - IS-OOS gap +{n750['IS_OOS_gap']*100:.2f}pp（最小・最高汎化性）
+- **現行ベスト更新: E4 Regime k_lt ◆（暫定、WFA pending）**
+  - CAGR_OOS +{e4_klt['CAGR_OOS']*100:.2f}%, Sharpe +{e4_klt['Sharpe_OOS']:.3f}
+  - IS-OOS gap {e4_klt['IS_OOS_gap']*100:+.2f}pp（OOS > IS = 本プロジェクト史上最高汎化性）
+  - MaxDD −{abs(e4_klt['MaxDD_FULL'])*100:.2f}%（N750 比 −0.56pp、guardrail −64.5% 内）
+  - WFA 未実行のため暫定ベスト。CI95_lo>0 ∧ 0.5≤WFE≤2.0 確認後に正式確定。
+- **S2+LT2-N750（旧◆） Shortlisted（WFA 完了済み fallback 第一候補）**
   - WFA CI95_lo={n750['WFA_CI95_lo']*100:.1f}%, WFE={n750['WFA_WFE']:.3f}（PASS α∩β）
+  - E4 WFA 未通過時の fallback。Sharpe +{n750['Sharpe_OOS']:.3f}, MaxDD {n750['MaxDD_FULL']*100:.2f}%
 - **B9-Winner ✅⚠ Shortlisted（保留）**
-  - CAGR_OOS・Sharpe・2022年防御では N750 を超過
-  - MaxDD(-{abs(b9_winner['MaxDD_FULL'])*100:.1f}%), Worst10Y({b9_winner['Worst10Y_star']*100:.1f}%), P10({b9_winner['P10_5Y']*100:.1f}%) が同時悪化
-  - IS-OOS gap {b9_winner['IS_OOS_gap']*100:+.2f}pp は Gold 2021-2026 強気エクスポージャ偏重の疑い
-  - WFE={b9_winner['WFA_WFE']:.3f} > N750の{n750['WFA_WFE']:.3f}（Gold OOS bias と整合）
+  - CAGR_OOS・Sharpe・2022年防御では有力だが IS-OOS gap {b9_winner['IS_OOS_gap']*100:+.2f}pp は Gold OOS bias 疑い
 - **S2_VZGated**: G1 WFA CI95_lo最高({s2_vzg['WFA_CI95_lo']*100:.1f}%), WFE=0.830 PASS。Sharpe +0.770（基準線）
 - **DH Dyn [A]**: 低MaxDD優位(-45.1%)。Sharpe/WFE 最低クラスだが下方リスク管理として参照価値あり
 
@@ -360,6 +386,8 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 | ファイル | 役割 |
 |----------|------|
+| [e4_regime_klt_results.csv](e4_regime_klt_results.csv) | E4 ◆ 9指標ソース（64 config） |
+| [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 sweep レポート（採用根拠） |
 | [b9_s2lt2_goldfrac_results.csv](b9_s2lt2_goldfrac_results.csv) | B9-Winner 9指標ソース |
 | [b1_s2_lt2_results.csv](b1_s2_lt2_results.csv) | N750 / S2_VZGated 9指標ソース |
 | [g1_wfa_summary.csv](g1_wfa_summary.csv) | N750/S2_VZGated/DH[A]/BH1x WFAデータ |
@@ -376,6 +404,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 | 版 | 日付 | 変更内容 |
 |----|------|---------|
+| v1.1 | 2026-05-24 | E4 Regime k_lt を新 BEST ◆ として追加（6戦略へ拡張）。N750 を旧◆参照行へ。WFA TBD。 |
 | v1.0 | 2026-05-23 | 初版。5戦略統一フォーマット（9指標＋年次リターン）。 |
 
 ---
@@ -389,7 +418,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 # 出力
 # ---------------------------------------------------------------------------
 
-out_path = os.path.join(BASE, 'STRATEGY_PERFORMANCE_COMPARISON_2026-05-23.md')
+out_path = os.path.join(BASE, 'STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md')
 with open(out_path, 'w', encoding='utf-8') as f:
     f.write(report)
 
@@ -397,11 +426,12 @@ print(f'Written: {out_path}')
 print()
 print('=== 9指標確認 ===')
 for label, m in [
-    ('B9-Winner', b9_winner),
-    ('N750 ◆   ', n750),
-    ('BH 1x    ', bh_1x),
+    ('E4 Regime◆', e4_klt),
+    ('B9-Winner ', b9_winner),
+    ('N750 (旧◆)', n750),
+    ('BH 1x     ', bh_1x),
     ('S2_VZGated', s2_vzg),
-    ('DH Dyn[A]', dh_a),
+    ('DH Dyn[A] ', dh_a),
 ]:
     print(
         f'  {label}: CAGR_OOS={m["CAGR_OOS"]*100:+.2f}%'

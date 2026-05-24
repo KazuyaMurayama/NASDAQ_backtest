@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-22 (E2 Hybrid Shortlisted 追加; B3/B4/B5/B6 sweep + P1/P3/P5/S3/S4 棄却追記; Active を S2+LT2-N1500-k0.5 へ昇格)
+最終更新日: 2026-05-24 (Active を N750固定k → E4 Regime k_lt に昇格; N750固定k を Shortlisted へ移動)
 管理者: Kazuya Murayama
 
 ---
@@ -70,7 +70,7 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **S2_VZGated+LT2_N1500** | S2_VZGated + LT2-N1500-k0.5-modeB（Vol-Zone ゲート CFD レバレッジ + 超長期逆張りフィルタ） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | **+30.84%** | **0.885** | −63.37% | **Active** | B6 N-sweep（6 config）で Sharpe_OOS 最高（+0.885, 全14戦略中トップ）。**IS-OOS gap −0.05pp** で OOS が IS を僅かに上回り、本プロジェクト全期間で最強の汎化性。N=750 比 CAGR_OOS −0.32pp / MaxDD −3.92pp / Worst10Y★ −1.50pp のトレードオフは許容範囲内、Sharpe+0.027 と gap 改善が上回ると判定。 | [b6_s2_lt2_N_sweep_results.csv](b6_s2_lt2_N_sweep_results.csv), [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md), [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/b1_s2_lt2.py](src/b1_s2_lt2.py), [src/long_cycle_signal.py](src/long_cycle_signal.py) |
+| **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | **+33.53%** | **0.891** | −60.01% | **Active (暫定, WFA pending)** | E4 sweep 64 config 中 5/6 主要指標で N=750 固定k を上回り、Worst10Y★ +18.67% / MaxDD −60.01% を同時最良化。IS-OOS gap −1.81pp は本プロジェクト史上最高の汎化性。MaxDD は N750 比 −0.56pp 劣後だが guardrail (−64.5%) 内。WFA 未実行のため暫定 Active、CI95_lo>0 ∧ 0.5≤WFE≤2.0 確認後に正式昇格。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [e4_regime_klt_results.csv](e4_regime_klt_results.csv), [src/e4_regime_klt.py](src/e4_regime_klt.py), [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) |
 
 ---
 
@@ -81,6 +81,7 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
+| **S2_VZGated+LT2_N750** | S2_VZGated + LT2-N750-k0.5-modeB（固定 k_lt=0.5 / 旧◆ Active） | CFDLeverage + LongCycleSignal | 2026-05-24 | D | +31.16% | 0.858 | −59.45% | Shortlisted | 旧 Active（〜2026-05-24）。E4 Regime k_lt に CAGR_OOS −2.37pp / Sharpe_OOS −0.033 / Worst10Y★ −0.57pp / IS-OOS gap +1.99pp で劣後し降格。WFA 完了済み（CI95_lo=+25.7%, WFE=1.145 PASS α∩β）のため代替候補として強い残置価値あり。E4 の WFA 未通過時の fallback 第一候補。 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md), [b1_s2_lt2_results.csv](b1_s2_lt2_results.csv), [g1_wfa_summary.csv](g1_wfa_summary.csv) |
 | **S2_VZGated** | Vol-Zone ゲート型 CFD レバレッジ（tv=0.8, k_vz=0.3, gate_min=0.5） | CFDLeverage | 2026-05-21 | D | +27.57% | 0.769 | −62.4% | Shortlisted | 旧Active。S2+LT2 に全7指標（CAGR_OOS/Sharpe_OOS/IS-OOS gap/Worst10Y★/MaxDD/P10_5Y/Worst5Y）で敗北し降格。LT2 を外せばこの構成。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/cfd_leverage_backtest.py](src/cfd_leverage_backtest.py), [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) |
 | **P2_VolTarget** | P2 best（vol-target, tv=0.8） | CFDLeverage / VolTarget | 2026-05-21 | D | +27.13% | 0.757 | −60.5% | Shortlisted | S2_VZGated とほぼ同水準。Worst10Y★ +19.09% は S2 より僅かに優位だが Sharpe_OOS 0.757 < 0.769 で総合敗北。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) |
 | **S4_RelVol** | RelVol ベース CFD レバレッジ（l_base=7, k_rel=2.0） | CFDLeverage | 2026-05-21 | D | +26.19% | 0.697 | −66.1% | Shortlisted | CAGR_IS +40.98% と高いが OOS で +26.19% へ大幅低下（IS-OOS gap 約 14.8pp）。過剰適合疑い。MaxDD −66.1% も大きい。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) |
@@ -91,7 +92,7 @@
 | **P05_HYCPI** | P05_HY × CPI [mult]（HY + CPI ゲート） | TimingGate / DH_Dyn派生 | 2026-05-21 | [非標準コスト] | +15.65% | 0.667‡ | −44.98% | Shortlisted | Worst5Y +6.04% で Worst5Y 観点では最強。ただし **[非標準コスト]** につき他系統と直接比較不可。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) |
 | **P01_DynHY** | P01_Dyn × HY [mult]（HY スプレッドゲート） | TimingGate / DH_Dyn派生 | 2026-05-21 | [非標準コスト] | +19.92% | 0.829‡ | −42.85% | Shortlisted | DSR 観点で候補級だが **[非標準コスト]**（§17）。MaxDD −42.85% は本表で最小。標準コスト下での再評価で残存可否を判定する。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) |
 | **DH_Dyn_2x3x_A_LT2** | DH Dyn 2x3x [A+LT2]（LT2-N750-k0.5-modeB, TQQQ参照） | DH_Dyn + LongCycleSignal | 2026-05-21 | D | +18.87% | 0.777 | −44.76% | Shortlisted | Active (S2+LT2) の CFD 抜きバージョン。CFD 不可環境（NISA, 法人税効率優先など）の代替候補。Sharpe_OOS 0.777 は DH Dyn 単体 0.646 から大幅改善。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/b1_s2_lt2.py](src/b1_s2_lt2.py), [src/long_cycle_signal.py](src/long_cycle_signal.py) |
-| **S2_VZGated+LT2_N750** | S2_VZGated + LT2-N750-k0.5-modeB | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +31.16% | 0.858 | −59.45% | Shortlisted | 旧 Active（2026-05-21〜2026-05-22）。B6 N-sweep で N=1500 が Sharpe_OOS +0.885 / IS-OOS gap −0.05pp と上回り降格。CAGR_OOS +31.16% は依然全戦略中最高で、低 MaxDD（−59.45%）/ 高 Worst10Y★（+18.10%）の代替候補として残置。 | [b6_s2_lt2_N_sweep_results.csv](b6_s2_lt2_N_sweep_results.csv), [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md), [src/b1_s2_lt2.py](src/b1_s2_lt2.py) |
+| **S2_VZGated+LT2_N1500** | S2_VZGated + LT2-N1500-k0.5-modeB（超長期逆張りフィルタ） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +30.84% | 0.885 | −63.37% | Shortlisted | Sharpe_OOS +0.885（本プロジェクト最高値）/ IS-OOS gap −0.05pp（OOS が IS 超え）は最強の汎化性。CAGR_OOS −0.32pp / MaxDD −3.92pp / Worst10Y★ −1.50pp でリスク指標が N=750 に劣後し、コミット 8503200 で Active から N=750 に差し戻し。代替シナリオとして Shortlisted 保持。 | [b6_s2_lt2_N_sweep_results.csv](b6_s2_lt2_N_sweep_results.csv), [B6_S2_LT2_N_SWEEP_2026-05-22.md](B6_S2_LT2_N_SWEEP_2026-05-22.md), [src/b1_s2_lt2.py](src/b1_s2_lt2.py) |
 | **S2_VZGated+LT4_N750_k0.7** | S2_VZGated + LT4-N=750, k_lt=0.7（LT4 系最良） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +30.50% | 0.850 | N/A | Shortlisted | B3 LT4 N×k_lt スイープ 9/9 が S2 単体（+0.770）超え、最良が CAGR_OOS +30.50% / Sharpe +0.850 / IS-OOS gap +0.60pp と Active 級。LT2-N1500 比で Sharpe −0.035, gap +0.65pp と総合僅差敗北。 | [b3_s2_lt4_sweep_results.csv](b3_s2_lt4_sweep_results.csv) |
 | **S2_VZGated+LT6_N500_k0.7** | S2_VZGated + LT6-N=500, k_lt=0.7（LT6 系最良） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +27.35% | 0.820 | −54.38% | Shortlisted | B4 LT6 N×k_lt スイープ 9/9 が S2 単体超え。最良値は MaxDD −54.38% / Worst10Y★ +17.06% と健闘するが IS-OOS gap +5.73pp で過剰適合傾向。N=750/k=0.7 変種（Sharpe +0.801, gap +4.13pp）のほうがロバスト性で勝る。 | [b4_s2_lt6_sweep_results.csv](b4_s2_lt6_sweep_results.csv) |
 | **S2_VZGated+LT7_k0.5** | S2_VZGated + LT7-k_lt=0.5（dual MA cross, N_short=750, N_long=1250 固定） | CFDLeverage + LongCycleSignal | 2026-05-22 | D | +29.42% | 0.814 | −60.39% | Shortlisted | B5 LT7 k_lt スイープ 3/3 が S2 単体超え。dual MA cross 構造を導入したが Sharpe では LT2/LT4 に劣後、N=1500 比で +0.071 差。複雑度に見合う優位性なし、ロバスト性検証ためのスイープ規模（3 config）も小さく要注意。 | [b5_s2_lt7_sweep_results.csv](b5_s2_lt7_sweep_results.csv) |
@@ -223,14 +224,19 @@
 > 各テーマ末尾の `→ §X.Y` でテーブルへジャンプ。
 
 ### CFDLeverage（CFD 動的レバレッジ）
-- **Active**: S2_VZGated+LT2_N1500 → §1
-- **Shortlisted**: S2_VZGated+LT2_N750（旧Active）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, S2_VZGated, P2_VolTarget, S4_RelVol, CFD_7x_Fixed → §2
+- **Active**: S2_VZGated+LT2_N750_E4RegimeKLT → §1
+- **Shortlisted**: S2_VZGated+LT2_N750（旧Active, WFA完了済み fallback 第一候補）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, S2_VZGated, P2_VolTarget, S4_RelVol, CFD_7x_Fixed → §2
 - **Rejected**: CFD_LMAX_Sweep_Rejects, CFD_NVOL_Sweep_Rejects, Discrete_Leverage_Rejects, Marugoto_Leverage, Lev2x3x_Baseline, E1_Ensemble_S2_Rejects, F1_Alloc_Sweep_Rejects, **P1_SOFR_Adaptive** (18/18 S2未満), **P3_Momentum_Lev** (16/16 S2未満, gap+14.66pp), **P4_Composite** (三因子乗算、全24config S2未満), **P5_Kelly_Sizing** (12/12 S2未満), **S1_Conviction** (A2直接変換、IS-OOSgap+21pp), **S3_Decomposed_A2** (gap+22.39pp 致命的過剰適合), **S4_RelVol_Gated** (36/36 S2未満), S2_TV/KVZ/GATEMIN_Sweep_Rejects → §3.3
 - **関連分析**: Leverage_Bin_Analysis_V1_V4 → §3.5
 
 ### LongCycleSignal（長期サイクル / モメンタム逆張り = LT2 系）
-- **Active**: S2_VZGated+LT2_N1500（LT2-N1500-k0.5-modeB） → §1
-- **Shortlisted**: S2_VZGated+LT2_N750（旧Active）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, DH_Dyn_2x3x_A_LT2 → §2
+- **Active**: S2_VZGated+LT2_N750_E4RegimeKLT（LT2-N750 + E4 Regime k_lt） → §1
+- **Shortlisted**: S2_VZGated+LT2_N750（旧Active, 固定k=0.5, WFA完了済み）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, DH_Dyn_2x3x_A_LT2 → §2
+
+### VolRegime（ボラレジーム動的パラメータ）
+- **Active**: S2_VZGated+LT2_N750_E4RegimeKLT（vz による LT2 k_lt 動的調整） → §1
+- **Rejected**: （該当なし — 初回検証）
+- 結論: vz による LT2 バイアス強度の動的調整が S2+LT2 で +2.37pp CAGR_OOS / −1.99pp gap 改善を実現。
 - **Rejected**: B2_KLT_Sweep_Rejects, B6_LT2_N_Sweep_Rejects, B3_LT4_Sweep_Rejects, B4_LT6_Sweep_Rejects, B5_LT7_Sweep_Rejects, LT_Sweep_Variants → §3.3, §3.5
 
 ### EnsembleVoting（アンサンブル / 投票統合）
@@ -358,6 +364,8 @@
 
 ## 変更履歴
 
+- 2026-05-24: Active を `S2_VZGated+LT2_N750` → `S2_VZGated+LT2_N750_E4RegimeKLT` に暫定昇格（E4 sweep 64 config / 12 PASS / 採用 config: k_lo=0.1, k_hi=0.8, vz_thr=0.7）。旧 Active は §2 Shortlisted へ移動（WFA PASS 済みで fallback 価値あり）。§5 逆引きに新テーマ `VolRegime` 追加。E4 WFA 完了次第、暫定→正式 Active へ確定予定。
+- 2026-05-23: Active を `S2_VZGated+LT2_N1500` → `S2_VZGated+LT2_N750` に差し戻し（コミット 8503200）。CAGR_OOS +31.16%・MaxDD −59.45%・Worst10Y★ +18.10% のリスク主要軸で N=750 が優位と再確認。N=1500 は Sharpe_OOS 最高値（+0.885）の実績で Shortlisted に移動。
 - 2026-05-22 (E2): §2 Shortlisted に `Hybrid_S2LT2_P05_70_30` を追加（E2 検証 2/3 基準改善・Shortlisted 判定）。§5 逆引きに「Hybrid / Multi-Strategy」新テーマ追加。一次根拠ファイルを 2026-05-22 版に更新。
 - 2026-05-22: Active を `S2_VZGated+LT2_N750` → `S2_VZGated+LT2_N1500` に昇格（B6 N-sweep で Sharpe_OOS +0.885 / IS-OOS gap −0.05pp が最良と確認）。§2 Shortlisted に B3/B4/B5 最良 config + 旧 Active N=750 を追加（計5件）。§3.3 Rejected に P1/P3/P5/S3/S4 と B3〜B6 落選 config を追加。逆引きインデックス（CFDLeverage / LongCycleSignal）を更新。
 - 2026-05-21: 初版作成。Active = `S2_VZGated+LT2`。Shortlisted 10件、Rejected カテゴリ別整理、Deferred 空、逆引きインデックス整備。

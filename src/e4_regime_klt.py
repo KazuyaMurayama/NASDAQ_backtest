@@ -21,6 +21,11 @@ EVALUATION_STANDARD §3.12 準拠 (v1.1, 2026-05-24)
 出力:
   - e4_regime_klt_results.csv
   - E4_REGIME_KLT_SWEEP_2026-05-24.md
+
+判定結果 (2026-05-24): 採用 config = k_lo=0.1, k_hi=0.8, vz_thr=0.7
+  CAGR_OOS=+33.53%, Sharpe_OOS=+0.891, MaxDD=-60.01%, Worst10Y★=+18.67%, IS-OOS gap=-1.81pp
+  CURRENT_BEST_STRATEGY.md に Active として暫定昇格（2026-05-24, WFA pending）。
+  REF_* 定数は旧 N=750 ベースライン（昇格時点での比較対象）。歴史的整合性のため変更しない。
 """
 import sys, os, types
 _m = types.ModuleType('multitasking')

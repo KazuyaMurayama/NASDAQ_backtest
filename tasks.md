@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-05-11
+最終更新: 2026-05-24
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -8,11 +8,14 @@
 （なし）
 
 ## 🟡 Pending
+- [ ] **E4 WFA 実行**: `src/g3_wfa_e4.py` 新規作成（`g2_wfa_b9.py` ベース）→ CI95_lo / WFE 計算 → `CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新で暫定→正式 Active 確定。`[E4_REGIME_KLT_SWEEP_2026-05-24.md]`
+- [ ] **E4 年次リターン生成**: `src/gen_e4_yearly_returns.py` 新規作成 → `STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md` §3 を 6 戦略列に拡張。
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
 - [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-24: **E4 Regime k_lt 暫定 Active 昇格** — vz レジーム条件付き k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) が CAGR_OOS +33.53% / Sharpe_OOS +0.891 / IS-OOS gap −1.81pp を達成。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` / `STRATEGY_PERFORMANCE_COMPARISON` / `src/gen_strategy_comparison.py` を更新。WFA は別タスク (🟡 Pending)。[E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md)
 - 2026-05-11: **再発防止プロトコル整備** — `CURRENT_BEST_STRATEGY.md` 作成、旧 `FINAL_*` / `*_2026-02-06.md` / `THRESHOLD_SWEEP_REPORT_2026-04-20.md` / `YEARLY_RETURNS_REPORT_2026-04-20_v2.md` に SUPERSEDED ヘッダ追加。CLAUDE.md にベスト戦略参照プロトコルと命名規則を追記。[CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md)
 - 2026-04-21: **YEARLY_RETURNS_REPORT v3** — Berkshire Hathaway ベンチマーク列追加。DH [A] 1974-2024 CAGR +30.32% vs BRK +19.47% (+10.85pp優位、32-19で勝ち越し)。[YEARLY_RETURNS_REPORT_2026-04-20_v3.md](YEARLY_RETURNS_REPORT_2026-04-20_v3.md)
 - 2026-04-21: **Approach A 内リバランス閾値スイープ再検証** — 閾値0.15を推奨（FULL CAGR +30.81% vs 現行0.20の+30.30%）。ダブルチェック3/3 PASS。**現行ベスト戦略: DH Dyn 2x3x [A] 閾値0.15**。[THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md)
