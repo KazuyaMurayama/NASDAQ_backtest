@@ -8,14 +8,15 @@
 （なし）
 
 ## 🟡 Pending
-- [ ] **G4 WFA for F7-v3**: `src/g4_wfa_f7v3.py` 新規作成（`g3_wfa_e4.py` ベース）→ F7-v3 A:tilt=2.0（ステップ関数代表値）WFA 50窓 → CI95_lo / WFE 計算 → PASS なら正式 Active 昇格
-- [ ] **F8 レジーム条件 tilt**: `src/f8_regime_tilt.py` — 定式 A step-func (tilt=10) を calm レジーム限定 or vz レジーム別係数でグリッドサーチ。THRESHOLD=0.15 固定。
-- [ ] **F9 THRESHOLD 最適化**: `src/f9_threshold.py` — step-func (tilt=10, cap=0.10) × THRESHOLD∈{0.05,0.10,0.15,0.20,0.30,0.40}
+- [ ] **G5 WFA for F8 R5_CALM_BOOST**: `src/g5_wfa_f8r5.py` 新規作成 → R5_CALM_BOOST (calm cap=0.15 / stressed cap=0.05) WFA 50窓 → PASS なら新 Active 候補（Sharpe +0.934, CAGR +36.83%, MaxDD -63.07%）
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
 - [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
 
 ## ✅ Completed
+- 2026-05-24: **G4 WFA for F7-v3 A:tilt=2.0 PASS → 正式 Active 昇格** — CI95_lo=+27.15%, WFE=+1.203 (α∩β PASS)。CAGR_OOS=+36.30%, Sharpe_OOS=+0.926。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md)
+- 2026-05-24: **F8 レジーム条件 tilt スイープ** — R5_CALM_BOOST が Sharpe=+0.934（+0.005 vs F7V3_BASE）、PASS 4 configs。Trades/yr削減は未達、MaxDD若干悪化。R5_CALM_BOOST WFA→G5 Pending。[F8_REGIME_TILT_2026-05-24.md](F8_REGIME_TILT_2026-05-24.md)
+- 2026-05-24: **F9 THRESHOLD 最適化スイープ** — THRESHOLD=0.15 が最良（感度低、Sharpe幅0.021）。PASS 5 configs (T005〜T025)、FAIL T030/T040。現行値 0.15 が最適と確認。[F9_THRESHOLD_2026-05-24.md](F9_THRESHOLD_2026-05-24.md)
 - 2026-05-24: **F7-v3 Bull-Tilt 定式再設計スイープ** — 定式 A (Large-Tilt Bell): tilt∈{0.6,1.0,2.0,5.0,10.0}/cap=0.10、定式 B (Linear): tilt×cap=4 combos。PASS 4 configs (A:tilt=1.0/2.0/5.0/10.0)。最良 A:tilt=10 (step func): Sharpe=+0.929, CAGR=+36.52%, MaxDD=-62.04%, Trades/yr=179。WFA 実行→G4 Pending。[F7V3_BULL_TILT_2026-05-24.md](F7V3_BULL_TILT_2026-05-24.md)
 - 2026-05-24: **G3 WFA for E4** — 50窓WFA PASS (CI95_lo=+26.51%, WFE=+1.131)。E4 正式 Active 確定。[G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md)
 - 2026-05-24: **E4 年次リターン生成** — `src/gen_e4_yearly_returns.py` 新規作成、`e4_yearly_returns.csv` を出力。`STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md` §3/§4 を 6 戦略列（E4 を最左）に拡張、v1.2 として改訂履歴を追加。`src/gen_strategy_comparison.py` にも E4 年次リターン列を統合（CSV 優先 + static fallback）。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)

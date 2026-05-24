@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-24 (E4 Regime k_lt の G3 WFA PASS → 正式 Active 確定; CI95_lo=+26.51%, WFE=+1.131)
+最終更新日: 2026-05-24 (F7v3+E4 Bull-Tilt の G4 WFA PASS → 正式 Active 昇格; CI95_lo=+27.15%, WFE=+1.203)
 管理者: Kazuya Murayama
 
 ---
@@ -70,7 +70,7 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | **+33.53%** | **0.891** | −60.01% | **Active (WFA PASS 確定)** | E4 sweep 64 config 中 5/6 主要指標で N=750 固定k を上回り、Worst10Y★ +18.67% / MaxDD −60.01% を同時最良化。IS-OOS gap −1.81pp は本プロジェクト史上最高の汎化性。MaxDD は N750 比 −0.56pp 劣後だが guardrail (−64.5%) 内。**G3 WFA PASS (2026-05-24): CI95_lo=+26.51% (α PASS, t_p=0.0000), WFE=+1.131 (β PASS)** → 正式 Active 確定。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [e4_regime_klt_results.csv](e4_regime_klt_results.csv), [src/e4_regime_klt.py](src/e4_regime_klt.py), [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md), [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv), [src/g3_wfa_e4.py](src/g3_wfa_e4.py), [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) |
+| **S2_VZGated+LT2_N750_E4_F7v3** | S2_VZGated + LT2-N750 + E4 Regime k_lt + F7v3 Bull-Tilt (A:tilt=2.0, cap=0.10) | CFDLeverage + LongCycleSignal + VolRegime + BullTilt | 2026-05-24 | D | **+36.30%** | **0.926** | −61.96% | **Active (WFA PASS 確定)** | F7-v3 定式A step-func bull-tilt (tilt=2.0, cap=0.10, THRESHOLD=0.15) をE4ベース上に重畳。Sharpe_OOS +0.926（PASS基準+0.035超過）、CAGR_OOS +36.30%（+2.77pp vs E4単体）、WFA CI95_lo +27.15%（E4比+0.64pp）。MaxDD −61.96% は guardrail 内。**G4 WFA PASS (2026-05-24): CI95_lo=+27.15% (α PASS, t_p=0.0000), WFE=+1.203 (β PASS)** → 正式 Active 確定。 | [F7V3_BULL_TILT_2026-05-24.md](F7V3_BULL_TILT_2026-05-24.md), [f7v3_bull_tilt_results.csv](f7v3_bull_tilt_results.csv), [src/f7v3_bull_tilt.py](src/f7v3_bull_tilt.py), [G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md), [g4_wfa_f7v3_summary.csv](g4_wfa_f7v3_summary.csv), [src/g4_wfa_f7v3.py](src/g4_wfa_f7v3.py), [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) |
 
 ---
 
@@ -81,7 +81,8 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
-| **S2_VZGated+LT2_N750** | S2_VZGated + LT2-N750-k0.5-modeB（固定 k_lt=0.5 / 旧◆ Active） | CFDLeverage + LongCycleSignal | 2026-05-24 | D | +31.16% | 0.858 | −59.45% | Shortlisted | 旧 Active（〜2026-05-24）。E4 Regime k_lt に CAGR_OOS −2.37pp / Sharpe_OOS −0.033 / Worst10Y★ −0.57pp / IS-OOS gap +1.99pp で劣後し降格。WFA 完了済み（CI95_lo=+25.7%, WFE=1.145 PASS α∩β）のため代替候補として強い残置価値あり。E4 の WFA 未通過時の fallback 第一候補。 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md), [b1_s2_lt2_results.csv](b1_s2_lt2_results.csv), [g1_wfa_summary.csv](g1_wfa_summary.csv) |
+| **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) / tiltなし | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | +33.53% | 0.891 | −60.01% | Shortlisted | 旧 Active（〜2026-05-24）。F7v3 Bull-Tilt が Sharpe_OOS +0.926 / CAGR_OOS +36.30% / WFA CI95_lo +27.15% で上回り降格。WFA G3 PASS 済み（CI95_lo=+26.51%, WFE=+1.131）。MaxDD −60.01% は現行 Active より良好。Bull-Tilt 追加の費用対効果に疑問が生じた場合の fallback 第一候補。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md), [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv) |
+| **S2_VZGated+LT2_N750** | S2_VZGated + LT2-N750-k0.5-modeB（固定 k_lt=0.5 / 旧◆ Active） | CFDLeverage + LongCycleSignal | 2026-05-24 | D | +31.16% | 0.858 | −59.45% | Shortlisted | 旧 Active（〜2026-05-24）。E4 Regime k_lt に CAGR_OOS −2.37pp / Sharpe_OOS −0.033 / Worst10Y★ −0.57pp / IS-OOS gap +1.99pp で劣後し降格。WFA 完了済み（CI95_lo=+25.7%, WFE=1.145 PASS α∩β）のため代替候補として強い残置価値あり。E4 の WFA 未通過時の fallback 第二候補。 | [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md), [b1_s2_lt2_results.csv](b1_s2_lt2_results.csv), [g1_wfa_summary.csv](g1_wfa_summary.csv) |
 | **S2_VZGated** | Vol-Zone ゲート型 CFD レバレッジ（tv=0.8, k_vz=0.3, gate_min=0.5） | CFDLeverage | 2026-05-21 | D | +27.57% | 0.769 | −62.4% | Shortlisted | 旧Active。S2+LT2 に全7指標（CAGR_OOS/Sharpe_OOS/IS-OOS gap/Worst10Y★/MaxDD/P10_5Y/Worst5Y）で敗北し降格。LT2 を外せばこの構成。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/cfd_leverage_backtest.py](src/cfd_leverage_backtest.py), [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) |
 | **P2_VolTarget** | P2 best（vol-target, tv=0.8） | CFDLeverage / VolTarget | 2026-05-21 | D | +27.13% | 0.757 | −60.5% | Shortlisted | S2_VZGated とほぼ同水準。Worst10Y★ +19.09% は S2 より僅かに優位だが Sharpe_OOS 0.757 < 0.769 で総合敗北。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md) |
 | **S4_RelVol** | RelVol ベース CFD レバレッジ（l_base=7, k_rel=2.0） | CFDLeverage | 2026-05-21 | D | +26.19% | 0.697 | −66.1% | Shortlisted | CAGR_IS +40.98% と高いが OOS で +26.19% へ大幅低下（IS-OOS gap 約 14.8pp）。過剰適合疑い。MaxDD −66.1% も大きい。 | [STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md](STRATEGY_COMPARISON_INTEGRATED_2026-05-19.md), [src/dynamic_leverage_strategies.py](src/dynamic_leverage_strategies.py) |
