@@ -1,0 +1,43 @@
+strategy: S2_VZGated+LT2-N750-k0.5-modeB
+generated: '2026-05-24'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+settings:
+  B: 1000
+  block_len: 63
+  seed: 42
+sr_observed: 0.857272
+sr_bh1x_oos: 0.516382
+tests:
+  a_L_s2_block:
+    p_value: 0.248
+    verdict: FAIL
+    dist_mean: 0.763063
+    dist_std: 0.135299
+    dist_P5: 0.548579
+    dist_P25: 0.6698
+    dist_P50: 0.764452
+    dist_P75: 0.856651
+    dist_P95: 0.987231
+  b_L_s2_whitenoise:
+    p_value: 0.31
+    verdict: 参考
+    dist_mean: 0.768454
+    dist_std: 0.172974
+    dist_P5: 0.474076
+    dist_P25: 0.649886
+    dist_P50: 0.771132
+    dist_P75: 0.885826
+    dist_P95: 1.051027
+  c_lev_mod_block:
+    p_value: 0.055
+    verdict: WARN
+    dist_mean: 0.54657
+    dist_std: 0.202359
+    dist_P5: 0.21433
+    dist_P25: 0.407843
+    dist_P50: 0.551286
+    dist_P75: 0.682456
+    dist_P95: 0.866739
+verdict: FAIL
