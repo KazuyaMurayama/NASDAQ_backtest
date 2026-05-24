@@ -1,0 +1,79 @@
+strategy: S2_VZGated+LT2-N750-k0.5-modeB
+generated: '2026-05-24'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+  T: 1225
+sr_observed: 0.858062
+bootstrap:
+  B: 5000
+  seed: 42
+  L20:
+    CI95_lo: 0.055876
+    CI95_hi: 1.650193
+    median: 0.860521
+    p_value: 0.0186
+    P5: 0.179769
+    P25: 0.576216
+    P75: 1.138235
+    P95: 1.544234
+  L63:
+    CI95_lo: 0.085894
+    CI95_hi: 1.540828
+    median: 0.861708
+    p_value: 0.016
+    P5: 0.212684
+    P25: 0.61321
+    P75: 1.092762
+    P95: 1.41618
+  L126:
+    CI95_lo: 0.131176
+    CI95_hi: 1.452047
+    median: 0.866135
+    p_value: 0.0116
+    P5: 0.250854
+    P25: 0.6344
+    P75: 1.071175
+    P95: 1.366345
+is_stability:
+  n_chunks: 10
+  mean_SR: 0.971166
+  std_SR: 0.315788
+  min_SR: 0.266473
+  max_SR: 1.328212
+  CoV: '0.325'
+  chunks:
+  - chunk: 1
+    n_days: 1195
+    SR_ann: 1.328211749564823
+  - chunk: 2
+    n_days: 1195
+    SR_ann: 0.9883877804149138
+  - chunk: 3
+    n_days: 1194
+    SR_ann: 0.9967326784879035
+  - chunk: 4
+    n_days: 1194
+    SR_ann: 0.5319710573919543
+  - chunk: 5
+    n_days: 1194
+    SR_ann: 1.2916751905748436
+  - chunk: 6
+    n_days: 1194
+    SR_ann: 1.0747106197747827
+  - chunk: 7
+    n_days: 1194
+    SR_ann: 0.9324317648362259
+  - chunk: 8
+    n_days: 1194
+    SR_ann: 1.1531428817935097
+  - chunk: 9
+    n_days: 1194
+    SR_ann: 0.266473237886307
+  - chunk: 10
+    n_days: 1194
+    SR_ann: 1.1479181829278207
+verdict: PASS
+verdict_basis: L=63
+verdict_reason: L=63 ブロックでの CI95_lo = 0.0859 > 0.0 かつ p値 = 0.0160 < 0.05。OOS Sharpe
+  は統計的に有意にゼロより大きい。
