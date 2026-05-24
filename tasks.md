@@ -8,12 +8,14 @@
 （なし）
 
 ## 🟡 Pending
-- [ ] **G5 WFA for F8 R5_CALM_BOOST**: `src/g5_wfa_f8r5.py` 新規作成 → R5_CALM_BOOST (calm cap=0.15 / stressed cap=0.05) WFA 50窓 → PASS なら新 Active 候補（Sharpe +0.934, CAGR +36.83%, MaxDD -63.07%）
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更)
 - [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026）
+- [ ] STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加（gen_f8r5_yearly_returns.py 作成 → gen_strategy_comparison.py 更新 → MD再生成）
 
 ## ✅ Completed
+- 2026-05-24: **G5 WFA for F8 R5_CALM_BOOST PASS → 正式 Active 昇格** — CI95_lo=+27.92%, WFE=+1.208 (α∩β PASS)。Sharpe_OOS=+0.934、CAGR_OOS=+36.83%。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G5_WFA_F8R5_2026-05-24.md](G5_WFA_F8R5_2026-05-24.md)
+- 2026-05-24: **比較MD更新 v1.4** — F7v3+E4列追加（gen_f7v3_yearly_returns.py作成, gen_strategy_comparison.py更新, 7戦略構成へ拡張）。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)
 - 2026-05-24: **G4 WFA for F7-v3 A:tilt=2.0 PASS → 正式 Active 昇格** — CI95_lo=+27.15%, WFE=+1.203 (α∩β PASS)。CAGR_OOS=+36.30%, Sharpe_OOS=+0.926。`CURRENT_BEST_STRATEGY.md` / `STRATEGY_REGISTRY.md` 更新済み。[G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md)
 - 2026-05-24: **F8 レジーム条件 tilt スイープ** — R5_CALM_BOOST が Sharpe=+0.934（+0.005 vs F7V3_BASE）、PASS 4 configs。Trades/yr削減は未達、MaxDD若干悪化。R5_CALM_BOOST WFA→G5 Pending。[F8_REGIME_TILT_2026-05-24.md](F8_REGIME_TILT_2026-05-24.md)
 - 2026-05-24: **F9 THRESHOLD 最適化スイープ** — THRESHOLD=0.15 が最良（感度低、Sharpe幅0.021）。PASS 5 configs (T005〜T025)、FAIL T030/T040。現行値 0.15 が最適と確認。[F9_THRESHOLD_2026-05-24.md](F9_THRESHOLD_2026-05-24.md)

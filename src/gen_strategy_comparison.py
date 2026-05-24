@@ -1,16 +1,18 @@
 """
-gen_strategy_comparison.py — 戦略パフォーマンス比較表（6戦略 統一フォーマット）
-EVALUATION_STANDARD §3.12 準拠 (v1.2, 2026-05-24)
+gen_strategy_comparison.py — 戦略パフォーマンス比較表（7戦略 統一フォーマット）
+EVALUATION_STANDARD §3.12 準拠 (v1.4, 2026-05-24)
 
 出力: STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md
   §1 比較前提
-  §2 9指標比較表 (6戦略 × 9指標)  ← MD_HEADER_STRAT 使用
-  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き（E4 列は最左に統合）
+  §2 9指標比較表 (7戦略 × 9指標)  ← MD_HEADER_STRAT 使用
+  §3 年次リターン表 (1974–2026)  ← [OOS] マーク付き（F7v3+E4 列は最左に統合）
   §4 OOS期間 詳細分析
   §5 採用判断サマリー
   §6 一次根拠ファイル
+  §7 改訂履歴
 
-# E4 列は gen_e4_yearly_returns.py でも単独生成可能。ここで統合的に管理。
+# F7v3+E4 列は gen_f7v3_yearly_returns.py で単独生成可能。ここで統合的に管理。
+# E4 列は gen_e4_yearly_returns.py で単独生成可能。
 """
 import csv
 import os
@@ -30,11 +32,14 @@ def read_csv(fname):
 # 9指標データ収集
 # ---------------------------------------------------------------------------
 
-b9_rows = read_csv('b9_s2lt2_goldfrac_results.csv')
-b1_rows = read_csv('b1_s2_lt2_results.csv')
-e4_rows = read_csv('e4_regime_klt_results.csv')
-g1_map  = {r['strategy']: r for r in read_csv('g1_wfa_summary.csv')}
-g2_map  = {r['strategy']: r for r in read_csv('g2_wfa_b9_summary.csv')}
+b9_rows  = read_csv('b9_s2lt2_goldfrac_results.csv')
+b1_rows  = read_csv('b1_s2_lt2_results.csv')
+e4_rows  = read_csv('e4_regime_klt_results.csv')
+f7v3_rows = read_csv('f7v3_bull_tilt_results.csv')
+g1_map   = {r['strategy']: r for r in read_csv('g1_wfa_summary.csv')}
+g2_map   = {r['strategy']: r for r in read_csv('g2_wfa_b9_summary.csv')}
+g3_map   = {r['strategy']: r for r in read_csv('g3_wfa_e4_summary.csv')}
+g4_map   = {r['strategy']: r for r in read_csv('g4_wfa_f7v3_summary.csv')}
 
 
 def find_b9(gf, wn):
@@ -53,6 +58,13 @@ def find_e4(klo, khi, vzthr):
     raise ValueError(f'E4 row not found: k_lo={klo}, k_hi={khi}, vz_thr={vzthr}')
 
 
+def find_f7v3(formula, tilt):
+    for r in f7v3_rows:
+        if r['formula'] == formula and abs(float(r['tilt']) - tilt) < 0.001:
+            return r
+    raise ValueError(f'F7v3 row not found: formula={formula}, tilt={tilt}')
+
+
 def metrics(cagr_oos, sharpe, maxdd, worst10y, p10, gap, tr, ci95=None, wfe=None):
     nan = float('nan')
     return {
@@ -68,17 +80,29 @@ def metrics(cagr_oos, sharpe, maxdd, worst10y, p10, gap, tr, ci95=None, wfe=None
     }
 
 
-# 0. E4 Regime k_lt ◆ (NEW BEST, k_lo=0.1, k_hi=0.8, vz_thr=0.7)
+# 0. F7v3+E4 ◆ (NEW BEST, 定式A tilt=2.0, cap=0.10, G4 WFA PASS)
+_f7v3r = find_f7v3('A', 2.0)
+_g4f7v3 = g4_map['F7v3-A2']
+f7v3_e4 = metrics(
+    float(_f7v3r['CAGR_OOS']), float(_f7v3r['Sharpe_OOS']),
+    float(_f7v3r['MaxDD_FULL']), float(_f7v3r['Worst10Y_star']),
+    float(_f7v3r['P10_5Y']), float(_f7v3r['IS_OOS_gap']),
+    float(_f7v3r['Trades_yr']),
+    float(_g4f7v3['WFA_CI95_lo']), float(_g4f7v3['WFA_WFE']),
+)
+
+# 1. E4 Regime k_lt (旧BEST, k_lo=0.1, k_hi=0.8, vz_thr=0.7, G3 WFA PASS)
 _e4r = find_e4(0.1, 0.8, 0.7)
+_g3e4 = g3_map.get('E4-RegimeKLT') or list(g3_map.values())[0]
 e4_klt = metrics(
     float(_e4r['CAGR_OOS']), float(_e4r['Sharpe_OOS']),
     float(_e4r['MaxDD_FULL']), float(_e4r['Worst10Y_star']),
     float(_e4r['P10_5Y']), float(_e4r['IS_OOS_gap']),
     float(_e4r['Trades_yr']),
-    None, None,   # WFA TBD
+    float(_g3e4['WFA_CI95_lo']), float(_g3e4['WFA_WFE']),
 )
 
-# 1. B9-Winner (gf=0.65, wn_min=0.20)
+# 2. B9-Winner (gf=0.65, wn_min=0.20)
 _b9r = find_b9(0.65, 0.20)
 _g2w = g2_map['B9-Winner']
 b9_winner = metrics(
@@ -89,7 +113,7 @@ b9_winner = metrics(
     float(_g2w['WFA_CI95_lo']), float(_g2w['WFA_WFE']),
 )
 
-# 2. S2+LT2-N750 ◆
+# 3. S2+LT2-N750
 _n750r = next(r for r in b1_rows if 'N750' in r.get('strategy', ''))
 _g1n750 = g1_map['S2+LT2']
 n750 = metrics(
@@ -100,14 +124,14 @@ n750 = metrics(
     float(_g1n750['WFA_CI95_lo']), float(_g1n750['WFA_WFE']),
 )
 
-# 3. BH 1x (ベンチマーク — CFD_S2_YEARLY_RETURNS_2026-05-17 + g1_wfa)
+# 4. BH 1x (ベンチマーク)
 _g1bh = g1_map['BH1x']
 bh_1x = metrics(
     0.1011, 0.540, -0.779, -0.057, 0.007, 0.0102, 0,
     float(_g1bh['WFA_CI95_lo']), float(_g1bh['WFA_WFE']),
 )
 
-# 4. S2_VZGated (b1 CSV + g1_wfa)
+# 5. S2_VZGated (b1 CSV + g1_wfa)
 _s2r = next(r for r in b1_rows if 'S2_VZGated' in r.get('strategy', ''))
 _g1s2 = g1_map['S2']
 s2_vzg = metrics(
@@ -118,7 +142,7 @@ s2_vzg = metrics(
     float(_g1s2['WFA_CI95_lo']), float(_g1s2['WFA_WFE']),
 )
 
-# 5. DH Dyn 2x3x [A] (CFD_S2_YEARLY_RETURNS_2026-05-17 + g1_wfa)
+# 6. DH Dyn 2x3x [A]
 _g1dha = g1_map['DHA']
 dh_a = metrics(
     0.1488, 0.646, -0.451, 0.143, 0.096, 0.0848, 27,
@@ -132,21 +156,38 @@ dh_a = metrics(
 
 hdr1, hdr2 = MD_HEADER_STRAT
 
-row_e4   = fmt_row_strat('**E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7) ◆**', e4_klt)
-row_b9w  = fmt_row_strat('B9-Winner (gf=0.65, wn=0.20) ✅⚠',            b9_winner)
-row_n750 = fmt_row_strat('S2+LT2-N750（旧◆）',                           n750)
-row_bh   = fmt_row_strat('BH 1x（ベンチマーク）',                         bh_1x)
-row_s2   = fmt_row_strat('S2_VZGated',                                    s2_vzg)
-row_dha  = fmt_row_strat('DH Dyn 2x3x [A]',                              dh_a)
+row_f7v3 = fmt_row_strat('**F7v3+E4 (定式A tilt=2.0/cap=0.10) ◆**', f7v3_e4)
+row_e4   = fmt_row_strat('E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7) ✅',  e4_klt)
+row_b9w  = fmt_row_strat('B9-Winner (gf=0.65, wn=0.20) ✅⚠',           b9_winner)
+row_n750 = fmt_row_strat('S2+LT2-N750',                                n750)
+row_bh   = fmt_row_strat('BH 1x（ベンチマーク）',                        bh_1x)
+row_s2   = fmt_row_strat('S2_VZGated',                                   s2_vzg)
+row_dha  = fmt_row_strat('DH Dyn 2x3x [A]',                             dh_a)
 
 
 # ---------------------------------------------------------------------------
-# §3 年次リターン表（ソース: gen_e4_yearly_returns.py + B9_YEARLY_RETURNS + CFD_S2_YEARLY_RETURNS）
+# §3 年次リターン表
 # ---------------------------------------------------------------------------
-# E4 列は最左（年の次）に配置。gen_e4_yearly_returns.py で生成した
-# e4_yearly_returns.csv を最優先ソースとし、CSV 不在時は static fallback を使用する。
+# F7v3+E4 列が最左（年の次, ◆ 列）。次に E4 列。
+# CSV が存在しない場合は static fallback を使用。
 
-# E4 Regime k_lt 年次リターン（gen_e4_yearly_returns.py 実行結果 2026-05-24）
+# F7v3+E4 静的フォールバック（gen_f7v3_yearly_returns.py 2026-05-24 実行結果）
+_F7V3_STATIC = {
+    1974:  +19.1, 1975:   -2.1, 1976: +105.5, 1977:  -10.4, 1978: +150.4,
+    1979:  +27.3, 1980:  +83.7, 1981:  -37.4, 1982:  +98.0, 1983:  +11.2,
+    1984:  -19.1, 1985: +171.1, 1986:  +48.9, 1987:  +78.9, 1988:  -27.7,
+    1989:  +67.8, 1990:  -44.5, 1991:  +83.9, 1992:  +63.7, 1993:   -0.6,
+    1994:   -8.4, 1995: +166.0, 1996:  +58.7, 1997:  +63.5, 1998:  +84.2,
+    1999:  +87.1, 2000:  -11.5, 2001:   -6.9, 2002:  +14.6, 2003: +125.5,
+    2004:   +9.2, 2005:  -16.6, 2006:  +61.4, 2007:  +27.1, 2008:  +20.8,
+    2009:  +61.6, 2010:  +96.4, 2011:  -13.4, 2012:  +36.5, 2013:  +40.2,
+    2014:  +10.8, 2015:  -31.3, 2016:   -3.8, 2017: +100.3, 2018:   -7.4,
+    2019:  +64.9, 2020:  +84.3,
+    2021:  +30.3, 2022:  -25.8, 2023: +105.5, 2024:  +69.3, 2025:  +51.2,
+    2026:   -7.6,
+}
+
+# E4 静的フォールバック（gen_e4_yearly_returns.py 2026-05-24 実行結果）
 _E4_STATIC = {
     1974:  +19.1, 1975:   -1.8, 1976: +103.0, 1977:  -11.7, 1978: +150.2,
     1979:  +20.9, 1980:  +82.5, 1981:  -38.0, 1982:  +99.2, 1983:   +9.2,
@@ -163,20 +204,39 @@ _E4_STATIC = {
 }
 
 
+def _load_yearly_csv(fname, year_col='year', val_col=None):
+    """CSV があれば優先、なければ None。"""
+    csv_path = os.path.join(BASE, fname)
+    if not os.path.exists(csv_path):
+        return None
+    out = {}
+    with open(csv_path, encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        cols = reader.fieldnames
+        # 値カラムを推定
+        if val_col is None:
+            val_col = next(c for c in cols if c != year_col)
+        for r in reader:
+            out[int(r[year_col])] = float(r[val_col])
+    return out
+
+
+def _load_f7v3_yearly():
+    """f7v3_yearly_returns.csv があれば優先、なければ static fallback。"""
+    loaded = _load_yearly_csv('f7v3_yearly_returns.csv')
+    return loaded if loaded is not None else dict(_F7V3_STATIC)
+
+
 def _load_e4_yearly():
-    """e4_yearly_returns.csv があれば優先、なければ static fallback を返す。"""
-    csv_path = os.path.join(BASE, 'e4_yearly_returns.csv')
-    if os.path.exists(csv_path):
-        out = {}
-        for r in csv.DictReader(open(csv_path, encoding='utf-8')):
-            out[int(r['year'])] = float(r['e4_return_pct'])
-        return out
-    return dict(_E4_STATIC)
+    """e4_yearly_returns.csv があれば優先、なければ static fallback。"""
+    loaded = _load_yearly_csv('e4_yearly_returns.csv')
+    return loaded if loaded is not None else dict(_E4_STATIC)
 
 
-_E4_YR = _load_e4_yearly()
+_F7V3_YR = _load_f7v3_yearly()
+_E4_YR   = _load_e4_yearly()
 
-# fmt: (year, e4, b9_winner, n750, bh_1x, s2_vzg, dh_a)
+# fmt: (year, b9_winner, n750, bh_1x, s2_vzg, dh_a)
 _BASE_YEARLY = [
     # yr   B9-W     N750     BH     S2-VZG   DH-A
     (1974, +26.2,  +19.1,  -35.4,  +10.4,  +10.4),
@@ -235,18 +295,22 @@ _BASE_YEARLY = [
     (2026,   -9.9,   -9.7,   -7.9,  -18.3,  -11.7),
 ]
 
-# E4 列を最左に挿入: (year, e4, b9w, n750, bh, s2_vzg, dh_a)
-YEARLY = [(yr, _E4_YR.get(yr, float('nan')), b9w, n750r, bhr, s2r, dhar)
+# F7v3+E4 列を最左に挿入、E4 列を2列目に: (year, f7v3, e4, b9w, n750, bh, s2_vzg, dh_a)
+YEARLY = [(yr,
+           _F7V3_YR.get(yr, float('nan')),
+           _E4_YR.get(yr, float('nan')),
+           b9w, n750r, bhr, s2r, dhar)
           for (yr, b9w, n750r, bhr, s2r, dhar) in _BASE_YEARLY]
 
 OOS_START = 2021
 
 
 def yr_row(rec):
-    yr, e4, b9w, n750r, bhr, s2r, dhar = rec
+    yr, f7v3, e4, b9w, n750r, bhr, s2r, dhar = rec
     tag = ' [OOS]' if yr >= OOS_START else ''
     return (
         f'| {yr}{tag} '
+        f'| {f7v3:+.1f} '
         f'| {e4:+.1f} '
         f'| {b9w:+.1f} '
         f'| {n750r:+.1f} '
@@ -275,11 +339,11 @@ def f3(v):
     return f'{v:+.4f}'
 
 
-oos_b9w   = [r for r in YEARLY if r[0] >= OOS_START]
+oos_recs = [r for r in YEARLY if r[0] >= OOS_START]
 oos_lines = []
-for yr, e4, b9w, n750r, bhr, s2r, dhar in oos_b9w:
+for yr, f7v3, e4, b9w, n750r, bhr, s2r, dhar in oos_recs:
     oos_lines.append(
-        f'| {yr} [OOS] | {e4:+.1f}% | {b9w:+.1f}% | {n750r:+.1f}% | {bhr:+.1f}% | {s2r:+.1f}% | {dhar:+.1f}% |'
+        f'| {yr} [OOS] | {f7v3:+.1f}% | {e4:+.1f}% | {b9w:+.1f}% | {n750r:+.1f}% | {bhr:+.1f}% | {s2r:+.1f}% | {dhar:+.1f}% |'
     )
 oos_table = '\n'.join(oos_lines)
 
@@ -303,9 +367,10 @@ for metric_name, extract, fmt_fn in [
     ('WFA CI95_lo', lambda m: m['WFA_CI95_lo'], pct),
 ]:
     strats = {
-        'E4 Regime ◆': extract(e4_klt),
+        'F7v3+E4 ◆':   extract(f7v3_e4),
+        'E4 Regime':   extract(e4_klt),
         'B9-Winner':   extract(b9_winner),
-        'N750 (旧◆)': extract(n750),
+        'N750':        extract(n750),
         'S2_VZGated':  extract(s2_vzg),
         'DH Dyn [A]':  extract(dh_a),
         'BH 1x':       extract(bh_1x),
@@ -321,7 +386,7 @@ metric_summary = '\n'.join(metric_summary_rows)
 # ---------------------------------------------------------------------------
 
 report = f"""\
-# 戦略パフォーマンス比較表 — 6戦略 統一評価フレームワーク
+# 戦略パフォーマンス比較表 — 7戦略 統一評価フレームワーク
 
 作成日: 2026-05-23
 最終更新日: 2026-05-24
@@ -340,8 +405,8 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 | **コスト** | Scenario D（`src/product_costs.py` 2026-05-12 基準） |
 | **DELAY** | 2営業日（look-ahead bias 対策） |
 | **Sharpe Rf** | 0 |
-| **CURRENT_BEST** | E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)（◆, 暫定 WFA pending） |
-| **WFA** | G1: 49窓, G2: 49窓（252日 calendar-year-anchored non-overlapping） |
+| **CURRENT_BEST** | F7v3+E4 (定式A tilt=2.0, cap=0.10)（◆, G4 WFA PASS 確定） |
+| **WFA** | G1: 49窓, G2: 49窓, G3: 49窓, G4: 49窓（252日 calendar-year-anchored non-overlapping） |
 
 | 凡例 | 意味 |
 |------|------|
@@ -352,7 +417,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §2 9指標比較表（6戦略 × 9指標）
+## §2 9指標比較表（7戦略 × 9指標）
 
 > **単位**: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年
 > ★ = Sharpe_OOS > +0.885 / ◎ = > +0.770（S2ベースライン）
@@ -360,6 +425,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 {hdr1}
 {hdr2}
+{row_f7v3}
 {row_e4}
 {row_b9w}
 {row_n750}
@@ -374,27 +440,31 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 ## §3 年次リターン表（1974–2026）[単位: %]
 
 > `[OOS]` = OOS期間（2021年以降）
+> F7v3+E4 列は `src/gen_f7v3_yearly_returns.py` で生成（暦年ベース、E4ベース + 定式A bull-tilt tilt=2.0/cap=0.10）。
 > E4 列は `src/gen_e4_yearly_returns.py` で生成（暦年ベース、CFD レバレッジ S2_VZGated + LT2-N750 + Regime k_lt）。
 
-| 年 | E4 Regime<br>k_lt ◆ | B9-Winner<br>✅⚠ | S2+LT2<br>N750（旧◆） | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
-|:---|---:|---:|---:|---:|---:|---:|
+| 年 | F7v3+E4<br>◆ | E4 Regime<br>k_lt ✅ | B9-Winner<br>✅⚠ | S2+LT2<br>N750 | BH 1x<br>ベンチマーク | S2_VZGated | DH Dyn<br>2x3x[A] |
+|:---|---:|---:|---:|---:|---:|---:|---:|
 {yearly_rows}
 
 ---
 
 ## §4 OOS期間（2021–2026）詳細
 
-| 年 | E4 Regime ◆ | B9-Winner | S2+LT2-N750（旧◆） | BH 1x | S2_VZGated | DH Dyn [A] |
-|:---|---:|---:|---:|---:|---:|---:|
+| 年 | F7v3+E4 ◆ | E4 Regime ✅ | B9-Winner | S2+LT2-N750 | BH 1x | S2_VZGated | DH Dyn [A] |
+|:---|---:|---:|---:|---:|---:|---:|---:|
 {oos_table}
 
 **注目ポイント**:
-- **2022年防御**: B9-Winner -20.6% vs N750 -26.6%。B9-Winnerのリスク管理は2022年クラッシュで約+6pp優位
-- **2023年反発**: B9-Winner +111.8% vs N750 +110.2%。Gold配分増によるリバウンド強化
+- **F7v3+E4 OOS強化**: F7v3+E4 は E4 ベースに「強気確信時の NASDAQ 配分 tilt」を加算。
+  2023年 +105.5%（vs E4 +98.3%）、2024年 +69.3%（vs E4 +58.5%）と確信高い反発局面で +7〜+11pp 上乗せ。
+- **F7v3+E4 vs E4**: Sharpe_OOS +0.926 (vs E4 +0.891), CAGR_OOS +36.30% (vs E4 +33.53%) → bull-tilt は OOS 純改善。
+- **2022年防御**: F7v3+E4 -25.8% / E4 -25.9% / B9-Winner -20.6% / N750 -26.6%。F7v3+E4 は E4 と同水準の下落。
 - **B9 IS-OOS gap = {b9_winner['IS_OOS_gap']*100:+.2f}pp**: OOS期間（2021-2026）はGold ETF累積+60%超の強気相場。
   gold_frac増加 → OOS側だけ有利なため gap が負方向に傾く。Gold overfit 疑い（`B9_COMPARISON_2026-05-23.md §4-(a)` 参照）。
-- **S2_VZGated gap = {s2_vzg['IS_OOS_gap']*100:+.2f}pp**: 正方向 gap は IS での過学習ではなく、OOS NASDAQ 市場の相対的低迷
-- **N750 gap = {n750['IS_OOS_gap']*100:+.2f}pp**: 最小 gap → 最も汎化性が高い
+- **F7v3+E4 IS-OOS gap = {f7v3_e4['IS_OOS_gap']*100:+.2f}pp**: 負方向だが Gold 偏重なし。E4 比 -2.4pp 拡大は bull-tilt が
+  OOS 強気局面でより効果が出ているため。許容範囲（≤ +6.0pp PASS）。
+- **N750 gap = {n750['IS_OOS_gap']*100:+.2f}pp**: 最小 gap → 単純設計ながら最も汎化性が高い。
 
 ---
 
@@ -405,14 +475,18 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 {metric_summary}
 
 **判定**:
-- **現行ベスト更新: E4 Regime k_lt ◆（暫定、WFA pending）**
-  - CAGR_OOS +{e4_klt['CAGR_OOS']*100:.2f}%, Sharpe +{e4_klt['Sharpe_OOS']:.3f}
-  - IS-OOS gap {e4_klt['IS_OOS_gap']*100:+.2f}pp（OOS > IS = 本プロジェクト史上最高汎化性）
-  - MaxDD −{abs(e4_klt['MaxDD_FULL'])*100:.2f}%（N750 比 −0.56pp、guardrail −64.5% 内）
-  - WFA 未実行のため暫定ベスト。CI95_lo>0 ∧ 0.5≤WFE≤2.0 確認後に正式確定。
-- **S2+LT2-N750（旧◆） Shortlisted（WFA 完了済み fallback 第一候補）**
+- **現行ベスト確定: F7v3+E4 (定式A tilt=2.0/cap=0.10) ◆（G4 WFA PASS 確定）**
+  - CAGR_OOS +{f7v3_e4['CAGR_OOS']*100:.2f}%, Sharpe +{f7v3_e4['Sharpe_OOS']:.3f}
+  - MaxDD −{abs(f7v3_e4['MaxDD_FULL'])*100:.2f}%（E4 比 −1.95pp、guardrail −65.0% 内）
+  - IS-OOS gap {f7v3_e4['IS_OOS_gap']*100:+.2f}pp（≤ +6.0pp PASS, Gold 偏重なし）
+  - **G4 WFA PASS**: CI95_lo=+{f7v3_e4['WFA_CI95_lo']*100:.2f}%（α PASS）/ WFE=+{f7v3_e4['WFA_WFE']:.3f}（β PASS, 0.5≤WFE≤2.0）→ 正式 Active 確定。
+- **E4 Regime k_lt ✅ Shortlisted（旧BEST, fallback 第一候補）**
+  - CAGR_OOS +{e4_klt['CAGR_OOS']*100:.2f}%, Sharpe +{e4_klt['Sharpe_OOS']:.3f}, IS-OOS gap {e4_klt['IS_OOS_gap']*100:+.2f}pp
+  - G3 WFA PASS: CI95_lo=+{e4_klt['WFA_CI95_lo']*100:.2f}%, WFE=+{e4_klt['WFA_WFE']:.3f}
+  - F7v3+E4 撤退時の fallback。MaxDD {e4_klt['MaxDD_FULL']*100:.2f}%
+- **S2+LT2-N750 Shortlisted（汎化最強, WFA 完了済み fallback 第二候補）**
   - WFA CI95_lo={n750['WFA_CI95_lo']*100:.1f}%, WFE={n750['WFA_WFE']:.3f}（PASS α∩β）
-  - E4 WFA 未通過時の fallback。Sharpe +{n750['Sharpe_OOS']:.3f}, MaxDD {n750['MaxDD_FULL']*100:.2f}%
+  - IS-OOS gap +0.18pp = 最小。Sharpe +{n750['Sharpe_OOS']:.3f}, MaxDD {n750['MaxDD_FULL']*100:.2f}%
 - **B9-Winner ✅⚠ Shortlisted（保留）**
   - CAGR_OOS・Sharpe・2022年防御では有力だが IS-OOS gap {b9_winner['IS_OOS_gap']*100:+.2f}pp は Gold OOS bias 疑い
 - **S2_VZGated**: G1 WFA CI95_lo最高({s2_vzg['WFA_CI95_lo']*100:.1f}%), WFE=0.830 PASS。Sharpe +0.770（基準線）
@@ -424,8 +498,16 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 | ファイル | 役割 |
 |----------|------|
-| [e4_regime_klt_results.csv](e4_regime_klt_results.csv) | E4 ◆ 9指標ソース（64 config） |
-| [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 sweep レポート（採用根拠） |
+| [f7v3_bull_tilt_results.csv](f7v3_bull_tilt_results.csv) | F7v3+E4 ◆ 9指標ソース（9 config） |
+| [F7V3_BULL_TILT_2026-05-24.md](F7V3_BULL_TILT_2026-05-24.md) | F7v3 sweep レポート（採用根拠） |
+| [f7v3_yearly_returns.csv](f7v3_yearly_returns.csv) | F7v3+E4 年次リターン |
+| [g4_wfa_f7v3_summary.csv](g4_wfa_f7v3_summary.csv) | F7v3+E4 WFAデータ（G4 PASS） |
+| [G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md) | G4 WFA レポート（F7v3 Active 正式確定） |
+| [e4_regime_klt_results.csv](e4_regime_klt_results.csv) | E4 9指標ソース（64 config） |
+| [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 sweep レポート |
+| [e4_yearly_returns.csv](e4_yearly_returns.csv) | E4 年次リターン |
+| [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv) | E4 Regime k_lt WFAデータ（G3 PASS） |
+| [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md) | G3 WFA レポート（E4 確定） |
 | [b9_s2lt2_goldfrac_results.csv](b9_s2lt2_goldfrac_results.csv) | B9-Winner 9指標ソース |
 | [b1_s2_lt2_results.csv](b1_s2_lt2_results.csv) | N750 / S2_VZGated 9指標ソース |
 | [g1_wfa_summary.csv](g1_wfa_summary.csv) | N750/S2_VZGated/DH[A]/BH1x WFAデータ |
@@ -442,6 +524,8 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 | 版 | 日付 | 変更内容 |
 |----|------|---------|
+| v1.4 | 2026-05-24 | F7v3+E4 (定式A tilt=2.0/cap=0.10) を新 BEST ◆ として追加（7戦略へ拡張）。G4 WFA PASS 確定。E4 Regime k_lt は Shortlisted ✅ へ降格 fallback。`src/gen_f7v3_yearly_returns.py` で年次リターン生成。 |
+| v1.3 | 2026-05-24 | G3 WFA 完了。E4 Regime k_lt の CI95_lo=+26.51% / WFE=+1.131 を §2 表に反映。暫定 Active → 正式 Active 確定。 |
 | v1.2 | 2026-05-24 | E4 年次リターン列を §3/§4 に追加（`src/gen_e4_yearly_returns.py` にて計算）。 |
 | v1.1 | 2026-05-24 | E4 Regime k_lt を新 BEST ◆ として追加（6戦略へ拡張）。N750 を旧◆参照行へ。WFA TBD。 |
 | v1.0 | 2026-05-23 | 初版。5戦略統一フォーマット（9指標＋年次リターン）。 |
@@ -465,12 +549,13 @@ print(f'Written: {out_path}')
 print()
 print('=== 9指標確認 ===')
 for label, m in [
-    ('E4 Regime◆', e4_klt),
-    ('B9-Winner ', b9_winner),
-    ('N750 (旧◆)', n750),
-    ('BH 1x     ', bh_1x),
-    ('S2_VZGated', s2_vzg),
-    ('DH Dyn[A] ', dh_a),
+    ('F7v3+E4◆ ', f7v3_e4),
+    ('E4 Regime', e4_klt),
+    ('B9-Winner', b9_winner),
+    ('N750     ', n750),
+    ('BH 1x    ', bh_1x),
+    ('S2_VZGate', s2_vzg),
+    ('DH Dyn[A]', dh_a),
 ]:
     print(
         f'  {label}: CAGR_OOS={m["CAGR_OOS"]*100:+.2f}%'
