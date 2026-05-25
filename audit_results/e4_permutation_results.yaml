@@ -1,0 +1,43 @@
+strategy: S2_VZGated+LT2-N750+E4_RegimeKlt
+generated: '2026-05-26'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+settings:
+  B: 1000
+  block_len: 63
+  seed: 42
+sr_observed: 1.03591
+sr_bh1x_oos: 0.516382
+tests:
+  a_L_s2_block:
+    p_value: 0.213
+    verdict: FAIL
+    dist_mean: 0.928896
+    dist_std: 0.136458
+    dist_P5: 0.70205
+    dist_P25: 0.836349
+    dist_P50: 0.928389
+    dist_P75: 1.019891
+    dist_P95: 1.147636
+  c_lev_mod_e4_block:
+    p_value: 0.04
+    verdict: PASS
+    dist_mean: 0.678521
+    dist_std: 0.210904
+    dist_P5: 0.319974
+    dist_P25: 0.543511
+    dist_P50: 0.693712
+    dist_P75: 0.818492
+    dist_P95: 1.016934
+  d_simultaneous_block:
+    p_value: 0.013
+    verdict: PASS
+    dist_mean: 0.485319
+    dist_std: 0.248808
+    dist_P5: 0.057342
+    dist_P25: 0.325909
+    dist_P50: 0.489975
+    dist_P75: 0.655503
+    dist_P95: 0.879618
+verdict: PASS

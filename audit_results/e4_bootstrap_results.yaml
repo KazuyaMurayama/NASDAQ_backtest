@@ -1,0 +1,32 @@
+strategy: S2_VZGated+LT2-N750+E4_RegimeKlt
+generated: '2026-05-26'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+settings:
+  B: 5000
+sr_observed: 0.891823
+sr_bh1x_oos: 0.5406
+block_lengths:
+  L20:
+    ci95_lo: 0.102601
+    ci95_hi: 1.674804
+    p_value: 0.013
+    verdict: PASS
+  L63:
+    ci95_lo: 0.110129
+    ci95_hi: 1.55783
+    p_value: 0.013
+    verdict: PASS
+  L126:
+    ci95_lo: 0.136245
+    ci95_hi: 1.478198
+    p_value: 0.0104
+    verdict: PASS
+is_stability:
+  chunks: 10
+  mean: 0.961109
+  std: 0.289859
+  cov: 0.301588
+  min: 0.378926
+verdict: PASS
