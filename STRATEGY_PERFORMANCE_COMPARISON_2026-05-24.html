@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>戦略パフォーマンス比較表 v1.6 — NASDAQ Backtest</title>
+<style>
+  :root {
+    --bg:        #0f1117;
+    --bg-2:     #14171f;
+    --card:      #1a1d26;
+    --card-2:   #20242f;
+    --border:    #2a2f3d;
+    --text:      #e6e9ef;
+    --text-mute: #9aa3b2;
+    --amber:     #f0b429;
+    --amber-2:  #ffd166;
+    --amber-bg:  rgba(240, 180, 41, 0.08);
+    --amber-bg2: rgba(240, 180, 41, 0.15);
+    --green:     #4ade80;
+    --green-2:  #86efac;
+    --red:       #f87171;
+    --blue:      #60a5fa;
+    --neutral:   #404654;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Meiryo', 'Yu Gothic', 'Hiragino Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  h1 {
+    font-size: 32px;
+    margin: 0 0 8px;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, var(--amber-2), var(--amber));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  h2 .secnum { color: var(--amber); margin-right: 6px; }
+  h3 { font-size: 16px; margin: 16px 0 8px; color: var(--amber-2); }
+  .meta {
+    color: var(--text-mute);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .meta code {
+    background: var(--card);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--amber-2);
+  }
+  .meta b { color: var(--text); }
+
+  /* ========== HERO ========== */
+  .hero {
+    background: linear-gradient(135deg, var(--amber-bg2), var(--amber-bg));
+    border: 1px solid var(--amber);
+    border-left: 4px solid var(--amber);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 24px 0 32px;
+    box-shadow: 0 4px 24px rgba(240, 180, 41, 0.08);
+  }
+  .hero .label {
+    color: var(--amber);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hero .name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .hero .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 4px;
+    color: var(--text-mute);
+    font-size: 14px;
+  }
+  .hero .stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero .stat b { color: var(--amber-2); font-weight: 700; }
+  .hero .sep { color: var(--border); margin: 0 6px; }
+  .hero .pass {
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* ========== CARDS / GRID ========== */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 720px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .card .ck { color: var(--text-mute); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; row-gap: 6px; column-gap: 16px; font-size: 13px; }
+  .kv dt { color: var(--text-mute); }
+  .kv dd { margin: 0; color: var(--text); }
+  .kv dd code { background: var(--bg-2); padding: 0 6px; border-radius: 3px; color: var(--amber-2); }
+  .kv .em { color: var(--amber); font-weight: 700; }
+
+  /* ========== TABLES ========== */
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 12px 0;
+  }
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 13px;
+  }
+  thead th {
+    background: var(--card-2);
+    color: var(--amber-2);
+    font-weight: 700;
+    text-align: right;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  thead th.col-strat { text-align: left; min-width: 280px; }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  tbody td:first-child { text-align: left; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+  /* Highlighted E4 best row */
+  tr.best td {
+    background: var(--amber-bg);
+    border-bottom-color: var(--amber-bg2);
+  }
+  tr.best td:first-child {
+    border-left: 3px solid var(--amber);
+    color: var(--amber-2);
+    font-weight: 700;
+  }
+  tr.best:hover td { background: var(--amber-bg2); }
+
+  .sharpe-star { color: var(--green); font-weight: 700; }
+  .sharpe-circ { color: var(--green-2); font-weight: 600; }
+  .ci-pass     { color: var(--green); font-weight: 700; }
+  .pass-tag    { color: var(--green); font-weight: 700; }
+  .warn-tag    { color: var(--amber-2); font-weight: 700; }
+
+  /* Year column sticky */
+  table.heat th.year-col,
+  table.heat td.year-col {
+    position: sticky;
+    left: 0;
+    background: var(--card);
+    z-index: 1;
+    text-align: left;
+    min-width: 96px;
+    border-right: 1px solid var(--border);
+  }
+  table.heat thead th.year-col {
+    background: var(--card-2);
+    z-index: 3;
+  }
+  table.heat tr.oos td.year-col { background: var(--amber-bg); color: var(--amber-2); font-weight: 700; }
+  table.heat tr.oos { background: var(--amber-bg); }
+  table.heat tr.oos td:first-child { border-left: 3px solid var(--amber); }
+  table.heat td.heat-cell {
+    color: #ffffff;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* ========== BADGES ========== */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .badge-amber { background: var(--amber-bg2); color: var(--amber-2); border: 1px solid var(--amber); }
+  .badge-blue  { background: rgba(96, 165, 250, 0.15); color: var(--blue); border: 1px solid rgba(96, 165, 250, 0.5); }
+  .badge-green { background: rgba(74, 222, 128, 0.15); color: var(--green); border: 1px solid rgba(74, 222, 128, 0.5); }
+  .badge-grey  { background: var(--card-2); color: var(--text-mute); border: 1px solid var(--border); }
+
+  /* ========== VERDICT CARDS ========== */
+  .verdicts { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+  .verdict {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--neutral);
+    border-radius: 6px;
+    padding: 14px 18px;
+  }
+  .verdict.best {
+    border-left-color: var(--amber);
+    background: linear-gradient(90deg, var(--amber-bg2), var(--card) 60%);
+  }
+  .verdict h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .verdict.best h4 { color: var(--amber-2); }
+  .verdict ul { margin: 6px 0 0; padding-left: 20px; color: var(--text-mute); font-size: 13px; }
+  .verdict ul li b { color: var(--text); }
+
+  /* ========== FILE LIST ========== */
+  .filelist { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 8px; margin-top: 12px; }
+  .filelink {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.15s ease;
+  }
+  .filelink:hover { background: var(--card-2); border-color: var(--amber); }
+  .filelink .icon { font-size: 18px; }
+  .filelink code { color: var(--amber-2); background: transparent; }
+  .filelink .desc { color: var(--text-mute); margin-left: auto; font-size: 12px; }
+
+  /* ========== TIMELINE ========== */
+  .timeline { position: relative; margin: 20px 0 0 12px; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item { position: relative; margin-bottom: 16px; }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -28px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--neutral);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .tl-item.latest::before { background: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+  .tl-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .tl-item.latest .tl-card { border-color: var(--amber); }
+  .tl-card .ver { color: var(--amber-2); font-weight: 700; margin-right: 8px; }
+  .tl-item.latest .tl-card .ver { color: var(--amber); font-size: 14px; }
+  .tl-card .date { color: var(--text-mute); margin-right: 12px; font-size: 12px; }
+
+  /* ========== FOOTER ========== */
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--text-mute);
+    font-size: 12px;
+    text-align: center;
+    line-height: 1.8;
+  }
+  footer code { color: var(--amber-2); background: var(--card); padding: 0 5px; border-radius: 3px; }
+
+  /* ========== MISC ========== */
+  blockquote.note {
+    margin: 8px 0 12px;
+    padding: 10px 16px;
+    border-left: 3px solid var(--amber);
+    background: var(--amber-bg);
+    color: var(--text-mute);
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  blockquote.note code { background: var(--bg-2); color: var(--amber-2); padding: 0 5px; border-radius: 3px; }
+
+  /* ========== PRINT ========== */
+  @media print {
+    body { background: #fff; color: #111; }
+    .wrap { max-width: none; padding: 16px; }
+    h1 { -webkit-text-fill-color: #b8860b; color: #b8860b; background: none; }
+    h2 { color: #111; border-bottom-color: #ccc; }
+    .hero { background: #fff7e0; border-color: #b8860b; color: #111; box-shadow: none; }
+    .hero .name, .hero .stat b { color: #b8860b; }
+    .hero .stats { color: #333; }
+    .card, .table-wrap, .verdict, .tl-card, .filelink { background: #fff; border-color: #ccc; color: #111; box-shadow: none; }
+    thead th { background: #f4f4f4; color: #b8860b; }
+    tbody td { color: #111; }
+    tr.best td { background: #fff7e0; }
+    tr.best td:first-child { color: #b8860b; }
+    table.heat tr.oos td.year-col, table.heat tr.oos { background: #fff7e0; color: #b8860b; }
+    table.heat td.heat-cell { color: inherit; font-weight: 600; }
+    .meta, .verdict ul, .filelink .desc, .tl-card .date { color: #555; }
+    .meta b { color: #111; }
+    footer { color: #555; border-top-color: #ccc; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>戦略パフォーマンス比較表 v1.6</h1>
+  <div class="meta">
+    作成日: <b>2026-05-23</b> &nbsp;|&nbsp; 最終更新日: <b>2026-05-24</b><br>
+    EVALUATION_STANDARD: <b>v1.1</b> &nbsp;|&nbsp; コスト: <b>Scenario D</b> &nbsp;|&nbsp; 生成スクリプト: <code>src/gen_strategy_comparison.py</code>
+  </div>
+
+  <!-- Hero card -->
+  <div class="hero">
+    <div class="label">◆ 現行ベスト</div>
+    <div class="name">E4 Regime k_lt (lo=0.1 / hi=0.8 / vz=0.7)</div>
+    <div class="stats">
+      <span class="stat">CAGR_OOS <b>+33.53%</b></span><span class="sep">|</span>
+      <span class="stat">Sharpe <b>+0.891</b></span><span class="sep">|</span>
+      <span class="stat">MaxDD <b>−60.0%</b></span><span class="sep">|</span>
+      <span class="stat">Trades/yr <b>27</b></span><span class="sep">|</span>
+      <span class="stat"><span class="pass">G3 WFA PASS ✓</span></span>
+    </div>
+  </div>
+
+  <!-- §1 -->
+  <h2><span class="secnum">📋</span>§1 比較前提</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="ck">期間 / コスト</div>
+      <dl class="kv">
+        <dt>IS</dt><dd>1974-01-02 〜 2021-05-07（47.3年）</dd>
+        <dt>OOS</dt><dd>2021-05-08 〜 2026-03-26（4.9年）</dd>
+        <dt>FULL</dt><dd>1974-01-02 〜 2026-03-26（52.26年）</dd>
+        <dt>コスト</dt><dd>Scenario D（<code>src/product_costs.py</code> 2026-05-12 基準）</dd>
+        <dt>DELAY</dt><dd>2営業日（look-ahead bias 対策）</dd>
+        <dt>Sharpe Rf</dt><dd>0</dd>
+        <dt>CURRENT_BEST</dt><dd class="em">E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)（◆, G3 WFA PASS 確定）</dd>
+        <dt>WFA</dt><dd>G1: 49窓, G2: 49窓, G3: 49窓（252日 calendar-year-anchored non-overlapping）</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <div class="ck">凡例</div>
+      <dl class="kv">
+        <dt><span class="badge badge-amber">◆</span></dt><dd>現行ベスト戦略</dd>
+        <dt><span class="badge badge-green">✅</span></dt><dd>Shortlisted（WFA PASS・ベスト昇格候補 / または棄却理由付き次善候補）</dd>
+        <dt><span class="badge badge-grey">⚠</span></dt><dd>OOS期間バイアス警戒（Gold 2021-2026 強気エクスポージャ疑い）</dd>
+        <dt><span class="badge badge-blue">[OOS]</span></dt><dd>OOS期間（2021年以降）</dd>
+      </dl>
+    </div>
+  </div>
+
+  <!-- §2 -->
+  <h2><span class="secnum">📊</span>§2 9指標比較表（6戦略 × 9指標）</h2>
+  <blockquote class="note">
+    <b>単位</b>: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年<br>
+    ★ = Sharpe_OOS &gt; +0.885 ／ ◎ = &gt; +0.770（S2ベースライン）<br>
+    WFA_CI95_lo / WFA_WFE に <code>—</code> は TBD または未実施
+  </blockquote>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-strat">Strategy</th>
+          <th>CAGR<br>_OOS</th>
+          <th>Sharpe<br>_OOS</th>
+          <th>MaxDD</th>
+          <th>Worst<br>10Y★<br>CAGR</th>
+          <th>P10<br>5Y▷<br>CAGR</th>
+          <th>IS-OOS<br>gap</th>
+          <th>Trade<br>（回/年）</th>
+          <th>CI95<br>_lo</th>
+          <th>WFE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="best">
+          <td><b>E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7) ◆</b></td>
+          <td>+33.5%</td>
+          <td class="sharpe-star">+0.89 ★</td>
+          <td>-60.0%</td>
+          <td>+18.7%</td>
+          <td>+9.8%</td>
+          <td>-1.81pp</td>
+          <td>27</td>
+          <td class="ci-pass">+0.265</td>
+          <td>+1.131</td>
+        </tr>
+        <tr>
+          <td>B9-Winner (gf=0.65, wn=0.20) ✅⚠</td>
+          <td>+35.9%</td>
+          <td class="sharpe-star">+0.94 ★</td>
+          <td>-63.3%</td>
+          <td>+16.1%</td>
+          <td>+8.1%</td>
+          <td>-5.05pp</td>
+          <td>27</td>
+          <td class="ci-pass">+0.258</td>
+          <td>+1.304</td>
+        </tr>
+        <tr>
+          <td>S2+LT2-N750</td>
+          <td>+31.2%</td>
+          <td class="sharpe-circ">+0.86 ◎</td>
+          <td>-59.5%</td>
+          <td>+18.1%</td>
+          <td>+9.4%</td>
+          <td>+0.18pp</td>
+          <td>27</td>
+          <td class="ci-pass">+0.257</td>
+          <td>+1.145</td>
+        </tr>
+        <tr>
+          <td>BH 1x（ベンチマーク）</td>
+          <td>+10.1%</td>
+          <td>+0.54</td>
+          <td>-77.9%</td>
+          <td>-5.7%</td>
+          <td>+0.7%</td>
+          <td>+1.02pp</td>
+          <td>0</td>
+          <td>+0.074</td>
+          <td>+1.085</td>
+        </tr>
+        <tr>
+          <td>S2_VZGated</td>
+          <td>+27.5%</td>
+          <td class="sharpe-circ">+0.77 ◎</td>
+          <td>-63.4%</td>
+          <td>+17.7%</td>
+          <td>+7.3%</td>
+          <td>+6.04pp</td>
+          <td>27</td>
+          <td class="ci-pass">+0.281</td>
+          <td>+0.830</td>
+        </tr>
+        <tr>
+          <td>DH Dyn 2x3x [A]</td>
+          <td>+14.9%</td>
+          <td>+0.65</td>
+          <td>-45.1%</td>
+          <td>+14.3%</td>
+          <td>+9.6%</td>
+          <td>+8.48pp</td>
+          <td>27</td>
+          <td>+0.182</td>
+          <td>+0.687</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <blockquote class="note">
+    ◎ Sharpe_OOS &gt; +0.770（S2ベースライン超過）／ ★ &gt; +0.885（現行ベスト超過）。進格: CI95_lo &gt; 0 かつ 0.5 ≤ WFE ≤ 2.0。
+    列名 <code>Worst10Y★</code> の ★ は最悪10年CAGRの重要指標記号（Sharpe マーカの ◎/★ とは別意味）。
+  </blockquote>
+
+  <!-- §3 yearly heatmap -->
+  <h2><span class="secnum">📈</span>§3 年次リターン表（1974–2026）[単位: %]</h2>
+  <blockquote class="note">
+    <code>[OOS]</code> = OOS期間（2021年以降）<br>
+    E4 列は <code>src/gen_e4_yearly_returns.py</code> で生成（暦年ベース、CFD レバレッジ S2_VZGated + LT2-N750 + Regime k_lt）。
+  </blockquote>
+  <div class="table-wrap">
+    <table class="heat" id="yearly-table">
+      <thead>
+        <tr>
+          <th class="year-col">年</th>
+          <th>E4 Regime<br>k_lt ◆</th>
+          <th>B9-Winner<br>✅⚠</th>
+          <th>S2+LT2<br>N750</th>
+          <th>BH 1x<br>ベンチマーク</th>
+          <th>S2_VZGated</th>
+          <th>DH Dyn<br>2x3x[A]</th>
+        </tr>
+      </thead>
+      <tbody id="yearly-body"></tbody>
+    </table>
+  </div>
+
+  <!-- §4 OOS -->
+  <h2><span class="secnum">🔍</span>§4 OOS期間（2021–2026）詳細</h2>
+  <div class="table-wrap">
+    <table class="heat" id="oos-table">
+      <thead>
+        <tr>
+          <th class="year-col">年</th>
+          <th>E4 Regime ◆</th>
+          <th>B9-Winner</th>
+          <th>S2+LT2-N750</th>
+          <th>BH 1x</th>
+          <th>S2_VZGated</th>
+          <th>DH Dyn [A]</th>
+        </tr>
+      </thead>
+      <tbody id="oos-body"></tbody>
+    </table>
+  </div>
+
+  <h3>注目ポイント</h3>
+  <blockquote class="note">
+    <b>コスト最優先で E4 ◆ 確定</b>: E4 Trades/yr=27 は他戦略に対し最低水準。
+    スプレッド・税率20.315%・スワップを考慮するとコスト負担差は実運用 Sharpe に直接影響する。
+  </blockquote>
+  <blockquote class="note">
+    <b>2022年防御</b>: E4 -25.9% / B9-Winner -20.6% / N750 -26.6% / S2_VZGated -30.2% / DH[A] -30.0%。
+    B9-Winner が最良の下落抑制。
+  </blockquote>
+  <blockquote class="note">
+    <b>B9 IS-OOS gap = -5.05pp</b>: OOS期間（2021-2026）はGold ETF累積+60%超の強気相場。
+    gold_frac増加 → OOS側だけ有利なため gap が負方向に傾く。Gold overfit 疑い（<code>B9_COMPARISON_2026-05-23.md §4-(a)</code> 参照）。
+  </blockquote>
+  <blockquote class="note">
+    <b>N750 gap = +0.18pp</b>: 最小 gap → 単純設計ながら最も汎化性が高い。
+  </blockquote>
+
+  <!-- §5 -->
+  <h2><span class="secnum">🏆</span>§5 採用判断サマリー</h2>
+  <h3>指標優勝（バッジ）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th class="col-strat">指標</th><th style="text-align:left;">優勝戦略</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CAGR_OOS</td><td style="text-align:left;"><span class="badge badge-blue">B9-Winner</span></td></tr>
+        <tr><td>Sharpe_OOS</td><td style="text-align:left;"><span class="badge badge-blue">B9-Winner</span></td></tr>
+        <tr><td>MaxDD</td><td style="text-align:left;"><span class="badge badge-grey">BH 1x</span></td></tr>
+        <tr><td>Worst10Y★</td><td style="text-align:left;"><span class="badge badge-amber">E4 ◆</span></td></tr>
+        <tr><td>P10_5Y▷</td><td style="text-align:left;"><span class="badge badge-amber">E4 ◆</span></td></tr>
+        <tr><td>IS-OOS gap</td><td style="text-align:left;"><span class="badge badge-green">N750</span></td></tr>
+        <tr><td>WFA CI95_lo</td><td style="text-align:left;"><span class="badge badge-green">S2_VZGated</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>判定</h3>
+  <div class="verdicts">
+    <div class="verdict best">
+      <h4>◆ 現行ベスト確定: E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)（G3 WFA PASS 確定）</h4>
+      <ul>
+        <li>CAGR_OOS <b>+33.53%</b>, Sharpe <b>+0.891</b>, Trades/yr=<b>27</b>（コスト最小）</li>
+        <li>MaxDD <b>−60.01%</b>（guardrail −65.0% 内）</li>
+        <li>IS-OOS gap <b>-1.81pp</b>（最小 gap 群、汎化性最良）</li>
+        <li><b>G3 WFA PASS</b>: CI95_lo=+26.51%（α PASS）/ WFE=+1.131（β PASS）→ 正式 Active 確定。</li>
+      </ul>
+    </div>
+    <div class="verdict">
+      <h4>S2+LT2-N750 Shortlisted（汎化最強, WFA 完了済み fallback）</h4>
+      <ul>
+        <li>WFA CI95_lo=25.7%, WFE=1.145（PASS α∩β）</li>
+        <li>IS-OOS gap +0.18pp = 最小群。Sharpe +0.858, MaxDD -59.45%</li>
+      </ul>
+    </div>
+    <div class="verdict">
+      <h4>B9-Winner ✅⚠ Shortlisted（保留）</h4>
+      <ul>
+        <li>CAGR_OOS・Sharpe・2022年防御では有力だが <b>IS-OOS gap -5.05pp</b> は Gold OOS bias 疑い</li>
+      </ul>
+    </div>
+    <div class="verdict">
+      <h4>S2_VZGated</h4>
+      <ul>
+        <li>G1 WFA CI95_lo最高(28.1%), WFE=0.830 PASS。Sharpe +0.770（基準線）</li>
+      </ul>
+    </div>
+    <div class="verdict">
+      <h4>DH Dyn [A]</h4>
+      <ul>
+        <li>低MaxDD優位(-45.1%)。Sharpe/WFE 最低クラスだが下方リスク管理として参照価値あり</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- §6 -->
+  <h2><span class="secnum">📁</span>§6 一次根拠ファイル</h2>
+  <div class="filelist">
+    <a class="filelink" href="e4_regime_klt_results.csv"><span class="icon">📄</span><code>e4_regime_klt_results.csv</code><span class="desc">E4 ◆ 9指標ソース（64 config）</span></a>
+    <a class="filelink" href="E4_REGIME_KLT_SWEEP_2026-05-24.md"><span class="icon">📝</span><code>E4_REGIME_KLT_SWEEP_2026-05-24.md</code><span class="desc">E4 sweep レポート（採用根拠）</span></a>
+    <a class="filelink" href="e4_yearly_returns.csv"><span class="icon">📄</span><code>e4_yearly_returns.csv</code><span class="desc">E4 年次リターン</span></a>
+    <a class="filelink" href="g3_wfa_e4_summary.csv"><span class="icon">📄</span><code>g3_wfa_e4_summary.csv</code><span class="desc">E4 Regime k_lt WFAデータ（G3 PASS）</span></a>
+    <a class="filelink" href="G3_WFA_E4_2026-05-24.md"><span class="icon">📝</span><code>G3_WFA_E4_2026-05-24.md</code><span class="desc">G3 WFA レポート（E4 Active 正式確定）</span></a>
+    <a class="filelink" href="b9_s2lt2_goldfrac_results.csv"><span class="icon">📄</span><code>b9_s2lt2_goldfrac_results.csv</code><span class="desc">B9-Winner 9指標ソース</span></a>
+    <a class="filelink" href="b1_s2_lt2_results.csv"><span class="icon">📄</span><code>b1_s2_lt2_results.csv</code><span class="desc">N750 / S2_VZGated 9指標ソース</span></a>
+    <a class="filelink" href="g1_wfa_summary.csv"><span class="icon">📄</span><code>g1_wfa_summary.csv</code><span class="desc">N750/S2_VZGated/DH[A]/BH1x WFAデータ</span></a>
+    <a class="filelink" href="g2_wfa_b9_summary.csv"><span class="icon">📄</span><code>g2_wfa_b9_summary.csv</code><span class="desc">B9-Winner WFAデータ</span></a>
+    <a class="filelink" href="B9_YEARLY_RETURNS_2026-05-23.md"><span class="icon">📝</span><code>B9_YEARLY_RETURNS_2026-05-23.md</code><span class="desc">B9-Winner/N750/BH年次リターン元データ</span></a>
+    <a class="filelink" href="CFD_S2_YEARLY_RETURNS_2026-05-17.md"><span class="icon">📝</span><code>CFD_S2_YEARLY_RETURNS_2026-05-17.md</code><span class="desc">S2_VZGated/DH[A]年次リターン元データ</span></a>
+    <a class="filelink" href="B9_COMPARISON_2026-05-23.md"><span class="icon">📝</span><code>B9_COMPARISON_2026-05-23.md</code><span class="desc">B9 詳細比較（OOSバイアス論拠 §4）</span></a>
+    <a class="filelink" href="CURRENT_BEST_STRATEGY.md"><span class="icon">📝</span><code>CURRENT_BEST_STRATEGY.md</code><span class="desc">ベスト戦略単一の真実</span></a>
+    <a class="filelink" href="EVALUATION_STANDARD.md"><span class="icon">📝</span><code>EVALUATION_STANDARD.md</code><span class="desc">評価基準 v1.1</span></a>
+  </div>
+
+  <!-- §7 timeline -->
+  <h2><span class="secnum">📝</span>§7 改訂履歴</h2>
+  <div class="timeline">
+    <div class="tl-item latest">
+      <div class="tl-card">
+        <span class="ver">v1.6</span><span class="date">2026-05-24</span>
+        F8-R5 CALM_BOOST・F7v3+E4 列を削除（採用不採用確定、Trades/yr過多）。6戦略統一評価フレームワークに縮小。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.5</span><span class="date">2026-05-24</span>
+        E4 を ◆ BEST に復帰。F8-R5 CALM_BOOST (✅) を新列追加（8戦略へ拡張）。F7v3+E4 を ✅ Shortlisted へ降格。Trades/yr 過多（182-183回）によるコスト問題が棄却理由。<code>src/gen_f8r5_yearly_returns.py</code> で F8-R5 年次リターン生成。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.4</span><span class="date">2026-05-24</span>
+        F7v3+E4 (定式A tilt=2.0/cap=0.10) を新 BEST ◆ として追加（7戦略へ拡張）。G4 WFA PASS 確定。E4 Regime k_lt は Shortlisted ✅ へ降格 fallback。<code>src/gen_f7v3_yearly_returns.py</code> で年次リターン生成。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.3</span><span class="date">2026-05-24</span>
+        G3 WFA 完了。E4 Regime k_lt の CI95_lo=+26.51% / WFE=+1.131 を §2 表に反映。暫定 Active → 正式 Active 確定。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.2</span><span class="date">2026-05-24</span>
+        E4 年次リターン列を §3/§4 に追加（<code>src/gen_e4_yearly_returns.py</code> にて計算）。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.1</span><span class="date">2026-05-24</span>
+        E4 Regime k_lt を新 BEST ◆ として追加（6戦略へ拡張）。N750 を旧◆参照行へ。WFA TBD。
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-card">
+        <span class="ver">v1.0</span><span class="date">2026-05-23</span>
+        初版。5戦略統一フォーマット（9指標＋年次リターン）。
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    管理者: Kazuya Murayama<br>
+    準拠: <code>EVALUATION_STANDARD.md v1.1</code> ／ <code>src/_sweep_format.py MD_HEADER_STRAT</code><br>
+    今後このフォーマット（§2 9指標表 ＋ §3 年次リターン表）を戦略評価の標準レポートとして使用する
+  </footer>
+
+</div>
+
+<script>
+// Yearly return data (year, e4, b9w, n750, bh, s2_vzg, dh_a)
+const YEARLY = [
+  [1974,  19.1,  26.2,  19.1, -35.4,  10.4,  10.4],
+  [1975,  -1.8,  -5.3,  -2.5,  29.8,  -3.2,  -5.0],
+  [1976, 103.0, 104.5, 106.4,  26.1, 103.9,  45.0],
+  [1977, -11.7, -11.2, -12.7,   7.3, -10.6,   0.6],
+  [1978, 150.2, 147.4, 138.5,  12.3, 136.3,  49.1],
+  [1979,  20.9,  31.6,  21.7,  28.1,  35.1,  38.3],
+  [1980,  82.5,  66.2,  71.9,  33.9,  79.5,  44.3],
+  [1981, -38.0, -38.9, -36.9,  -3.2, -42.8, -30.6],
+  [1982,  99.2,  92.0,  97.0,  18.7, 107.3,  87.6],
+  [1983,   9.2,  10.5,  10.2,  19.9,  52.1,  17.1],
+  [1984, -19.4, -31.8, -28.2, -11.3, -11.9,  -9.7],
+  [1985, 174.0, 165.0, 172.7,  31.5, 126.0,  59.2],
+  [1986,  52.7,  58.2,  55.2,   7.4,  54.8,  34.6],
+  [1987,  71.9,  77.5,  73.3,  -5.2,  37.2,  19.5],
+  [1988, -25.6, -29.4, -24.2,  15.4, -26.2, -15.8],
+  [1989,  63.9,  56.1,  56.2,  19.2,  44.0,  25.8],
+  [1990, -40.5, -38.6, -38.1, -17.8, -25.3, -14.2],
+  [1991,  83.6,  85.3,  91.5,  56.9,  88.3,  52.9],
+  [1992,  62.5,  61.2,  63.0,  15.5,  62.0,  30.8],
+  [1993,  -1.9,  -3.2,  -2.6,  14.7, -10.5,   6.8],
+  [1994,  -8.8,  -7.9,  -8.9,  -3.2, -18.5, -10.3],
+  [1995, 164.6, 152.6, 163.3,  39.9, 175.3,  76.5],
+  [1996,  49.9,  54.2,  53.5,  22.7,  46.7,  19.1],
+  [1997,  63.4,  38.1,  45.9,  21.6, 101.6,  51.7],
+  [1998,  91.6,  79.6,  83.7,  39.6, 100.8,  78.2],
+  [1999,  81.1,  62.2,  57.6,  85.6, 141.9, 119.1],
+  [2000,  -9.9,  -3.6,   0.6, -39.3, -10.8,   1.1],
+  [2001,  -6.9,  -5.9,  -7.0, -21.1,   1.5,   1.5],
+  [2002,  14.6,  15.0,   7.3, -31.5,  26.3,  26.3],
+  [2003, 117.9, 125.9, 127.5,  50.0,  91.8,  70.2],
+  [2004,  14.8,  14.9,  14.9,   8.6,  18.0,  11.2],
+  [2005, -14.0, -19.0, -19.4,   1.4, -19.3,   0.7],
+  [2006,  51.7,  66.1,  65.2,   9.5,  66.5,  34.9],
+  [2007,  28.0,  36.1,  35.0,   9.8,  36.4,  23.2],
+  [2008,  21.4,  15.2,  22.2, -40.5,  20.9,  21.5],
+  [2009,  52.8,  62.6,  49.2,  43.9,  32.2,  24.7],
+  [2010, 107.2, 133.1, 131.2,  16.9, 124.9,  64.5],
+  [2011,  -5.1,   0.4,   4.7,  -1.8,  -4.6,  -2.0],
+  [2012,  39.3,  25.7,  25.8,  15.9,  48.6,  28.3],
+  [2013,  36.1,  40.5,  42.4,  38.3,  65.0,  32.9],
+  [2014,  13.8,  -0.8,   2.6,  13.4,   4.4,  13.6],
+  [2015, -32.3, -30.2, -30.5,   5.7, -39.5, -19.2],
+  [2016,  -7.9, -11.9, -13.1,   7.5, -16.8,   6.6],
+  [2017,  95.2, 102.7, 103.4,  28.2,  84.6,  35.5],
+  [2018,  -8.3,   4.0,   3.8,  -3.9,  -9.5,   0.8],
+  [2019,  66.0,  62.7,  62.7,  35.2,  56.1,  45.1],
+  [2020,  81.3,  95.2,  97.0,  43.6, 123.8,  84.2],
+  [2021,  30.5,  28.6,  28.2,  21.4,  48.9,  24.7],
+  [2022, -25.9, -20.6, -26.6, -33.1, -30.2, -30.0],
+  [2023,  98.3, 111.8, 110.2,  43.4,  74.6,  41.2],
+  [2024,  58.5,  45.1,  40.2,  28.6,  27.6,  24.4],
+  [2025,  54.4,  59.0,  49.1,  20.4,  66.4,  40.2],
+  [2026,  -7.7,  -9.9,  -9.7,  -7.9, -18.3, -11.7]
+];
+const OOS_START = 2021;
+
+// Heat color: |v| scaled to saturation; positive => green hue 142, negative => red hue 0.
+function heatColor(v) {
+  if (v === null || isNaN(v)) return 'transparent';
+  const a = Math.abs(v);
+  // Map |v|: 0 -> 0.05 lightness, 10 -> 0.25, 50 -> 0.55, >=100 -> 0.80
+  let intensity;
+  if (a >= 100) intensity = 0.85;
+  else if (a >= 50) intensity = 0.55 + (a - 50) * 0.006;          // 0.55..0.85
+  else if (a >= 10) intensity = 0.25 + (a - 10) * 0.0075;         // 0.25..0.55
+  else if (a >= 3)  intensity = 0.10 + (a - 3) * 0.0214;          // 0.10..0.25
+  else              intensity = 0.04 + a * 0.020;                 // 0.04..0.10 (near-zero -> grey)
+  if (a < 3) {
+    // near-zero: blend toward grey
+    return `hsla(220, 8%, 32%, ${0.4 + intensity})`;
+  }
+  if (v >= 0) {
+    // green
+    const sat = Math.min(70, 35 + a * 0.5);
+    const light = 22 + intensity * 18;   // 22..40
+    return `hsl(142, ${sat}%, ${light}%)`;
+  } else {
+    // red
+    const sat = Math.min(75, 45 + a * 0.4);
+    const light = 24 + intensity * 18;   // 24..42
+    return `hsl(0, ${sat}%, ${light}%)`;
+  }
+}
+
+function fmtPct(v, withSign) {
+  const s = v >= 0 ? '+' : '';
+  return `${s}${v.toFixed(1)}${withSign ? '%' : ''}`;
+}
+
+function buildYearlyTable(targetBody, withPctSign) {
+  const tb = document.getElementById(targetBody);
+  YEARLY.forEach(row => {
+    const [yr, ...vals] = row;
+    const isOos = yr >= OOS_START;
+    const tr = document.createElement('tr');
+    if (isOos) tr.className = 'oos';
+    const yc = document.createElement('td');
+    yc.className = 'year-col';
+    yc.textContent = isOos ? `${yr} [OOS]` : `${yr}`;
+    tr.appendChild(yc);
+    vals.forEach(v => {
+      const td = document.createElement('td');
+      td.className = 'heat-cell';
+      td.style.backgroundColor = heatColor(v);
+      td.textContent = fmtPct(v, withPctSign);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+function buildOosTable(targetBody) {
+  const tb = document.getElementById(targetBody);
+  YEARLY.filter(r => r[0] >= OOS_START).forEach(row => {
+    const [yr, ...vals] = row;
+    const tr = document.createElement('tr');
+    tr.className = 'oos';
+    const yc = document.createElement('td');
+    yc.className = 'year-col';
+    yc.textContent = `${yr} [OOS]`;
+    tr.appendChild(yc);
+    vals.forEach(v => {
+      const td = document.createElement('td');
+      td.className = 'heat-cell';
+      td.style.backgroundColor = heatColor(v);
+      td.textContent = fmtPct(v, true);
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+buildYearlyTable('yearly-body', false);
+buildOosTable('oos-body');
+</script>
+</body>
+</html>

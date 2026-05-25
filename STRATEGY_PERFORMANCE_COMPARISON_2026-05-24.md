@@ -5,9 +5,13 @@
 EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 生成スクリプト: `src/gen_strategy_comparison.py`
 
+> ### ◆ 現行ベスト戦略
+> **E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)**
+> CAGR_OOS **+33.53%** | Sharpe **+0.891** | MaxDD **−60.0%** | Trades/yr **27** | G3 WFA PASS ✓
+
 ---
 
-## §1 比較前提
+## 📋 §1 比較前提
 
 | 項目 | 定義 |
 |------|------|
@@ -29,7 +33,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §2 9指標比較表（6戦略 × 9指標）
+## 📊 §2 9指標比較表（6戦略 × 9指標）
 
 > **単位**: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年
 > ★ = Sharpe_OOS > +0.885 / ◎ = > +0.770（S2ベースライン）
@@ -48,7 +52,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §3 年次リターン表（1974–2026）[単位: %]
+## 📈 §3 年次リターン表（1974–2026）[単位: %]
 
 > `[OOS]` = OOS期間（2021年以降）
 > E4 列は `src/gen_e4_yearly_returns.py` で生成（暦年ベース、CFD レバレッジ S2_VZGated + LT2-N750 + Regime k_lt）。
@@ -111,7 +115,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §4 OOS期間（2021–2026）詳細
+## 🔍 §4 OOS期間（2021–2026）詳細
 
 | 年 | E4 Regime ◆ | B9-Winner | S2+LT2-N750 | BH 1x | S2_VZGated | DH Dyn [A] |
 |:---|---:|---:|---:|---:|---:|---:|
@@ -123,17 +127,21 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 | 2026 [OOS] | -7.7% | -9.9% | -9.7% | -7.9% | -18.3% | -11.7% |
 
 **注目ポイント**:
-- **コスト最優先で E4 ◆ 確定**: E4 Trades/yr=27 は他戦略に対し最低水準。
-  スプレッド・税率20.315%・スワップを考慮するとコスト負担差は実運用 Sharpe に直接影響する。
-- **2022年防御**: E4 -25.9% / B9-Winner -20.6% / N750 -26.6% / S2_VZGated -30.2% / DH[A] -30.0%。
-  B9-Winner が最良の下落抑制。
-- **B9 IS-OOS gap = -5.05pp**: OOS期間（2021-2026）はGold ETF累積+60%超の強気相場。
-  gold_frac増加 → OOS側だけ有利なため gap が負方向に傾く。Gold overfit 疑い（`B9_COMPARISON_2026-05-23.md §4-(a)` 参照）。
-- **N750 gap = +0.18pp**: 最小 gap → 単純設計ながら最も汎化性が高い。
+
+> **コスト最優先で E4 ◆ 確定**: E4 Trades/yr=27 は他戦略に対し最低水準。
+> スプレッド・税率20.315%・スワップを考慮するとコスト負担差は実運用 Sharpe に直接影響する。
+
+> **2022年防御**: E4 -25.9% / B9-Winner -20.6% / N750 -26.6% / S2_VZGated -30.2% / DH[A] -30.0%。
+> B9-Winner が最良の下落抑制。
+
+> **B9 IS-OOS gap = -5.05pp**: OOS期間（2021-2026）はGold ETF累積+60%超の強気相場。
+> gold_frac増加 → OOS側だけ有利なため gap が負方向に傾く。Gold overfit 疑い（`B9_COMPARISON_2026-05-23.md §4-(a)` 参照）。
+
+> **N750 gap = +0.18pp**: 最小 gap → 単純設計ながら最も汎化性が高い。
 
 ---
 
-## §5 採用判断サマリー
+## 🏆 §5 採用判断サマリー
 
 | 指標 | 優勝戦略 |
 |------|---------|
@@ -146,11 +154,13 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 | WFA CI95_lo | S2_VZGated |
 
 **判定**:
-- **現行ベスト確定: E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7) ◆（G3 WFA PASS 確定）**
-  - CAGR_OOS +33.53%, Sharpe +0.891, Trades/yr=27（コスト最小）
-  - MaxDD −60.01%（guardrail −65.0% 内）
-  - IS-OOS gap -1.81pp（最小 gap 群、汎化性最良）
-  - **G3 WFA PASS**: CI95_lo=+26.51%（α PASS）/ WFE=+1.131（β PASS）→ 正式 Active 確定。
+
+> **◆ 現行ベスト確定: E4 Regime k_lt (lo=0.1/hi=0.8/vz=0.7)**
+> - CAGR_OOS +33.53%, Sharpe +0.891, Trades/yr=27（コスト最小）
+> - MaxDD −60.01%（guardrail −65.0% 内）
+> - IS-OOS gap -1.81pp（最小 gap 群、汎化性最良）
+> - **G3 WFA PASS**: CI95_lo=+26.51%（α PASS）/ WFE=+1.131（β PASS）→ 正式 Active 確定。
+
 - **S2+LT2-N750 Shortlisted（汎化最強, WFA 完了済み fallback）**
   - WFA CI95_lo=25.7%, WFE=1.145（PASS α∩β）
   - IS-OOS gap +0.18pp = 最小群。Sharpe +0.858, MaxDD -59.45%
@@ -161,7 +171,7 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §6 一次根拠ファイル
+## 📁 §6 一次根拠ファイル
 
 | ファイル | 役割 |
 |----------|------|
@@ -182,11 +192,11 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-## §7 改訂履歴
+## 📝 §7 改訂履歴
 
 | 版 | 日付 | 変更内容 |
 |----|------|---------|
-| v1.6 | 2026-05-24 | F8-R5 CALM_BOOST・F7v3+E4 列を削除（採用不採用確定、Trades/yr過多）。6戦略統一評価フレームワークに縮小。 |
+| **v1.6** | 2026-05-24 | F8-R5 CALM_BOOST・F7v3+E4 列を削除（採用不採用確定、Trades/yr過多）。6戦略統一評価フレームワークに縮小。 |
 | v1.5 | 2026-05-24 | E4 を ◆ BEST に復帰。F8-R5 CALM_BOOST (✅) を新列追加（8戦略へ拡張）。F7v3+E4 を ✅ Shortlisted へ降格。Trades/yr 過多（182-183回）によるコスト問題が棄却理由。`src/gen_f8r5_yearly_returns.py` で F8-R5 年次リターン生成。 |
 | v1.4 | 2026-05-24 | F7v3+E4 (定式A tilt=2.0/cap=0.10) を新 BEST ◆ として追加（7戦略へ拡張）。G4 WFA PASS 確定。E4 Regime k_lt は Shortlisted ✅ へ降格 fallback。`src/gen_f7v3_yearly_returns.py` で年次リターン生成。 |
 | v1.3 | 2026-05-24 | G3 WFA 完了。E4 Regime k_lt の CI95_lo=+26.51% / WFE=+1.131 を §2 表に反映。暫定 Active → 正式 Active 確定。 |
