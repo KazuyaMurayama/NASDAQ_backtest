@@ -102,5 +102,5 @@ WFA で CI95_lo > 0 かつ 0.5 ≤ WFE ≤ 2.0 を満たした場合のみ昇格
 
 ---
 
-*管理者: Kazuya Murayama*
+*管理者: 男座員也（Kazuya Oza）*
 *準拠: `EVALUATION_STANDARD.md v1.1` / `src/_sweep_format.py MD_HEADER_STRAT`*

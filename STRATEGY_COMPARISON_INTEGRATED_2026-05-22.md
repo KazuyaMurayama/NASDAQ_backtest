@@ -162,5 +162,5 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-*管理者: Kazuya Murayama*
+*管理者: 男座員也（Kazuya Oza）*
 *準拠: `EVALUATION_STANDARD.md v1.1` / `docs/rules/08_evaluation-metrics.md v1.0`*

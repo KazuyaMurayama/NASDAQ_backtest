@@ -5,7 +5,7 @@
 
 作成日: 2026-05-24
 最終更新日: 2026-05-24
-管理者: Kazuya Murayama (Kazuya Oza)
+管理者: 男座員也（Kazuya Oza）
 
 ---
 
@@ -28,13 +28,14 @@
 
 > 詳細は [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を参照。本ファイルでは1段落で要約。
 
-**戦略名: S2_VZGated + LT2-N750 + E4 Regime k_lt + F8 R5_CALM_BOOST** (2026-05-24 正式 Active 確定)
+**戦略名: S2_VZGated + LT2-N750 + E4 Regime k_lt** (2026-05-24 正式 Active 確定・F8 tilt系棄却後)
 
-- 構成 = **DH Dyn 2x3x [A] (シグナル基盤)** + **CFD Vol-Zone ゲート** + **LT2-N750 長期逆張り** + **E4 ボラレジーム別 k_lt** + **F8 R5_CALM_BOOST レジーム別 cap bull-tilt**
-- 主要指標: CAGR_OOS=+36.83%, Sharpe_OOS=+0.934, MaxDD=-63.07%, Worst10Y★=+18.58%, IS-OOS gap=-4.28pp
-- WFA: CI95_lo=+27.92% (α PASS, t_p=0.0000), WFE=+1.208 (β PASS) — G5 にて正式昇格
-- 一次根拠: `F8_REGIME_TILT_2026-05-24.md`, `G5_WFA_F8R5_2026-05-24.md`
-- 主要実装: `src/f8_regime_tilt.py`, `src/g5_wfa_f8r5.py`, `src/e4_regime_klt.py`, `src/long_cycle_signal.py`, `src/cfd_leverage_backtest.py`
+- 構成 = **DH Dyn 2x3x [A] (シグナル基盤)** + **CFD Vol-Zone ゲート** + **LT2-N750 長期逆張り** + **E4 ボラレジーム別 k_lt**
+- 主要指標: CAGR_OOS=+33.53%, Sharpe_OOS=+0.891, MaxDD=-60.01%, Worst10Y★=+18.67%, IS-OOS gap=-1.81pp
+- WFA: CI95_lo=+26.51% (α PASS, t_p=0.0000), WFE=+1.131 (β PASS) — G3 にて正式昇格
+- 棄却理由（F8 R5_CALM_BOOST）: Trades/yr=182（E4比7倍）、OOS偶然性疑い、IS-OOS gap 2.4倍拡大
+- 一次根拠: `E4_REGIME_KLT_SWEEP_2026-05-24.md`, `G3_WFA_E4_2026-05-24.md`
+- 主要実装: `src/e4_regime_klt.py`, `src/long_cycle_signal.py`, `src/cfd_leverage_backtest.py`
 
 ---
 
@@ -52,7 +53,7 @@
 | **C系** | HY / NASDAQ Heavy 系外部ゲート | 棄却 | C1 HY ゲート効果なし, C2 nasdaq_cap 効果限定的 |
 | **D系** | OOS 境界変動・H4 拡張 | 棄却 | D1 で OOS 境界 ±1年 シフト ロバスト性確認のみ |
 | **E系** | ボラレジーム条件付き動的パラメータ | **採用 (E4)** | E4 Regime k_lt が S2+LT2+E4 として Active 入り (CAGR_OOS +33.53%) |
-| **F系** | wn/wb 動的傾斜（Bull-Tilt） | **採用 (F8 R5_CALM_BOOST)** | F5 bond regime → F6 vol scale → F7 / F7v2 / F7v3 → **F8 R5_CALM_BOOST** → F9 threshold |
+| **F系** | wn/wb 動的傾斜（Bull-Tilt） | **Shortlisted (F8 R5_CALM_BOOST)** | F5 bond regime → F6 vol scale → F7 / F7v2 / F7v3 → **F8 R5_CALM_BOOST** (Shortlisted) → F9 threshold |
 | **G系** | Walk-Forward Analysis (WFA) 検証 | 検証ツール | G1 baseline → G2 B9 → G3 E4 (PASS) → G4 F7v3 (PASS) → **G5 F8R5 (PASS)** |
 | **H系** | 外部シグナル（Gold / Real Yield 等）オーバーレイ | 主に棄却 | H1 S4_sweep, H4 wgwb, H5 gold_dyn いずれも S2_VZGated 超えず |
 | **P系** | 外部マクロシグナル (HY / CPI 等)・モデル系 | 一部 Shortlisted (非標準コスト) | P01/P02/P05 が Shortlisted（[非標準コスト] フラグ）。P1 SOFR/P3 Momentum/P4 Composite/P5 Kelly は全棄却 |
@@ -78,9 +79,10 @@
 2026-05-24  S2_VZGated + LT2-N750 + E4 Regime k_lt  [CAGR_OOS +33.53%]
    ↓ 2026-05-24 F7v3 Bull-Tilt + G4 WFA PASS
 2026-05-24  + F7v3 (A:tilt=2.0, cap=0.10)  [CAGR_OOS +36.30%]
-   ↓ 2026-05-24 F8 R5_CALM_BOOST + G5 WFA PASS
-2026-05-24  + F8 R5_CALM_BOOST (tilt=10 step, cap=calm0.15/bullVZ0.10/bearVZ0.05)
-            ★現行 Active★  CAGR_OOS=+36.83%, Sharpe_OOS=+0.934
+   ↓ 2026-05-24 F8 R5_CALM_BOOST + G5 WFA PASS → Trades/yr=182（E4比7倍）棄却・E4に差し戻し
+2026-05-24  + F8 R5_CALM_BOOST (Shortlisted)  CAGR_OOS=+36.83%, Sharpe_OOS=+0.934, Trades/yr=182
+2026-05-24  S2_VZGated + LT2-N750 + E4 Regime k_lt
+            ★現行 Active★  CAGR_OOS=+33.53%, Sharpe_OOS=+0.891
 ```
 
 ---
@@ -133,7 +135,7 @@
 - **F6 Vol Scale**: 効果限定的
 - **F7 / F7v2 Bull-Tilt (初期定式)**: tilt の peak が cap=0.10 に届かず、tilt パラメータが事実上不感応に
 - **F7v3 Bull-Tilt 定式再設計**: tilt=10 で実質ステップ関数化 → 採用
-- **F8 R5_CALM_BOOST**: F7v3 にレジーム別 cap を追加 → 現行 Active
+- **F8 R5_CALM_BOOST**: F7v3 にレジーム別 cap を追加 → G5 WFA PASS → **Shortlisted**（Trades/yr=182, OOS偶然性疑いで Active 棄却）
 - **F9 THRESHOLD 最適化**: THRESHOLD=0.15 が最良で現行値維持確認
 
 #### G. LT 系内のバージョン進化
@@ -148,8 +150,7 @@
 > 詳細・進捗は [tasks.md](tasks.md) の Pending セクション参照。
 
 ### 4.1 短期 Pending（実装フェーズ）
-- [ ] **STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加**
-  → `gen_f8r5_yearly_returns.py` 作成 → `gen_strategy_comparison.py` 更新 → MD再生成
+- [x] ~~**STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加**~~ → v1.5で追加済み → v1.6でF8棄却により削除済み（完了・不要）
 - [ ] **Approach A への GAS 切替実装** (閾値 0.15 と同時変更, 実運用側 nasdaq-strategy-gas リポ)
 - [ ] **2026年データへの拡張**（継続監視）
 - [ ] **Ens2 戦略の OOS 検証** (2022-2026, 完全性のため)
@@ -287,4 +288,4 @@ WFA で α∩β PASS が「正式 Active 昇格」の必要条件:
 
 ---
 
-*管理者: Kazuya Murayama (Kazuya Oza) / 本ファイルは新セッション開始時のオリエンテーションを目的とする。数値や戦略採否の一次根拠は CURRENT_BEST_STRATEGY.md / STRATEGY_REGISTRY.md / EVALUATION_STANDARD.md にあり、本ファイルはそれらへのナビゲーションを兼ねた要約である。*
+*管理者: 男座員也（Kazuya Oza） / 本ファイルは新セッション開始時のオリエンテーションを目的とする。数値や戦略採否の一次根拠は CURRENT_BEST_STRATEGY.md / STRATEGY_REGISTRY.md / EVALUATION_STANDARD.md にあり、本ファイルはそれらへのナビゲーションを兼ねた要約である。*

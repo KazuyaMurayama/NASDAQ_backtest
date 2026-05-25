@@ -2,7 +2,7 @@
 
 作成日: 2026-05-21
 最終更新日: 2026-05-24 (tilt系棄却・E4 Regime k_lt 復帰: Trades/yr過多182回・OOS偶然性疑いによりF7v3/F8-R5をShortlistedへ降格)
-管理者: Kazuya Murayama
+管理者: 男座員也（Kazuya Oza）
 
 ---
 
@@ -376,5 +376,5 @@
 
 ---
 
-*管理者: Kazuya Murayama*
+*管理者: 男座員也（Kazuya Oza）*
 *本ファイルは [tasks.md](tasks.md) および [FILE_INDEX.md](FILE_INDEX.md) に「戦略台帳」として登録予定。*

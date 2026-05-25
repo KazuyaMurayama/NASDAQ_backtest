@@ -25,7 +25,7 @@
 | 3 | [tasks.md](tasks.md) | 未完了タスク・最新進捗 |
 | 4 | [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) | 全検証済み戦略の台帳（Active/Shortlisted/Rejected）。新検証着手前の重複チェック必須 |
 | 5 | [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) | 評価基準の正典 v1.1（コスト・期間・9指標標準・参考値判定フロー） |
-| 6 | [F8_REGIME_TILT_2026-05-24.md](F8_REGIME_TILT_2026-05-24.md), [G5_WFA_F8R5_2026-05-24.md](G5_WFA_F8R5_2026-05-24.md) | 現行ベスト F8 R5_CALM_BOOST の一次根拠（採用判定 + WFA PASS） |
+| 6 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md) | 現行ベスト E4 Regime k_lt の一次根拠（採用判定 + G3 WFA PASS）|
 | 7 | [THRESHOLD_SWEEP_A_REPORT_2026-04-21.md](THRESHOLD_SWEEP_A_REPORT_2026-04-21.md) | DH Dyn 2x3x [A] 閾値0.15 採用根拠 |
 
 ### 新セッション開始時の推奨読書順序

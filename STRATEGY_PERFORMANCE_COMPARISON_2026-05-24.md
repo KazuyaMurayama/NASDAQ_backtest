@@ -206,6 +206,6 @@ EVALUATION_STANDARD: **v1.1** | コスト: **Scenario D**
 
 ---
 
-*管理者: Kazuya Murayama*
+*管理者: 男座員也（Kazuya Oza）*
 *準拠: `EVALUATION_STANDARD.md v1.1` / `src/_sweep_format.py MD_HEADER_STRAT`*
 *今後このフォーマット（§2 9指標表 ＋ §3 年次リターン表）を戦略評価の標準レポートとして使用する*

@@ -6,7 +6,7 @@
 
 - バージョン: **v1.1**
 - 発行日: 2026-05-22
-- 管理者: Kazuya Murayama
+- 管理者: 男座員也（Kazuya Oza）
 - 一次関連ファイル: [`CURRENT_BEST_STRATEGY.md`](CURRENT_BEST_STRATEGY.md), [`src/product_costs.py`](src/product_costs.py), [`tasks.md`](tasks.md), [`FILE_INDEX.md`](FILE_INDEX.md)
 
 ---
@@ -15,7 +15,7 @@
 
 > **このブロックを読まずに評価を始めないこと。** 本書の各セクション（§1〜§5）はこのサマリの根拠詳細です。
 
-| 項目 | 標準値（v1.0） | 詳細 |
+| 項目 | 標準値（v1.1） | 詳細 |
 |---|---|---|
 | コストシナリオ | **Scenario D**（TER + sofr_multiplier×SOFR + swap_spread） | §1 |
 | SOFR proxy | DTB3（FRED 3M T-bill）、52年平均 4.37%/yr | §1 |
@@ -476,4 +476,4 @@ START
 
 ---
 
-*管理者: Kazuya Murayama / 本書は `CURRENT_BEST_STRATEGY.md` と対の正典です。両者の整合性が常に保たれていることを Claude / 人間ともに確認してください。*
+*管理者: 男座員也（Kazuya Oza） / 本書は `CURRENT_BEST_STRATEGY.md` と対の正典です。両者の整合性が常に保たれていることを Claude / 人間ともに確認してください。*

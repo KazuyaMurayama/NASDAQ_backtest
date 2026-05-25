@@ -169,4 +169,4 @@
 
 ---
 
-*管理者: Kazuya Murayama*
+*管理者: 男座員也（Kazuya Oza）*
