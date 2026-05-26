@@ -1,0 +1,79 @@
+strategy: S2_VZGated+LT2-N750+E4_RegimeKlt
+generated: '2026-05-26'
+blocks:
+  A_delay_compliance:
+    checked_dates:
+    - '1981-10-26'
+    - '1987-01-12'
+    - '1994-11-01'
+    - '2002-09-05'
+    - '2010-07-13'
+    - '2018-05-16'
+    - '2020-07-23'
+    - '2020-12-14'
+    - '2021-02-26'
+    - '2021-07-21'
+    max_diff: 1.3877787807814457e-16
+    fail_count: 0
+    verdict: PASS
+  B_vz_causality:
+    checked_t_indices:
+    - 11693
+    - 11818
+    - 11942
+    failures: []
+    verdict: PASS
+  C_lt_sig_causality:
+    checked_t_indices:
+    - 11693
+    - 11818
+    - 11942
+    failures: []
+    verdict: PASS
+  D_k_dyn_boundary:
+    test_cases:
+    - label: vz>thr → k_hi
+      vz_val: 0.70001
+      expected: 0.8
+      actual: 0.8
+      pass: true
+    - label: vz==thr → k_mid (厳密不等号)
+      vz_val: 0.7
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz<thr → k_mid
+      vz_val: 0.69999
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz<-thr → k_lo
+      vz_val: -0.70001
+      expected: 0.1
+      actual: 0.1
+      pass: true
+    - label: vz==-thr → k_mid
+      vz_val: -0.7
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz>-thr → k_mid
+      vz_val: -0.69999
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz=0 → k_mid
+      vz_val: 0.0
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    failures: []
+    verdict: PASS
+  E_lev_zero_boundary:
+    zero_lev_days: 2919
+    nonzero_mod_when_la_zero: 2034
+    arith_consistency_max_diff: 0.0
+    arith_fail_days: 0
+    strict_zero_fail_days: 0
+    verdict: PASS
+overall_verdict: PASS

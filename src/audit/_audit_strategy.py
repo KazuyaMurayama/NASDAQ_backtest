@@ -247,6 +247,150 @@ def build_e4_strategy_assets(force_rebuild: bool = False) -> dict:
     return cache
 
 
+def build_e4_strategy_nav_for_scenario(
+    assets: dict,
+    cfd_spread: float = 0.0,
+    extra_funding_ann: float = 0.0,
+    full_funding_ann=None,
+    cfd_leverage_override=None,
+) -> pd.Series:
+    """E4戦略の lev_mod_e4 を使ったシナリオ別 NAV 構築。
+    build_best_strategy_nav_for_scenario の E4 版（lev_mod → lev_mod_e4）。
+    """
+    L_use = assets['L_s2'].values if cfd_leverage_override is None else cfd_leverage_override
+    if full_funding_ann is None:
+        effective_spread = float(cfd_spread) + float(extra_funding_ann)
+        return build_nav_strategy(
+            assets['close'], assets['lev_mod_e4'],
+            assets['wn_A'], assets['wg_A'], assets['wb_A'], assets['dates'],
+            assets['gold_2x'], assets['bond_3x'], assets['sofr'],
+            nas_mode='CFD', cfd_leverage=L_use, cfd_spread=effective_spread,
+        )
+    else:
+        return _build_nav_full_funding_e4(assets, L_use, full_funding_ann)
+
+
+def _build_nav_full_funding_e4(assets: dict, L_arr, full_funding_ann: float) -> pd.Series:
+    """E4版: L全体にfull_funding_annをかけるモデルでNAVを構築（くりっく365/ロール方式）"""
+    close = assets['close']
+    dates = assets['dates']
+    lev_mod = assets['lev_mod_e4']  # ← E4版の差分
+    wn = assets['wn_A']
+    wg = assets['wg_A']
+    wb = assets['wb_A']
+    gold_2x = assets['gold_2x']
+    bond_3x = assets['bond_3x']
+
+    r_nas = close.pct_change().fillna(0).values
+    r_g2 = pd.Series(gold_2x).pct_change().fillna(0).values
+    r_b3 = pd.Series(bond_3x).pct_change().fillna(0).values
+
+    idx = dates.index
+    L = np.asarray(L_arr, dtype=float)
+    if L.ndim == 0:
+        L = np.full(len(r_nas), float(L_arr))
+
+    L_shifted = pd.Series(L, index=idx).shift(DELAY).fillna(1.0).values
+    lev_s = pd.Series(lev_mod, index=idx).shift(DELAY).fillna(0).values
+    wn_s  = pd.Series(wn, index=idx).shift(DELAY).fillna(0).values
+    wg_s  = pd.Series(wg, index=idx).shift(DELAY).fillna(0).values
+    wb_s  = pd.Series(wb, index=idx).shift(DELAY).fillna(0).values
+
+    nas_ret = L_shifted * r_nas - L_shifted * (full_funding_ann / TRADING_DAYS)
+    daily = wn_s * lev_s * nas_ret + wg_s * r_g2 + wb_s * r_b3
+
+    blowup_days = int((daily < NAV_FLOOR).sum())
+    daily_clipped = np.maximum(daily, NAV_FLOOR)
+    nav = (1 + pd.Series(daily_clipped, index=idx)).cumprod()
+    nav.attrs['blowup_days'] = blowup_days
+    return nav
+
+
+def build_e4_assets_with_override(
+    param_name: str,
+    value,
+    base_assets: dict,
+) -> dict:
+    """E4戦略を指定パラメータ1つだけオーバーライドして再構築（感度分析用）。
+    キャッシュ不使用・毎回NAV再計算。
+    base_assets は build_e4_strategy_assets() の戻り値（共有資産を使い回す）。
+    """
+    from dynamic_leverage_strategies import compute_L_s2_vz_gated
+    from long_cycle_signal import build_lt_signal, apply_lt_mode_b
+
+    # 中心値
+    k_lo   = float(E4_PARAMS['k_lo'])
+    k_hi   = float(E4_PARAMS['k_hi'])
+    k_mid  = float(E4_PARAMS['k_mid'])
+    vz_thr = float(E4_PARAMS['vz_thr'])
+    N_lt2  = int(LT2_FIXED['N'])
+    s2_params = dict(S2_FIXED)
+
+    # オーバーライド
+    if param_name == 'k_lo':
+        k_lo = float(value)
+    elif param_name == 'k_hi':
+        k_hi = float(value)
+    elif param_name == 'k_mid':
+        k_mid = float(value)
+    elif param_name == 'vz_thr':
+        vz_thr = float(value)
+    elif param_name == 'N_lt2':
+        N_lt2 = int(value)
+    elif param_name in s2_params:
+        s2_params[param_name] = float(value)
+    else:
+        raise ValueError(f'Unknown param_name: {param_name}')
+
+    close  = base_assets['close']
+    ret    = base_assets['ret']
+    dates  = base_assets['dates']
+    vz     = base_assets['vz']
+    lev_A  = base_assets['lev_A']
+    wn_A   = base_assets['wn_A']
+    wg_A   = base_assets['wg_A']
+    wb_A   = base_assets['wb_A']
+    sofr   = base_assets['sofr']
+    gold_2x = base_assets['gold_2x']
+    bond_3x = base_assets['bond_3x']
+
+    # L_s2 再計算（s2_params が変わった場合のみ）
+    if param_name in S2_FIXED:
+        L_s2 = compute_L_s2_vz_gated(ret, vz, **s2_params)
+    else:
+        L_s2 = base_assets['L_s2']
+
+    # lt_sig 再計算（N_lt2 が変わった場合のみ）
+    if param_name == 'N_lt2':
+        lt_sig = build_lt_signal(close, 'LT2', N_lt2)
+    else:
+        lt_sig = base_assets['lt_sig']
+
+    # k_dyn 再計算
+    vz_arr     = vz.values
+    lt_sig_arr = lt_sig.values
+    k_dyn = np.where(vz_arr > vz_thr, k_hi,
+                     np.where(vz_arr < -vz_thr, k_lo, k_mid))
+
+    lt_bias_arr = _signal_to_bias_dynamic(lt_sig_arr, k_dyn)
+    lt_bias_e4  = pd.Series(lt_bias_arr, index=close.index)
+    lev_mod_e4  = np.asarray(apply_lt_mode_b(lev_A, lt_bias_e4, l_min=0.0, l_max=1.0), dtype=float)
+
+    nav_e4 = build_nav_strategy(
+        close, lev_mod_e4, wn_A, wg_A, wb_A, dates,
+        gold_2x, bond_3x, sofr,
+        nas_mode='CFD', cfd_leverage=L_s2.values, cfd_spread=CFD_SPREAD_LOW,
+    )
+
+    result = dict(base_assets)
+    result.update(dict(
+        k_dyn=k_dyn, lt_sig=lt_sig, lt_bias_e4=lt_bias_e4,
+        lev_mod_e4=lev_mod_e4, nav_e4=nav_e4, L_s2=L_s2,
+        override_param=param_name, override_value=value,
+    ))
+    return result
+
+
 if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
     print('=== Building / loading best strategy assets (旧戦略) ===')

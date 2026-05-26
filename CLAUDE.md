@@ -81,3 +81,75 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 ## ビジュアルルール（レポートMD生成時）
 - レポート・成果物MDの新規作成／更新時は `.claude/visual-rules.md` を読み、図の種類判定（§2）と Mermaid 最適化（§3）を毎回適用する。
 - 適用対象: `## ` 見出しが2つ以上ある構造化MD（調査結果・戦略レポート・設計書・PR説明など）。
+
+---
+
+## 🔍 戦略監査チェックリスト（毎回必須・スキップ禁止）
+
+「戦略監査」「品質チェック」「過学習検定」「実現性レビュー」「OOS 評価」等の依頼を受けた瞬間、
+以下の Phase 1〜3 を**必ずすべてのバリアントに対して**機械的に実行する。
+詳細は `audit_results/AUDIT_FRAMEWORK.md` を参照。
+
+### 🔴 鉄則（違反 = レポート全体を再提出対象）
+
+1. **「コードを読めば自明」は実施扱いにしない**
+   検証は必ず `python src/audit/check_*.py` を実行し `audit_results/*.md` + `*.yaml` を生成する。
+   ファイルが存在しない検証は「未実施」と明記する。
+
+2. **「旧戦略値 + オフセット推定」は実証扱いにしない**
+   新戦略バリアント（E4→F→G…）追加時、Phase 1〜3 の**全スクリプトをそのバリアント名で再実行**する。
+   古いキャッシュは `force_rebuild=True` で再生成すること。
+
+3. **✅ 判定の右に「実行コマンド + 出力ファイルパス」を必ず併記する**
+   出力ファイルが存在しない ✅ は虚偽報告として扱う。
+
+4. **「推奨実施項目」をコードスニペットで提示して実行しない行為を禁止する**
+   コードスニペットを書いたなら、そのまま実行してファイルを生成すること。
+
+### Phase 1: ロジック正しさ検証（Phase 2/3 より先に必須）
+
+新バリアント導入・シグナル計算式変更・`build_nav_strategy()` 拡張時に必須。
+
+- [ ] **DELAY=2 コンプライアンス**: NAV 手計算 vs `build_nav_strategy()` を 10 日分突き合わせ → `check_logic_delay_and_causal.py`
+- [ ] **因果性**: `rolling(window=N)` 系シグナル（vz, lt_sig）が t 日時点で過去のみ参照を assert 検証
+- [ ] **レジーム切替境界条件**: `k_dyn` 等の np.where 分岐を境界値テスト（7 ケース）
+- [ ] **ゼロポジション境界**: `lev_A=0` 時の演算整合性（クリップ含む）
+- [ ] **サニティ**: 期待 Sharpe_OOS との差 ≤ 0.005
+
+### Phase 2: 実現性検証（バリアントごとに再実行）
+
+- [ ] **ブローカー別 CAGR/Worst10Y★**: 6 シナリオ全て正確計算（推定値禁止）→ `check_e4_broker_matrix.py`
+- [ ] **証拠金ダイナミクス**: 5 シナリオ → `check_sim_margin_dynamics.py`（E4 版は `lev_mod_e4` を使って再実行）
+- [ ] **コスト根拠台帳**: `product_costs.py` との整合確認 → `check_realworld_report_corpus.py`
+
+### Phase 3: 過学習検出（バリアントごとに再実行）
+
+- [ ] **Block Bootstrap** (B=5000, L=20/63/126): CI95_lo > 0 ∧ p < 0.05 → `check_overfitting_e4_bootstrap.py`
+- [ ] **Permutation (d) 同時置換** (B=1000, block=63): p < 0.05 → `check_overfitting_e4_permutation.py`
+- [ ] **WFA**: CI95_lo > 0 ∧ 0.5 ≤ WFE ≤ 2.0 → `src/g3_wfa_e4.py`
+- [ ] **パラメータ感度** (±20%): 主要 6 パラメータ全て → `check_e4_parameter_sensitivity.py`
+
+### 新戦略バリアント追加プロトコル（F/G 系追加時に必須）
+
+1. `src/audit/_audit_strategy.py` に `build_<NEW>_strategy_assets()` を追加
+2. 専用キャッシュ `_cache/<NEW>_nav_cache.pkl` + サニティ定数 `<NEW>_SHARPE_OOS_EXPECTED` を追加
+3. Phase 1〜3 の全スクリプトを `<NEW>` 版として複製・実行
+4. `audit_results/<NEW>_QUALITY_REPORT_YYYYMMDD.md` を生成（実施証跡表必須）
+5. `CURRENT_BEST_STRATEGY.md` に Phase 1/2/3 の判定を追記
+
+### 実施証跡表テンプレ（品質レポート末尾必須）
+
+```markdown
+## 実施証跡
+
+| Phase | チェック項目 | スクリプト | 出力ファイル | 判定 |
+|---|---|---|---|---|
+| 1.1 | DELAY=2 コンプライアンス | `src/audit/check_logic_delay_and_causal.py` | `audit_results/LOGIC_CHECK_YYYYMMDD.md` | ✅ PASS |
+| 1.2 | vz/lt_sig 因果性 | （同上） | （同上） | ✅ PASS |
+| 1.3 | k_dyn 境界条件 | （同上） | （同上） | ✅ PASS |
+| 2.1 | ブローカー別 CAGR | `src/audit/check_e4_broker_matrix.py` | `audit_results/E4_BROKER_MATRIX_YYYYMMDD.md` | ✅ PASS |
+| 3.1 | Bootstrap CI95_lo | `src/audit/check_overfitting_e4_bootstrap.py` | `audit_results/E4_BOOTSTRAP_YYYYMMDD.md` | ✅ PASS |
+| 3.4 | パラメータ感度 | `src/audit/check_e4_parameter_sensitivity.py` | `audit_results/E4_PARAM_SENSITIVITY_YYYYMMDD.md` | ✅ PASS |
+```
+
+未実施項目は「未実施」と明示。「✅ 文章で言及」は禁止。
