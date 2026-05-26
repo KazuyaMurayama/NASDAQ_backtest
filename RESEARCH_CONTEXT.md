@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」だけなら [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読む。実験の連鎖・系統・棄却理由まで把握したい場合は本ファイル。**
 
 作成日: 2026-05-24
-最終更新日: 2026-05-24
+最終更新日: 2026-05-26
 管理者: 男座員也（Kazuya Oza）
 
 ---
@@ -53,8 +53,8 @@
 | **C系** | HY / NASDAQ Heavy 系外部ゲート | 棄却 | C1 HY ゲート効果なし, C2 nasdaq_cap 効果限定的 |
 | **D系** | OOS 境界変動・H4 拡張 | 棄却 | D1 で OOS 境界 ±1年 シフト ロバスト性確認のみ |
 | **E系** | ボラレジーム条件付き動的パラメータ | **採用 (E4)** | E4 Regime k_lt が S2+LT2+E4 として Active 入り (CAGR_OOS +33.53%) |
-| **F系** | wn/wb 動的傾斜（Bull-Tilt） | **Shortlisted (F8 R5_CALM_BOOST)** | F5 bond regime → F6 vol scale → F7 / F7v2 / F7v3 → **F8 R5_CALM_BOOST** (Shortlisted) → F9 threshold |
-| **G系** | Walk-Forward Analysis (WFA) 検証 | 検証ツール | G1 baseline → G2 B9 → G3 E4 (PASS) → G4 F7v3 (PASS) → **G5 F8R5 (PASS)** |
+| **F系** | wn/wb 動的傾斜（Bull-Tilt）+ ε-deadband | **Shortlisted (F8 R5_CALM_BOOST, F10 ε=0.015 採用推奨待ち)** | F5 bond regime → F6 vol scale → F7 / F7v2 / F7v3 → **F8 R5_CALM_BOOST** (Shortlisted) → F9 threshold → **F10 ε=0.015** (WFA G7 PASS, CI95_lo=+27.93%) |
+| **G系** | Walk-Forward Analysis (WFA) 検証 | 検証ツール | G1 baseline → G2 B9 → G3 E4 (PASS) → G4 F7v3 (PASS) → **G5 F8R5 (PASS)** → **G7 F10 ε=0.015 (PASS, CI95_lo=+27.93%)** → **G8 F10+lmax5 (PASS, CI95_lo=+25.57%)** → **G9 vz065+lmax5 (PASS, CI95_lo=+24.82%)** |
 | **H系** | 外部シグナル（Gold / Real Yield 等）オーバーレイ | 主に棄却 | H1 S4_sweep, H4 wgwb, H5 gold_dyn いずれも S2_VZGated 超えず |
 | **P系** | 外部マクロシグナル (HY / CPI 等)・モデル系 | 一部 Shortlisted (非標準コスト) | P01/P02/P05 が Shortlisted（[非標準コスト] フラグ）。P1 SOFR/P3 Momentum/P4 Composite/P5 Kelly は全棄却 |
 | **S系** | A2 ConvictionScore 直接レバ変換 | 棄却 | S1〜S4 で全て S2_VZGated に劣後 (S3 は IS-OOS gap +22pp で致命的) |
@@ -83,6 +83,12 @@
 2026-05-24  + F8 R5_CALM_BOOST (Shortlisted)  CAGR_OOS=+36.83%, Sharpe_OOS=+0.934, Trades/yr=182
 2026-05-24  S2_VZGated + LT2-N750 + E4 Regime k_lt
             ★現行 Active★  CAGR_OOS=+33.53%, Sharpe_OOS=+0.891
+   ↓ 2026-05-26 3候補 WFA PASS → 採用変更検討（INTEGRATION_DEBATE_2026-05-26.md）
+2026-05-26  + vz065+lmax5 (vz_thr=0.65, l_max=5.0)  G9 WFA PASS  CAGR_OOS=+33.5%, Sharpe_OOS=+0.947, MaxDD=-51.8% (最良)
+2026-05-26  + F10+lmax5 (ε=0.015 + l_max=5.0)      G8 WFA PASS  CAGR_OOS=+33.6%, Sharpe_OOS=+0.943, P10_5Y=+12.8% (最高)
+2026-05-26  + F10 ε=0.015 (l_max=7.0)               G7 WFA PASS  CAGR_OOS=+36.8%, Sharpe_OOS=+0.934, IS-OOS gap=-4.31pp⚠
+           採用変更未決（IS-OOS gap / Trades/yr / MaxDD の多指標比較でユーザー判断待ち）
+★現行 Active★  E4  CAGR_OOS=+33.53%, Sharpe_OOS=+0.891
 ```
 
 ---
@@ -151,9 +157,15 @@
 
 ### 4.1 短期 Pending（実装フェーズ）
 - [x] ~~**STRATEGY_PERFORMANCE_COMPARISON に F8-R5 列追加**~~ → v1.5で追加済み → v1.6でF8棄却により削除済み（完了・不要）
+- [ ] **採用変更決定**: vz065+lmax5 / F10+lmax5 / F10 ε=0.015 のうち Active 昇格候補を決定。[INTEGRATION_DEBATE_2026-05-26.md](INTEGRATION_DEBATE_2026-05-26.md) 参照。
+- [ ] **STRATEGY_PERFORMANCE_COMPARISON v1.7**: F10 / vz065+lmax5 / F10+lmax5 の3列を追加
+- [ ] **p10_f10lmax5_fullmetrics.py Trades/yr バグ修正**: lev_raw のみ→ lev_raw+wn/wb 変化合算に修正（正：52/yr）
 - [ ] **Approach A への GAS 切替実装** (閾値 0.15 と同時変更, 実運用側 nasdaq-strategy-gas リポ)
 - [ ] **2026年データへの拡張**（継続監視）
 - [ ] **Ens2 戦略の OOS 検証** (2022-2026, 完全性のため)
+
+### 4.1.5 追加 WFA 候補
+- [ ] **G10 WFA for F10+lmax5**: G8 CI95_lo=+25.57% → +27% 達成可能か、窓幅変更等で調査
 
 ### 4.2 中期で検討に値する方向性（未着手）
 
@@ -284,6 +296,7 @@ WFA で α∩β PASS が「正式 Active 昇格」の必要条件:
 
 | 日付 | 変更 |
 |---|---|
+| 2026-05-26 | §2 系列一覧 F系・G系を更新（F10 ε=0.015, G7/G8/G9 WFA PASS 追記）。§2.2 採用チェーンに vz065+lmax5 / F10+lmax5 / F10 ε=0.015 PASS 結果を追加。§4.1 に採用変更決定・COMPARISON v1.7・Trades/yr バグ修正を Pending 追記。|
 | 2026-05-24 | 初版作成。F8 R5_CALM_BOOST 昇格直後の研究文脈・系統図・棄却サマリを集約。新セッション 5分オリエンテーション用 |
 
 ---

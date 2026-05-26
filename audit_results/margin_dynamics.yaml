@@ -40,7 +40,7 @@ scenarios:
   min_margin_date: '1974-07-11'
   pass: true
 summary:
-  generated_date: '2026-05-24'
+  generated_date: '2026-05-26'
   baseline_scenario: (2) 適切資本 2x入金・L_s2実値
   baseline_pass: true
   risk_level: LOW

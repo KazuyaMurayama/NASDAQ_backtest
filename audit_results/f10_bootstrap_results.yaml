@@ -1,0 +1,39 @@
+strategy: F10_eps0.015_deadband+F8R5+E4_RegimeKlt+S2_lmax7
+generated: '2026-05-26'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+settings:
+  B: 5000
+f10_params:
+  eps: 0.015
+  tilt: 10.0
+  vz_reg: 0.7
+  cap_calm: 0.15
+  cap_bull: 0.1
+  cap_bear: 0.05
+sr_observed: 0.934883
+sr_bh1x_oos: 0.5406
+block_lengths:
+  L20:
+    ci95_lo: 0.135033
+    ci95_hi: 1.713573
+    p_value: 0.0098
+    verdict: PASS
+  L63:
+    ci95_lo: 0.161856
+    ci95_hi: 1.588222
+    p_value: 0.0102
+    verdict: PASS
+  L126:
+    ci95_lo: 0.18084
+    ci95_hi: 1.522082
+    p_value: 0.008
+    verdict: PASS
+is_stability:
+  chunks: 10
+  mean: 0.958889
+  std: 0.29814
+  cov: 0.310922
+  min: 0.354062
+verdict: PASS

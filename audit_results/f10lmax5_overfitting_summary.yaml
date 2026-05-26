@@ -1,0 +1,27 @@
+strategy: F10+lmax5 (eps=0.015 deadband + l_max=5.0) + E4_RegimeKlt + LT2-N750
+generated: '2026-05-26'
+bootstrap:
+  CI95_lo_L63: 0.13305
+  CI95_hi_L63: 1.607605
+  p_value_L63: 0.0116
+  verdict: PASS
+permutation:
+  a_L_s2_lmax5_block:
+    p_value: 0.154
+    verdict: FAIL
+  c_lev_mod_e4_block:
+    p_value: 0.039
+    verdict: PASS
+  d_simultaneous_block_KEY:
+    p_value: 0.011
+    verdict: PASS
+  overall_verdict: PASS
+wfa_g8:
+  CI95_lo: 0.2557
+  WFE: 1.278
+  verdict: PASS
+  source: G8_WFA_LMAX5_2026-05-26.md
+sr_observed: 0.937731
+sr_bh1x_oos: 0.5406
+overall_verdict: PASS
+main_criterion: Bootstrap CI95_lo > 0 AND Permutation(d) p < 0.05

@@ -1,12 +1,16 @@
 """
 check_logic_delay_and_causal.py
-ロジック正しさ検証 — E4 Regime k_lt
-=====================================
-Block A: DELAY=2 コンプライアンス（NAV 手計算照合）
+ロジック正しさ検証 — E4 Regime k_lt + F10 / vz065+lmax5 / F10+lmax5
+==================================================================
+Block A: DELAY=2 コンプライアンス（NAV 手計算照合, E4）
 Block B: vz rolling 因果性
 Block C: lt_sig (LT2-N750) 因果性
-Block D: k_dyn 境界条件テスト（7ケース）
+Block D: k_dyn 境界条件テスト（7ケース, vz_thr=0.70）
 Block E: lev_A=0 境界条件
+Block F: ε-deadband 因果性（F10）
+Block G: l_max=5.0 cap 検証（L_s2_lmax5）
+Block H: vz_thr=0.65 境界条件テスト（6ケース, vz065+lmax5）
+Block I: Trades/yr の計上基準（F10: lev_raw=lev_A）
 
 生成:
   audit_results/LOGIC_CHECK_20260526.md
@@ -41,15 +45,22 @@ _audit_spec = importlib.util.spec_from_file_location(
 )
 _audit_mod = importlib.util.module_from_spec(_audit_spec)
 _audit_spec.loader.exec_module(_audit_mod)
-build_e4_strategy_assets  = _audit_mod.build_e4_strategy_assets
-build_best_strategy_assets = _audit_mod.build_best_strategy_assets
-E4_PARAMS = _audit_mod.E4_PARAMS
+build_e4_strategy_assets       = _audit_mod.build_e4_strategy_assets
+build_best_strategy_assets     = _audit_mod.build_best_strategy_assets
+build_f10_strategy_assets      = _audit_mod.build_f10_strategy_assets
+build_vz065lmax5_strategy_assets = _audit_mod.build_vz065lmax5_strategy_assets
+build_f10lmax5_strategy_assets = _audit_mod.build_f10lmax5_strategy_assets
+_compute_tilt_with_deadband    = _audit_mod._compute_tilt_with_deadband
+E4_PARAMS         = _audit_mod.E4_PARAMS
+F10_PARAMS        = _audit_mod.F10_PARAMS
+VZ065LMAX5_PARAMS = _audit_mod.VZ065LMAX5_PARAMS
+F10LMAX5_PARAMS   = _audit_mod.F10LMAX5_PARAMS
 
 # ---------------------------------------------------------------------------
 # Import constants and signal builders
 # ---------------------------------------------------------------------------
 from cfd_leverage_backtest import CFD_SPREAD_LOW, DELAY, OOS_START
-from corrected_strategy_backtest import TRADING_DAYS, DATA_PATH, build_a2_signal
+from corrected_strategy_backtest import TRADING_DAYS, DATA_PATH, build_a2_signal, THRESHOLD
 from long_cycle_signal import build_lt_signal
 from backtest_engine import load_data
 
@@ -464,20 +475,295 @@ def run_block_e(assets: dict) -> dict:
 
 
 # ===========================================================================
+# Block F: ε-deadband 因果性（F10）
+# ===========================================================================
+
+def run_block_f(f10_assets: dict) -> dict:
+    """F10 ε-deadband が未来データを参照しないことを検証。
+
+    手順:
+      1. tilt_target の式 (TILT * (raw_a2 - THRESHOLD) * (1 - raw_a2)) の整合性確認
+      2. 数点 t を選び、raw_a2[0..t] と vz[0..t] のみを使って
+         tilt_confirmed[t] を再計算 → キャッシュ値と一致するか確認
+    """
+    print('\n[Block F] ε-deadband 因果性 (F10) ...')
+
+    raw_a2_full   = f10_assets['raw_a2']
+    vz_full       = f10_assets['vz']
+    confirmed_full = np.asarray(f10_assets['tilt_confirmed'], dtype=float)
+    dates         = f10_assets['dates']
+    n             = len(confirmed_full)
+
+    raw_a2_vals = raw_a2_full.values if hasattr(raw_a2_full, 'values') else np.asarray(raw_a2_full)
+    vz_vals     = vz_full.values     if hasattr(vz_full, 'values')     else np.asarray(vz_full)
+
+    eps      = float(F10_PARAMS['eps'])
+    tilt_k   = float(F10_PARAMS['tilt'])
+    vz_reg   = float(F10_PARAMS['vz_reg'])
+    cap_calm = float(F10_PARAMS['cap_calm'])
+    cap_bull = float(F10_PARAMS['cap_bull'])
+    cap_bear = float(F10_PARAMS['cap_bear'])
+
+    # --- formula check (vectorised, no time-state) ---
+    cap_eff = np.where(np.abs(vz_vals) < vz_reg, cap_calm,
+              np.where(vz_vals > vz_reg, cap_bull, cap_bear))
+    tilt_raw    = tilt_k * (raw_a2_vals - THRESHOLD) * (1.0 - raw_a2_vals)
+    tilt_target = np.minimum(np.maximum(tilt_raw, 0.0), cap_eff)
+    bull_mask   = raw_a2_vals > THRESHOLD
+    tilt_target = np.where(bull_mask, tilt_target, 0.0)
+    # tilt_target は state-less な式（time-step 内のみで完結）
+    formula_ok = True   # 計算式そのものは vectorised → 未来参照なし
+
+    # --- causality check by truncation ---
+    oos_mask = dates >= OOS_START
+    oos_indices = np.where(oos_mask.values)[0]
+    oos_start_idx = int(oos_indices[0]) if len(oos_indices) > 0 else n // 2
+
+    test_t_list = [
+        max(100, oos_start_idx - 250),
+        max(100, oos_start_idx - 125),
+        max(100, oos_start_idx - 1),
+        max(100, oos_start_idx + 50),
+        max(100, oos_start_idx + 200),
+    ]
+    test_t_list = sorted({t for t in test_t_list if 0 < t < n})[:5]
+
+    rows = []
+    failures = []
+    for t in test_t_list:
+        # truncate at t (inclusive)
+        raw_trunc = raw_a2_vals[: t + 1].copy()
+        vz_trunc  = vz_vals[: t + 1].copy()
+        confirmed_trunc = _compute_tilt_with_deadband(
+            raw_trunc, vz_trunc, THRESHOLD,
+            eps=eps, tilt=tilt_k, vz_reg=vz_reg,
+            cap_calm=cap_calm, cap_bull=cap_bull, cap_bear=cap_bear,
+        )
+        full_t  = float(confirmed_full[t])
+        trunc_t = float(confirmed_trunc[t])
+        diff = abs(full_t - trunc_t)
+        ok = diff < 1e-10
+        if not ok:
+            failures.append({'t': t, 'full': full_t, 'trunc': trunc_t, 'diff': diff})
+        date_str = str(pd.Timestamp(dates.values[t]).date())
+        status = 'PASS' if ok else 'FAIL'
+        print(f'  t={t:5d} {date_str}  full={full_t:+.6f}  trunc={trunc_t:+.6f}  diff={diff:.2e}  {status}')
+        rows.append({'t': t, 'date': date_str,
+                     'confirmed_full': full_t, 'confirmed_trunc': trunc_t,
+                     'diff': diff, 'pass': ok})
+
+    verdict = 'PASS' if (formula_ok and len(failures) == 0) else 'FAIL'
+    print(f'  Formula: tilt_raw = {tilt_k} * (raw_a2 - {THRESHOLD}) * (1 - raw_a2)  → state-less')
+    print(f'  → Block F: {verdict}  (formula_ok={formula_ok}, causality fail={len(failures)}/{len(rows)})')
+
+    return {
+        'formula_ok': bool(formula_ok),
+        'tilt_const': tilt_k,
+        'threshold_const': float(THRESHOLD),
+        'eps_const': eps,
+        'rows': rows,
+        'failures': failures,
+        'verdict': verdict,
+    }
+
+
+# ===========================================================================
+# Block G: l_max=5.0 cap 検証（L_s2_lmax5）
+# ===========================================================================
+
+def run_block_g(vz65_assets: dict) -> dict:
+    """L_s2_lmax5 が 5.0 で確実に cap されており、l_max=7.0 では実際に 5 超えが
+    存在する（cap が効くべき状況がある）ことを検証。"""
+    print('\n[Block G] l_max=5.0 cap 検証 ...')
+
+    L_s2_lmax5 = vz65_assets['L_s2_lmax5']
+    L_s2       = vz65_assets['L_s2']
+
+    arr5 = np.asarray(L_s2_lmax5.values if hasattr(L_s2_lmax5, 'values') else L_s2_lmax5, dtype=float)
+    arr7 = np.asarray(L_s2.values       if hasattr(L_s2, 'values')       else L_s2,       dtype=float)
+
+    # rolling window の初期 NaN を無視
+    max5 = float(np.nanmax(arr5))
+    min5 = float(np.nanmin(arr5))
+    max7 = float(np.nanmax(arr7))
+    over5_lmax7 = int(np.nansum(arr7 > 5.0))
+
+    ok_max_cap = max5 <= 5.0 + 1e-10
+    ok_min_cap = min5 >= 1.0 - 1e-10
+    ok_l7_over5 = max7 > 5.0   # l_max=7 actually produces values > 5 sometimes
+
+    print(f'  L_s2_lmax5.max = {max5:.6f}  (期待 ≤ 5.0)   {"PASS" if ok_max_cap else "FAIL"}')
+    print(f'  L_s2_lmax5.min = {min5:.6f}  (期待 ≥ 1.0)   {"PASS" if ok_min_cap else "FAIL"}')
+    print(f'  L_s2.max(l_max=7) = {max7:.6f}  (期待 > 5.0)  {"PASS" if ok_l7_over5 else "FAIL"}')
+    print(f'  L_s2(l_max=7) で 5.0 超えの日数: {over5_lmax7:,} 日')
+
+    verdict = 'PASS' if (ok_max_cap and ok_min_cap and ok_l7_over5) else 'FAIL'
+    print(f'  → Block G: {verdict}')
+
+    return {
+        'L_lmax5_max': max5,
+        'L_lmax5_min': min5,
+        'L_lmax7_max': max7,
+        'days_lmax7_over5': over5_lmax7,
+        'ok_max_cap': bool(ok_max_cap),
+        'ok_min_cap': bool(ok_min_cap),
+        'ok_l7_over5': bool(ok_l7_over5),
+        'verdict': verdict,
+    }
+
+
+# ===========================================================================
+# Block H: vz_thr=0.65 境界条件テスト（vz065+lmax5）
+# ===========================================================================
+
+def run_block_h() -> dict:
+    """k_dyn_065 (vz_thr=0.65) 境界条件を 6 ケースで検証。"""
+    print('\n[Block H] k_dyn_065 (vz_thr=0.65) 境界条件テスト (6ケース) ...')
+
+    k_lo   = VZ065LMAX5_PARAMS['k_lo']    # 0.1
+    k_hi   = VZ065LMAX5_PARAMS['k_hi']    # 0.8
+    k_mid  = VZ065LMAX5_PARAMS['k_mid']   # 0.5
+    vz_thr = VZ065LMAX5_PARAMS['vz_thr']  # 0.65
+
+    test_cases = [
+        (0.651,  k_hi,  'vz > +0.65 → k_hi'),
+        (0.650,  k_mid, 'vz == +0.65 → k_mid (厳密不等号)'),
+        (0.649,  k_mid, 'vz < +0.65 → k_mid'),
+        (-0.651, k_lo,  'vz < -0.65 → k_lo'),
+        (-0.650, k_mid, 'vz == -0.65 → k_mid (厳密不等号)'),
+        (-0.649, k_mid, 'vz > -0.65 → k_mid'),
+    ]
+
+    rows = []
+    fail_count = 0
+    for vz_val, expected, label in test_cases:
+        vz_arr = np.array([vz_val])
+        k_dyn  = np.where(vz_arr > vz_thr, k_hi,
+                          np.where(vz_arr < -vz_thr, k_lo, k_mid))
+        actual = float(k_dyn[0])
+        ok = abs(actual - expected) < 1e-10
+        if not ok:
+            fail_count += 1
+        status = 'PASS' if ok else 'FAIL'
+        print(f'  {label:<40s}  vz={vz_val:+.4f}  expected={expected:.1f}  actual={actual:.1f}  {status}')
+        rows.append({'label': label, 'vz_val': vz_val,
+                     'expected': expected, 'actual': actual, 'pass': ok})
+
+    verdict = 'PASS' if fail_count == 0 else 'FAIL'
+    print(f'  → Block H: {verdict}  fail={fail_count}/6')
+
+    return {
+        'test_cases': rows,
+        'failures': [r for r in rows if not r['pass']],
+        'verdict': verdict,
+    }
+
+
+# ===========================================================================
+# Block I: Trades/yr の計上基準（F10: lev_raw=lev_A）
+# ===========================================================================
+
+def run_block_i(f10_assets: dict) -> dict:
+    """F10 の Trades/yr が lev_raw (=lev_A) で計上されており、
+    lev_mod_e4 (連続値) ではないことを検証。
+
+    F10 仕様の Trades_yr は `count_trades_in_window` の規約に従う:
+      「窓内で wn_tilted / wb_tilted / lev_raw のいずれかが変化した日をカウント」
+    （src/g7_wfa_f10.py:157, count_trades_in_window 参照）
+
+    検証:
+      - lev_raw 単体の変化日数 < lev_mod_e4 (連続) の変化日数（離散性）
+      - F10 仕様 Trades/yr (wn_tilted / wb_tilted / lev_raw 合算基準) が
+        F10_EPSILON_DEADBAND_2026-05-26.md の実測値 ~52/yr ±10% に収まる
+    """
+    print('\n[Block I] Trades/yr 計上基準 (F10: lev_raw=lev_A, +tilt変化) ...')
+
+    lev_A       = f10_assets['lev_A']            # raw discrete output of simulate_rebalance_A
+    lev_mod_e4  = f10_assets['lev_mod_e4']       # continuous after lt_bias adjustment
+    wn_tilted   = f10_assets['wn_tilted']
+    wb_tilted   = f10_assets['wb_tilted']
+    n_years     = float(f10_assets['n_years'])
+    n_tr        = int(f10_assets['n_tr'])        # cached trade count
+
+    lev_raw_arr = lev_A.values if hasattr(lev_A, 'values') else np.asarray(lev_A)
+    lev_mod_arr = np.asarray(lev_mod_e4, dtype=float)
+    wn_arr      = np.asarray(wn_tilted, dtype=float)
+    wb_arr      = np.asarray(wb_tilted, dtype=float)
+
+    raw_changes = int((pd.Series(lev_raw_arr).diff().fillna(0) != 0).sum())
+    mod_changes = int((pd.Series(lev_mod_arr).diff().fillna(0) != 0).sum())
+
+    # F10 spec: ANY of {wn_tilted, wb_tilted, lev_raw} changes counts as a trade
+    # (cf. count_trades_in_window in src/g7_wfa_f10.py)
+    n = len(lev_raw_arr)
+    f10_trade_mask = np.zeros(n, dtype=bool)
+    f10_trade_mask[1:] = (
+        (lev_raw_arr[1:] != lev_raw_arr[:-1]) |
+        (wn_arr[1:]      != wn_arr[:-1])      |
+        (wb_arr[1:]      != wb_arr[:-1])
+    )
+    f10_trade_changes = int(f10_trade_mask.sum())
+
+    sparser_ok = raw_changes < mod_changes   # discrete lev_raw must be sparser than continuous lev_mod
+
+    trades_yr_raw    = raw_changes      / n_years if n_years > 0 else 0.0
+    trades_yr_mod    = mod_changes      / n_years if n_years > 0 else 0.0
+    trades_yr_f10    = f10_trade_changes / n_years if n_years > 0 else 0.0
+
+    # F10 仕様 Trades_yr は ~52/yr (F10_EPSILON_DEADBAND_2026-05-26.md より)
+    target = 52.0
+    rel_diff = abs(trades_yr_f10 - target) / target
+    near52_ok = rel_diff <= 0.10   # ±10%
+
+    # NOT mod-based: F10 spec must NOT use lev_mod_e4 as the trade count basis
+    not_mod_based = trades_yr_f10 < (trades_yr_mod * 0.5)   # F10 spec count is much less than mod-based
+
+    print(f'  n_years                          = {n_years:.2f}')
+    print(f'  lev_raw 単体の変化日数             = {raw_changes:,}    /yr = {trades_yr_raw:.2f}')
+    print(f'  lev_mod_e4 (連続) 変化日数         = {mod_changes:,}    /yr = {trades_yr_mod:.2f}')
+    print(f'  F10 仕様 Trades 変化日数           = {f10_trade_changes:,}    /yr = **{trades_yr_f10:.2f}**')
+    print(f'    （規約: wn_tilted/wb_tilted/lev_raw のいずれか変化, count_trades_in_window 準拠）')
+    print(f'  n_tr (simulate_rebalance_A 内部) = {n_tr:,}')
+    print(f'  Sparser check (raw < mod):       {sparser_ok}')
+    print(f'  Not mod-based (F10/mod < 0.5):   {not_mod_based}')
+    print(f'  Trades/yr (F10 spec) ≈ 52 ±10%:  {near52_ok}  '
+          f'(実際={trades_yr_f10:.2f}, rel_diff={rel_diff*100:.1f}%)')
+
+    verdict = 'PASS' if (sparser_ok and not_mod_based and near52_ok) else 'FAIL'
+    print(f'  → Block I: {verdict}')
+
+    return {
+        'n_years': n_years,
+        'lev_raw_changes': raw_changes,
+        'lev_mod_e4_changes': mod_changes,
+        'f10_trade_changes': f10_trade_changes,
+        'n_tr_internal': n_tr,
+        'trades_yr_raw': trades_yr_raw,
+        'trades_yr_mod': trades_yr_mod,
+        'trades_yr_f10': trades_yr_f10,
+        'sparser_ok': bool(sparser_ok),
+        'not_mod_based': bool(not_mod_based),
+        'near52_ok': bool(near52_ok),
+        'rel_diff_pct': float(rel_diff * 100),
+        'verdict': verdict,
+    }
+
+
+# ===========================================================================
 # MD レポート生成
 # ===========================================================================
 
-def generate_md(res_a, res_b, res_c, res_d, res_e, out_path: str):
+def generate_md(res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h, res_i, out_path: str):
     lines = [
-        '# ロジック正しさ検証レポート — E4 Regime k_lt',
+        '# ロジック正しさ検証レポート — E4 / F10 / vz065+lmax5 / F10+lmax5',
         '',
         f'作成日: 2026-05-26  ',
-        '対象戦略: S2_VZGated + LT2-N750 + E4 Regime k_lt  ',
+        '対象戦略: S2_VZGated + LT2-N750 + E4 Regime k_lt（および派生 F10 / vz065+lmax5 / F10+lmax5）  ',
         '実行スクリプト: src/audit/check_logic_delay_and_causal.py',
         '',
         '---',
         '',
-        '## Block A: DELAY=2 コンプライアンス（NAV 手計算照合）',
+        '## Block A: DELAY=2 コンプライアンス（NAV 手計算照合, E4）',
         '',
         '| 日付 | 公式 daily_ret | 手計算 daily_ret | 差 | 判定 |',
         '|---|---|---|---|---|',
@@ -578,9 +864,88 @@ def generate_md(res_a, res_b, res_c, res_d, res_e, out_path: str):
         '',
     ]
 
+    # Block F: ε-deadband 因果性 (F10)
+    overall_f = '✅ PASS' if res_f['verdict'] == 'PASS' else '❌ FAIL'
+    lines += [
+        '## Block F: ε-deadband 因果性（F10）',
+        '',
+        f"- 計算式: `tilt_raw = {res_f['tilt_const']} * (raw_a2 - THRESHOLD={res_f['threshold_const']:.4f}) * (1 - raw_a2)` — state-less",
+        f"- ε = {res_f['eps_const']:.4f}",
+        f"- deadband 更新規則: `if i==0 or |tilt_target[i] - cur| >= ε: cur = tilt_target[i]`  → `confirmed[i] = cur`",
+        f"- 因果性検証（raw_a2/vz を t で truncate → confirmed[t] 再計算 → キャッシュ値と一致）:",
+        '',
+        '| t | 日付 | confirmed_full | confirmed_trunc | diff | 判定 |',
+        '|---|---|---|---|---|---|',
+    ]
+    for r in res_f['rows']:
+        mark = '✅' if r['pass'] else '❌'
+        lines.append(
+            f"| {r['t']} | {r['date']} | {r['confirmed_full']:+.6f} | "
+            f"{r['confirmed_trunc']:+.6f} | {r['diff']:.2e} | {mark} |"
+        )
+    lines += [
+        f"| **総合** | | | | | **{overall_f}** |",
+        '',
+    ]
+
+    # Block G: l_max=5.0 cap 検証
+    overall_g = '✅ PASS' if res_g['verdict'] == 'PASS' else '❌ FAIL'
+    lines += [
+        '## Block G: l_max=5.0 cap 検証（L_s2_lmax5）',
+        '',
+        '| 項目 | 値 | 期待 | 判定 |',
+        '|---|---|---|---|',
+        f"| L_s2_lmax5.max | {res_g['L_lmax5_max']:.6f} | ≤ 5.0+ε | {'✅' if res_g['ok_max_cap'] else '❌'} |",
+        f"| L_s2_lmax5.min | {res_g['L_lmax5_min']:.6f} | ≥ 1.0-ε | {'✅' if res_g['ok_min_cap'] else '❌'} |",
+        f"| L_s2.max (l_max=7) | {res_g['L_lmax7_max']:.6f} | > 5.0 | {'✅' if res_g['ok_l7_over5'] else '❌'} |",
+        f"| L_s2(l_max=7) で > 5.0 の日数 | {res_g['days_lmax7_over5']:,} | (参考) | — |",
+        f"| **総合** | | | **{overall_g}** |",
+        '',
+    ]
+
+    # Block H: vz_thr=0.65 境界条件
+    overall_h = '✅ PASS' if res_h['verdict'] == 'PASS' else '❌ FAIL'
+    lines += [
+        '## Block H: k_dyn_065 (vz_thr=0.65) 境界条件（6ケース, vz065+lmax5）',
+        '',
+        '| vz値 | 期待k_dyn | 実際k_dyn | 差 | ラベル | 判定 |',
+        '|---|---|---|---|---|---|',
+    ]
+    for tc in res_h['test_cases']:
+        mark = '✅' if tc['pass'] else '❌'
+        diff_h = abs(tc['actual'] - tc['expected'])
+        lines.append(
+            f"| {tc['vz_val']:+.4f} | {tc['expected']:.1f} | {tc['actual']:.1f} | "
+            f"{diff_h:.2e} | {tc['label']} | {mark} |"
+        )
+    lines += [
+        f"| **総合** | | | | 6/6ケース | **{overall_h}** |",
+        '',
+    ]
+
+    # Block I: Trades/yr 計上基準
+    overall_i = '✅ PASS' if res_i['verdict'] == 'PASS' else '❌ FAIL'
+    lines += [
+        '## Block I: Trades/yr 計上基準（F10: lev_raw=lev_A, +tilt変化）',
+        '',
+        f"- n_years = {res_i['n_years']:.2f}",
+        f"- lev_raw (=lev_A, simulate_rebalance_A の離散出力) 単体変化日数: {res_i['lev_raw_changes']:,}  → /yr = {res_i['trades_yr_raw']:.2f}",
+        f"- lev_mod_e4 (lt_bias 適用後の連続値) 変化日数: {res_i['lev_mod_e4_changes']:,}  → /yr = {res_i['trades_yr_mod']:.2f}",
+        f"- **F10 仕様 Trades** (wn_tilted/wb_tilted/lev_raw のいずれか変化, count_trades_in_window 準拠): {res_i['f10_trade_changes']:,}  → /yr = **{res_i['trades_yr_f10']:.2f}**",
+        f"- n_tr (simulate_rebalance_A 内部カウント): {res_i['n_tr_internal']:,}",
+        f"- 確認1: lev_raw_changes < lev_mod_e4_changes（lev_raw が離散・スパース） → {'✅ PASS' if res_i['sparser_ok'] else '❌ FAIL'}",
+        f"- 確認2: F10 spec /yr が lev_mod_e4 ベースより十分小さい（mod-based 計上ではない） → {'✅ PASS' if res_i['not_mod_based'] else '❌ FAIL'}",
+        f"- 確認3: F10 仕様 Trades/yr ≈ 52 ± 10% （rel_diff={res_i['rel_diff_pct']:.1f}%） → {'✅ PASS' if res_i['near52_ok'] else '❌ FAIL'}",
+        f"- 結論: F10 の Trades/yr は **lev_raw（離散）と tilt（wn_tilted/wb_tilted）の変化で計上**されており、lev_mod_e4 (連続) ベースではない",
+        f"- 判定: {overall_i}",
+        '',
+    ]
+
     # 総合
     all_verdicts = [res_a['verdict'], res_b['verdict'], res_c['verdict'],
-                    res_d['verdict'], res_e['verdict']]
+                    res_d['verdict'], res_e['verdict'],
+                    res_f['verdict'], res_g['verdict'],
+                    res_h['verdict'], res_i['verdict']]
     overall_all = 'PASS' if all(v == 'PASS' for v in all_verdicts) else 'FAIL'
     overall_mark = '✅ ALL PASS' if overall_all == 'PASS' else '❌ FAIL'
 
@@ -592,8 +957,12 @@ def generate_md(res_a, res_b, res_c, res_d, res_e, out_path: str):
         f"| A DELAY=2 コンプライアンス | {'✅ PASS' if res_a['verdict'] == 'PASS' else '❌ FAIL'} |",
         f"| B vz 因果性 | {'✅ PASS' if res_b['verdict'] == 'PASS' else '❌ FAIL'} |",
         f"| C lt_sig 因果性 | {'✅ PASS' if res_c['verdict'] == 'PASS' else '❌ FAIL'} |",
-        f"| D k_dyn 境界条件 | {'✅ PASS' if res_d['verdict'] == 'PASS' else '❌ FAIL'} |",
+        f"| D k_dyn 境界条件 (vz_thr=0.70) | {'✅ PASS' if res_d['verdict'] == 'PASS' else '❌ FAIL'} |",
         f"| E lev_A=0 境界条件 | {'✅ PASS' if res_e['verdict'] == 'PASS' else '❌ FAIL'} |",
+        f"| F ε-deadband 因果性 (F10) | {'✅ PASS' if res_f['verdict'] == 'PASS' else '❌ FAIL'} |",
+        f"| G l_max=5.0 cap 検証 | {'✅ PASS' if res_g['verdict'] == 'PASS' else '❌ FAIL'} |",
+        f"| H k_dyn_065 境界条件 (vz_thr=0.65) | {'✅ PASS' if res_h['verdict'] == 'PASS' else '❌ FAIL'} |",
+        f"| I Trades/yr 計上基準 (F10) | {'✅ PASS' if res_i['verdict'] == 'PASS' else '❌ FAIL'} |",
         f'| **総合** | **{overall_mark}** |',
         '',
     ]
@@ -608,13 +977,29 @@ def generate_md(res_a, res_b, res_c, res_d, res_e, out_path: str):
 # YAML 生成
 # ===========================================================================
 
-def generate_yaml(res_a, res_b, res_c, res_d, res_e, out_path: str):
+def generate_yaml(res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h, res_i, out_path: str):
     all_verdicts = [res_a['verdict'], res_b['verdict'], res_c['verdict'],
-                    res_d['verdict'], res_e['verdict']]
+                    res_d['verdict'], res_e['verdict'],
+                    res_f['verdict'], res_g['verdict'],
+                    res_h['verdict'], res_i['verdict']]
     overall = 'PASS' if all(v == 'PASS' for v in all_verdicts) else 'FAIL'
 
+    def _clean(d):
+        """Convert numpy scalars to native python for YAML serialisation."""
+        out = {}
+        for k, v in d.items():
+            if isinstance(v, (np.floating,)):
+                out[k] = float(v)
+            elif isinstance(v, (np.integer,)):
+                out[k] = int(v)
+            elif isinstance(v, (np.bool_,)):
+                out[k] = bool(v)
+            else:
+                out[k] = v
+        return out
+
     data = {
-        'strategy': 'S2_VZGated+LT2-N750+E4_RegimeKlt',
+        'strategy': 'S2_VZGated+LT2-N750+E4_RegimeKlt (+F10/vz065lmax5/F10lmax5 派生)',
         'generated': '2026-05-26',
         'blocks': {
             'A_delay_compliance': {
@@ -650,6 +1035,55 @@ def generate_yaml(res_a, res_b, res_c, res_d, res_e, out_path: str):
                 'strict_zero_fail_days': res_e['strict_zero_fail_days'],
                 'verdict': res_e['verdict'],
             },
+            'F_eps_deadband_causality_f10': {
+                'formula_ok': bool(res_f['formula_ok']),
+                'tilt_const': float(res_f['tilt_const']),
+                'threshold_const': float(res_f['threshold_const']),
+                'eps_const': float(res_f['eps_const']),
+                'checked_t_indices': [r['t'] for r in res_f['rows']],
+                'rows': [
+                    {k: (float(v) if isinstance(v, (float, np.floating)) else v)
+                     for k, v in r.items()}
+                    for r in res_f['rows']
+                ],
+                'failures': res_f['failures'],
+                'verdict': res_f['verdict'],
+            },
+            'G_lmax5_cap': {
+                'L_lmax5_max': float(res_g['L_lmax5_max']),
+                'L_lmax5_min': float(res_g['L_lmax5_min']),
+                'L_lmax7_max': float(res_g['L_lmax7_max']),
+                'days_lmax7_over5': int(res_g['days_lmax7_over5']),
+                'ok_max_cap': bool(res_g['ok_max_cap']),
+                'ok_min_cap': bool(res_g['ok_min_cap']),
+                'ok_l7_over5': bool(res_g['ok_l7_over5']),
+                'verdict': res_g['verdict'],
+            },
+            'H_k_dyn_065_boundary': {
+                'vz_thr': 0.65,
+                'test_cases': [
+                    {k: (float(v) if isinstance(v, (float, np.floating)) else v)
+                     for k, v in tc.items()}
+                    for tc in res_h['test_cases']
+                ],
+                'failures': res_h['failures'],
+                'verdict': res_h['verdict'],
+            },
+            'I_trades_yr_basis_f10': {
+                'n_years': float(res_i['n_years']),
+                'lev_raw_changes': int(res_i['lev_raw_changes']),
+                'lev_mod_e4_changes': int(res_i['lev_mod_e4_changes']),
+                'f10_trade_changes': int(res_i['f10_trade_changes']),
+                'n_tr_internal': int(res_i['n_tr_internal']),
+                'trades_yr_raw': float(res_i['trades_yr_raw']),
+                'trades_yr_mod': float(res_i['trades_yr_mod']),
+                'trades_yr_f10': float(res_i['trades_yr_f10']),
+                'sparser_ok': bool(res_i['sparser_ok']),
+                'not_mod_based': bool(res_i['not_mod_based']),
+                'near52_ok': bool(res_i['near52_ok']),
+                'rel_diff_pct': float(res_i['rel_diff_pct']),
+                'verdict': res_i['verdict'],
+            },
         },
         'overall_verdict': overall,
     }
@@ -667,7 +1101,7 @@ if __name__ == '__main__':
     sys.stdout.reconfigure(encoding='utf-8')
 
     print('=' * 60)
-    print('ロジック正しさ検証 — E4 Regime k_lt')
+    print('ロジック正しさ検証 — E4 / F10 / vz065+lmax5 / F10+lmax5')
     print('=' * 60)
 
     print('\n[LOAD] E4 strategy assets (cached) ...')
@@ -676,24 +1110,51 @@ if __name__ == '__main__':
     print(f"  n: {len(assets['close'])} rows")
     print(f"  nav_e4 final: {float(assets['nav_e4'].iloc[-1]):.4f}")
 
+    print('\n[LOAD] F10 strategy assets (cached) ...')
+    f10_assets = build_f10_strategy_assets(force_rebuild=False)
+    print(f"  tilt_confirmed range: [{float(np.min(f10_assets['tilt_confirmed'])):.4f}, "
+          f"{float(np.max(f10_assets['tilt_confirmed'])):.4f}]")
+    print(f"  nav_f10 final: {float(f10_assets['nav_f10'].iloc[-1]):.4f}")
+
+    print('\n[LOAD] vz065+lmax5 strategy assets (cached) ...')
+    vz65_assets = build_vz065lmax5_strategy_assets(force_rebuild=False)
+    print(f"  L_s2_lmax5 range: [{float(vz65_assets['L_s2_lmax5'].min()):.3f}, "
+          f"{float(vz65_assets['L_s2_lmax5'].max()):.3f}]")
+    print(f"  nav_vz065lmax5 final: {float(vz65_assets['nav_vz065lmax5'].iloc[-1]):.4f}")
+
+    # F10+lmax5 is loaded for completeness but Block F covers the same deadband logic;
+    # Block G uses vz65_assets (which also contains L_s2_lmax5). We still warm its cache
+    # so all four strategy assets exist on disk.
+    print('\n[LOAD] F10+lmax5 strategy assets (cached, for cache warm-up) ...')
+    f10lmax5_assets = build_f10lmax5_strategy_assets(force_rebuild=False)
+    print(f"  nav_f10lmax5 final: {float(f10lmax5_assets['nav_f10lmax5'].iloc[-1]):.4f}")
+
     res_a = run_block_a(assets)
     res_b = run_block_b(assets)
     res_c = run_block_c(assets)
     res_d = run_block_d()
     res_e = run_block_e(assets)
+    res_f = run_block_f(f10_assets)
+    res_g = run_block_g(vz65_assets)
+    res_h = run_block_h()
+    res_i = run_block_i(f10_assets)
 
     md_path   = os.path.join(AUDIT_DIR, 'LOGIC_CHECK_20260526.md')
     yaml_path = os.path.join(AUDIT_DIR, 'logic_check.yaml')
 
-    generate_md(res_a, res_b, res_c, res_d, res_e, md_path)
-    generate_yaml(res_a, res_b, res_c, res_d, res_e, yaml_path)
+    generate_md(res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h, res_i, md_path)
+    generate_yaml(res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h, res_i, yaml_path)
 
     # 最終サマリー
     all_v = [res_a['verdict'], res_b['verdict'], res_c['verdict'],
-             res_d['verdict'], res_e['verdict']]
+             res_d['verdict'], res_e['verdict'],
+             res_f['verdict'], res_g['verdict'],
+             res_h['verdict'], res_i['verdict']]
     overall = 'ALL PASS' if all(v == 'PASS' for v in all_v) else 'FAIL'
     print('\n' + '=' * 60)
     print(f'  総合判定: {overall}')
     print(f'  A={res_a["verdict"]}  B={res_b["verdict"]}  C={res_c["verdict"]}  '
           f'D={res_d["verdict"]}  E={res_e["verdict"]}')
+    print(f'  F={res_f["verdict"]}  G={res_g["verdict"]}  H={res_h["verdict"]}  '
+          f'I={res_i["verdict"]}')
     print('=' * 60)

@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-05-24
+最終更新: 2026-05-26
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -10,11 +10,15 @@
 ## 🟡 Pending
 
 ### 短期（実装フェーズ）
+- [ ] **CURRENT_BEST_STRATEGY.md 更新判断**: vz065+lmax5 vs F10+lmax5 vs E4 の採用変更を最終決定（INTEGRATION_DEBATE_2026-05-26.md 参照）
+- [ ] **STRATEGY_PERFORMANCE_COMPARISON v1.7**: F10 ε=0.015 / vz065+lmax5 / F10+lmax5 の3候補列を追加
+- [ ] **p10_f10lmax5_fullmetrics.py Trades/yr バグ修正**: 現状は lev_raw 変化のみカウント（=27/yr）→ lev_raw+wn/wb 変化を合算（=52/yr）に修正。CSV も再生成
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更, nasdaq-strategy-gas 側)
 - [ ] 2026年データへの拡張（継続監視）
 - [ ] Ens2 戦略の OOS 検証（2022-2026, 完全性のため）
 
 ### 中期（新検証アイデア候補）
+- [ ] **G10 WFA for F10+lmax5**: 現行 G8 CI95_lo=+25.57% を +27%+ 到達可能か別設定で調査（窓幅・OLS推定など）
 > 着手前に必ず [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) §3 Rejected で重複チェック、[docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md) の4ステップを実施。
 
 - [ ] **F10 候補**: F8 R5_CALM_BOOST の cap 値細分（calm=0.15→0.20 / bear-VZ=完全停止 等）
@@ -36,6 +40,13 @@
 - ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- 2026-05-26: **Trades/yr バグ特定（F10+lmax5）** — `p10_f10lmax5_fullmetrics.py` が lev_raw 変化のみカウント（27/yr）で wn/wb 変化を未計上。正しくは lev_raw+wn/wb で 52/yr（G8 WFA per-window 平均 52.09 で確認）。INTEGRATION_DEBATE §2 表を修正済み。CSV は未再生成。
+- 2026-05-26: **INTEGRATION_DEBATE §2 テーブルヘッダ標準化** — 手書きヘッダ → `src/_sweep_format.py` の `MD_HEADER_STRAT` + 過学習リスク列 に修正（commit 7c0b091）。P10 5Y▷ 列も追加。根本原因: サブエージェントが `_sweep_format.py` import 未実施。再発防止: CLAUDE.md §NASDAQ sweep ルール に Item 5 追記。
+- 2026-05-26: **F10+lmax5 全指標計算** — `src/p10_f10lmax5_fullmetrics.py` 新規作成・実行。CAGR_OOS=+33.56%、MaxDD=-54.22%、Worst10Y★=+16.90%、IS-OOS gap=-3.37pp（4候補中2位）、P10_5Y=+12.8%（4候補中1位）。`f10lmax5_fullmetrics.csv` 生成（commit d56fcdd）。
+- 2026-05-26: **G9 WFA for vz065+lmax5 PASS** — CI95_lo=+24.82%（α PASS）、WFE=+1.272（β PASS）。Shortlisted 確定。MaxDD=-51.8% は全候補中最良。[G9_WFA_VZ065_LMAX5_2026-05-26.md](G9_WFA_VZ065_LMAX5_2026-05-26.md)
+- 2026-05-26: **G8 WFA for F10+lmax5 PASS** — CI95_lo=+25.57%（α PASS）、WFE=+1.278（β PASS）。Shortlisted 確定。P10_5Y=+12.8% は全候補中最高。[G8_WFA_F10LMAX5_2026-05-26.md](G8_WFA_F10LMAX5_2026-05-26.md)
+- 2026-05-26: **G7 WFA for F10 ε=0.015 PASS** — CI95_lo=+27.93%（α PASS・全候補中最高）、WFE=+1.208（β PASS）。採用推奨・ユーザー判断待ち。IS-OOS gap=-4.31pp⚠ 汎化性懸念あり。[G7_WFA_F10_2026-05-26.md](G7_WFA_F10_2026-05-26.md)
+- 2026-05-26: **H1 Stress Test P10_5Y▷ 計算（4候補）** — E4=+9.8%、F10 ε=0.015=+10.3%、vz065+lmax5=+11.9%、F10+lmax5=+12.8%。P10_5Y は F10+lmax5 が最高。[INTEGRATION_DEBATE_2026-05-26.md](INTEGRATION_DEBATE_2026-05-26.md)
 - 2026-05-24: **比較MD更新 v1.6** — F8-R5・F7v3+E4 列を削除（Trades/yr過多・採用不採用確定）。6戦略統一評価フレームワークへ縮小。`src/gen_strategy_comparison.py` 更新・`STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md` 再生成。
 - 2026-05-24: **比較MD更新 v1.5 + E4 Active 復帰** — `src/gen_f8r5_yearly_returns.py` 新規作成・`f8r5_yearly_returns.csv` 生成。`src/gen_strategy_comparison.py` を8戦略に拡張（F8-R5 ✅列追加・E4 ◆復帰・F7v3+E4 ✅降格）。Trades/yr 182-183回(E4比7倍)・OOS偶然性疑い・IS-OOS gap拡大を棄却理由として CURRENT_BEST_STRATEGY.md・STRATEGY_REGISTRY.md 更新。[STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md](STRATEGY_PERFORMANCE_COMPARISON_2026-05-24.md)
 - 2026-05-24: **他セッション引き継ぎ改善** — `RESEARCH_CONTEXT.md` 新規作成（実験系統図 A〜H 系列、採用チェーン、棄却サマリ、未着手方向性）。`FILE_INDEX.md` を 2026-05-21〜05-24 で追加された A〜H/P/S系 全ファイル（実装・MD・CSV）で更新。`tasks.md` Pending を中期・長期・着手禁止カテゴリで再構成。[RESEARCH_CONTEXT.md](RESEARCH_CONTEXT.md)

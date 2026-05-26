@@ -1,0 +1,100 @@
+generated: '2026-05-26'
+strategy: F10 = F8-R5 (tilt=10.0, CALM_BOOST) + epsilon=0.015 deadband + E4 lev_mod_e4
+  + S2 L_s2
+f10_params:
+  eps: 0.015
+  tilt: 10.0
+  vz_reg: 0.7
+  cap_calm: 0.15
+  cap_bull: 0.1
+  cap_bear: 0.05
+thresholds:
+  Sharpe_OOS: 0.7
+  CAGR_OOS: 0.2
+  Worst10Y_star: 0.1
+scenarios:
+- name: (1) 現行(CFD_SPREAD_LOW 0.20%)
+  kind: spread_only
+  verdict: PASS
+  metrics:
+    CAGR_OOS: 0.3684449924802098
+    CAGR_IS: 0.3253698602912394
+    Sharpe_OOS: 0.9345002296135403
+    MaxDD_FULL: -0.6308742786041249
+    Worst10Y_star: 0.18584114171963195
+    P10_5Y: 0.13318868610753812
+    IS_OOS_gap: -0.04307513218897041
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+- name: (2) くりっく株365 (4.92%全体)
+  kind: kurikku365
+  verdict: FAIL (Worst10Y★=+9.6%<10%)
+  metrics:
+    CAGR_OOS: 0.3250831528764464
+    CAGR_IS: 0.2919008745085805
+    Sharpe_OOS: 0.8614862829899465
+    MaxDD_FULL: -0.6532151303370045
+    Worst10Y_star: 0.09605042517741635
+    P10_5Y: 0.06827560685649094
+    IS_OOS_gap: -0.033182278367865914
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+- name: (3) SBI-CFD 低推定 (SOFR+1.0%)
+  kind: sofr_plus
+  verdict: PASS
+  metrics:
+    CAGR_OOS: 0.3458460597131512
+    CAGR_IS: 0.3006142456984642
+    Sharpe_OOS: 0.8967881534788541
+    MaxDD_FULL: -0.63986279693739
+    Worst10Y_star: 0.16167192404582265
+    P10_5Y: 0.11357757084500722
+    IS_OOS_gap: -0.04523181401468701
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+- name: (4) SBI-CFD 高推定 (SOFR+3.0%)
+  kind: sofr_plus
+  verdict: PASS
+  metrics:
+    CAGR_OOS: 0.3017535963535418
+    CAGR_IS: 0.2524716930665234
+    Sharpe_OOS: 0.8213171748055726
+    MaxDD_FULL: -0.6571927549700449
+    Worst10Y_star: 0.11479138812922463
+    P10_5Y: 0.06643726767836469
+    IS_OOS_gap: -0.049281903287018425
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+- name: (5) 楽天/IG-CFD (SOFR+3.0%)
+  kind: sofr_plus
+  verdict: PASS
+  metrics:
+    CAGR_OOS: 0.3017535963535418
+    CAGR_IS: 0.2524716930665234
+    Sharpe_OOS: 0.8213171748055726
+    MaxDD_FULL: -0.6571927549700449
+    Worst10Y_star: 0.11479138812922463
+    P10_5Y: 0.06643726767836469
+    IS_OOS_gap: -0.049281903287018425
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+- name: (6) GMO/DMM ロール (4.5%全体)
+  kind: roll_cost
+  verdict: PASS
+  metrics:
+    CAGR_OOS: 0.3367788056379457
+    CAGR_IS: 0.3042795237691269
+    Sharpe_OOS: 0.8813944945182909
+    MaxDD_FULL: -0.6444587727196616
+    Worst10Y_star: 0.10717994348143134
+    P10_5Y: 0.08124605686755491
+    IS_OOS_gap: -0.032499281868818786
+    Trades_yr: 27.115498519249755
+    WFA_CI95_lo: null
+    WFA_WFE: null
+overall_risk: MEDIUM

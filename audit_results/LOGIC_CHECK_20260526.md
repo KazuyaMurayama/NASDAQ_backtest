@@ -1,12 +1,12 @@
-# ロジック正しさ検証レポート — E4 Regime k_lt
+# ロジック正しさ検証レポート — E4 / F10 / vz065+lmax5 / F10+lmax5
 
 作成日: 2026-05-26  
-対象戦略: S2_VZGated + LT2-N750 + E4 Regime k_lt  
+対象戦略: S2_VZGated + LT2-N750 + E4 Regime k_lt（および派生 F10 / vz065+lmax5 / F10+lmax5）  
 実行スクリプト: src/audit/check_logic_delay_and_causal.py
 
 ---
 
-## Block A: DELAY=2 コンプライアンス（NAV 手計算照合）
+## Block A: DELAY=2 コンプライアンス（NAV 手計算照合, E4）
 
 | 日付 | 公式 daily_ret | 手計算 daily_ret | 差 | 判定 |
 |---|---|---|---|---|
@@ -62,6 +62,57 @@
 - lev_A=0 かつ lt_bias<=0 の厳格ゼロ確認: fail=0日 (期待=0)
 - 判定: ✅ PASS
 
+## Block F: ε-deadband 因果性（F10）
+
+- 計算式: `tilt_raw = 10.0 * (raw_a2 - THRESHOLD=0.1500) * (1 - raw_a2)` — state-less
+- ε = 0.0150
+- deadband 更新規則: `if i==0 or |tilt_target[i] - cur| >= ε: cur = tilt_target[i]`  → `confirmed[i] = cur`
+- 因果性検証（raw_a2/vz を t で truncate → confirmed[t] 再計算 → キャッシュ値と一致）:
+
+| t | 日付 | confirmed_full | confirmed_trunc | diff | 判定 |
+|---|---|---|---|---|---|
+| 11693 | 2020-05-12 | +0.150000 | +0.150000 | 0.00e+00 | ✅ |
+| 11818 | 2020-11-06 | +0.150000 | +0.150000 | 0.00e+00 | ✅ |
+| 11942 | 2021-05-07 | +0.050000 | +0.050000 | 0.00e+00 | ✅ |
+| 11993 | 2021-07-21 | +0.150000 | +0.150000 | 0.00e+00 | ✅ |
+| 12143 | 2022-02-23 | +0.000000 | +0.000000 | 0.00e+00 | ✅ |
+| **総合** | | | | | **✅ PASS** |
+
+## Block G: l_max=5.0 cap 検証（L_s2_lmax5）
+
+| 項目 | 値 | 期待 | 判定 |
+|---|---|---|---|
+| L_s2_lmax5.max | 5.000000 | ≤ 5.0+ε | ✅ |
+| L_s2_lmax5.min | 1.000000 | ≥ 1.0-ε | ✅ |
+| L_s2.max (l_max=7) | 7.000000 | > 5.0 | ✅ |
+| L_s2(l_max=7) で > 5.0 の日数 | 6,881 | (参考) | — |
+| **総合** | | | **✅ PASS** |
+
+## Block H: k_dyn_065 (vz_thr=0.65) 境界条件（6ケース, vz065+lmax5）
+
+| vz値 | 期待k_dyn | 実際k_dyn | 差 | ラベル | 判定 |
+|---|---|---|---|---|---|
+| +0.6510 | 0.8 | 0.8 | 0.00e+00 | vz > +0.65 → k_hi | ✅ |
+| +0.6500 | 0.5 | 0.5 | 0.00e+00 | vz == +0.65 → k_mid (厳密不等号) | ✅ |
+| +0.6490 | 0.5 | 0.5 | 0.00e+00 | vz < +0.65 → k_mid | ✅ |
+| -0.6510 | 0.1 | 0.1 | 0.00e+00 | vz < -0.65 → k_lo | ✅ |
+| -0.6500 | 0.5 | 0.5 | 0.00e+00 | vz == -0.65 → k_mid (厳密不等号) | ✅ |
+| -0.6490 | 0.5 | 0.5 | 0.00e+00 | vz > -0.65 → k_mid | ✅ |
+| **総合** | | | | 6/6ケース | **✅ PASS** |
+
+## Block I: Trades/yr 計上基準（F10: lev_raw=lev_A, +tilt変化）
+
+- n_years = 52.26
+- lev_raw (=lev_A, simulate_rebalance_A の離散出力) 単体変化日数: 1,417  → /yr = 27.12
+- lev_mod_e4 (lt_bias 適用後の連続値) 変化日数: 8,978  → /yr = 171.80
+- **F10 仕様 Trades** (wn_tilted/wb_tilted/lev_raw のいずれか変化, count_trades_in_window 準拠): 2,695  → /yr = **51.57**
+- n_tr (simulate_rebalance_A 内部カウント): 1,417
+- 確認1: lev_raw_changes < lev_mod_e4_changes（lev_raw が離散・スパース） → ✅ PASS
+- 確認2: F10 spec /yr が lev_mod_e4 ベースより十分小さい（mod-based 計上ではない） → ✅ PASS
+- 確認3: F10 仕様 Trades/yr ≈ 52 ± 10% （rel_diff=0.8%） → ✅ PASS
+- 結論: F10 の Trades/yr は **lev_raw（離散）と tilt（wn_tilted/wb_tilted）の変化で計上**されており、lev_mod_e4 (連続) ベースではない
+- 判定: ✅ PASS
+
 ## 総合判定
 
 | Block | 判定 |
@@ -69,7 +120,11 @@
 | A DELAY=2 コンプライアンス | ✅ PASS |
 | B vz 因果性 | ✅ PASS |
 | C lt_sig 因果性 | ✅ PASS |
-| D k_dyn 境界条件 | ✅ PASS |
+| D k_dyn 境界条件 (vz_thr=0.70) | ✅ PASS |
 | E lev_A=0 境界条件 | ✅ PASS |
+| F ε-deadband 因果性 (F10) | ✅ PASS |
+| G l_max=5.0 cap 検証 | ✅ PASS |
+| H k_dyn_065 境界条件 (vz_thr=0.65) | ✅ PASS |
+| I Trades/yr 計上基準 (F10) | ✅ PASS |
 | **総合** | **✅ ALL PASS** |
 

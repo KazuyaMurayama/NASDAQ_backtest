@@ -1,4 +1,4 @@
-strategy: S2_VZGated+LT2-N750+E4_RegimeKlt
+strategy: S2_VZGated+LT2-N750+E4_RegimeKlt (+F10/vz065lmax5/F10lmax5 派生)
 generated: '2026-05-26'
 blocks:
   A_delay_compliance:
@@ -75,5 +75,107 @@ blocks:
     arith_consistency_max_diff: 0.0
     arith_fail_days: 0
     strict_zero_fail_days: 0
+    verdict: PASS
+  F_eps_deadband_causality_f10:
+    formula_ok: true
+    tilt_const: 10.0
+    threshold_const: 0.15
+    eps_const: 0.015
+    checked_t_indices:
+    - 11693
+    - 11818
+    - 11942
+    - 11993
+    - 12143
+    rows:
+    - t: 11693
+      date: '2020-05-12'
+      confirmed_full: 0.15
+      confirmed_trunc: 0.15
+      diff: 0.0
+      pass: true
+    - t: 11818
+      date: '2020-11-06'
+      confirmed_full: 0.15
+      confirmed_trunc: 0.15
+      diff: 0.0
+      pass: true
+    - t: 11942
+      date: '2021-05-07'
+      confirmed_full: 0.05
+      confirmed_trunc: 0.05
+      diff: 0.0
+      pass: true
+    - t: 11993
+      date: '2021-07-21'
+      confirmed_full: 0.15
+      confirmed_trunc: 0.15
+      diff: 0.0
+      pass: true
+    - t: 12143
+      date: '2022-02-23'
+      confirmed_full: 0.0
+      confirmed_trunc: 0.0
+      diff: 0.0
+      pass: true
+    failures: []
+    verdict: PASS
+  G_lmax5_cap:
+    L_lmax5_max: 5.0
+    L_lmax5_min: 1.0
+    L_lmax7_max: 7.0
+    days_lmax7_over5: 6881
+    ok_max_cap: true
+    ok_min_cap: true
+    ok_l7_over5: true
+    verdict: PASS
+  H_k_dyn_065_boundary:
+    vz_thr: 0.65
+    test_cases:
+    - label: vz > +0.65 → k_hi
+      vz_val: 0.651
+      expected: 0.8
+      actual: 0.8
+      pass: true
+    - label: vz == +0.65 → k_mid (厳密不等号)
+      vz_val: 0.65
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz < +0.65 → k_mid
+      vz_val: 0.649
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz < -0.65 → k_lo
+      vz_val: -0.651
+      expected: 0.1
+      actual: 0.1
+      pass: true
+    - label: vz == -0.65 → k_mid (厳密不等号)
+      vz_val: -0.65
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    - label: vz > -0.65 → k_mid
+      vz_val: -0.649
+      expected: 0.5
+      actual: 0.5
+      pass: true
+    failures: []
+    verdict: PASS
+  I_trades_yr_basis_f10:
+    n_years: 52.257936507936506
+    lev_raw_changes: 1417
+    lev_mod_e4_changes: 8978
+    f10_trade_changes: 2695
+    n_tr_internal: 1417
+    trades_yr_raw: 27.115498519249755
+    trades_yr_mod: 171.80165540284
+    trades_yr_f10: 51.57111397980105
+    sparser_ok: true
+    not_mod_based: true
+    near52_ok: true
+    rel_diff_pct: 0.824780808074908
     verdict: PASS
 overall_verdict: PASS

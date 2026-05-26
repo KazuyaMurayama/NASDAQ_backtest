@@ -1,0 +1,24 @@
+strategy: S2_VZGated_lmax5+LT2-N750+RegimeKlt_vz065
+generated: '2026-05-26'
+sr_observed: 0.949708
+sr_bh1x_oos: 0.5406
+bootstrap:
+  L63_ci95_lo: 0.134017
+  L63_ci95_hi: 1.646196
+  L63_p_value: 0.0118
+  verdict: PASS
+permutation:
+  a_L_s2_lmax5:
+    p_value: 0.147
+    verdict: FAIL
+  c_lev_mod_065:
+    p_value: 0.017
+    verdict: PASS
+  d_simultaneous_KEY:
+    p_value: 0.005
+    verdict: PASS
+wfa_g9:
+  CI95_lo: 0.2482
+  WFE: 1.272
+  verdict: PASS
+overall_verdict: PASS

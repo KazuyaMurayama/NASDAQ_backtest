@@ -1,0 +1,37 @@
+strategy: F10_eps0.015_deadband+F8R5+E4_RegimeKlt+S2_lmax7
+generated: '2026-05-26'
+verdict: PASS
+criteria:
+  bootstrap_ci95_lo_gt_0: true
+  permutation_d_p_lt_0.05: true
+  wfa_ci95_lo_gt_0_and_wfe_in_0.5_2.0: true
+bootstrap:
+  ci95_lo_L63: 0.161856
+  ci95_hi_L63: 1.588222
+  p_value_L63: 0.0102
+  verdict: PASS
+permutation:
+  a_L_s2:
+    p_value: 0.184
+    verdict: FAIL
+  c_lev_mod_e4:
+    p_value: 0.038
+    verdict: PASS
+  d_simultaneous:
+    p_value: 0.012
+    verdict: PASS
+  main_verdict: PASS
+wfa_g7:
+  ci95_lo: 0.2791
+  wfe: 1.208
+  t_p: 0.0
+  verdict: PASS
+  source: G7_WFA_F10_2026-05-26.md
+observed_metrics:
+  sr_observed: 0.934883
+  sr_bh1x_oos: 0.5406
+e4_comparison:
+  sr_observed: 0.891823
+  ci95_lo_L63: 0.110129
+  wfa_ci95_lo: 0.2651
+  wfa_wfe: 1.131

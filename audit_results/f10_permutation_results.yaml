@@ -1,0 +1,50 @@
+strategy: F10_eps0.015_deadband+F8R5+E4_RegimeKlt+S2_lmax7
+generated: '2026-05-26'
+oos_period:
+  start: '2021-05-08'
+  end: '2026-03-26'
+settings:
+  B: 1000
+  block_len: 63
+  seed: 42
+f10_params:
+  eps: 0.015
+  tilt: 10.0
+  vz_reg: 0.7
+  cap_calm: 0.15
+  cap_bull: 0.1
+  cap_bear: 0.05
+sr_observed: 1.082119
+sr_bh1x_oos: 0.516382
+tests:
+  a_L_s2_block:
+    p_value: 0.184
+    verdict: FAIL
+    dist_mean: 0.957529
+    dist_std: 0.140467
+    dist_P5: 0.724775
+    dist_P25: 0.863731
+    dist_P50: 0.956331
+    dist_P75: 1.05255
+    dist_P95: 1.186197
+  c_lev_mod_e4_block:
+    p_value: 0.038
+    verdict: PASS
+    dist_mean: 0.710009
+    dist_std: 0.216718
+    dist_P5: 0.345421
+    dist_P25: 0.569426
+    dist_P50: 0.719163
+    dist_P75: 0.855522
+    dist_P95: 1.062635
+  d_simultaneous_block:
+    p_value: 0.012
+    verdict: PASS
+    dist_mean: 0.515748
+    dist_std: 0.25049
+    dist_P5: 0.087341
+    dist_P25: 0.357606
+    dist_P50: 0.524091
+    dist_P75: 0.690392
+    dist_P95: 0.915529
+verdict: PASS

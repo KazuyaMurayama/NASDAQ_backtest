@@ -1,7 +1,7 @@
 # STRATEGY REGISTRY — 戦略台帳（Active / Shortlisted / Rejected / Deferred）
 
 作成日: 2026-05-21
-最終更新日: 2026-05-24 (tilt系棄却・E4 Regime k_lt 復帰: Trades/yr過多182回・OOS偶然性疑いによりF7v3/F8-R5をShortlistedへ降格)
+最終更新日: 2026-05-26 (F10 ε=0.015 / vz065+lmax5 / F10+lmax5 WFA PASS → Shortlisted 追加・採用変更検討中)
 管理者: 男座員也（Kazuya Oza）
 
 ---
@@ -81,6 +81,9 @@
 
 | Strategy ID | Name | Theme | Verified Date | Cost Scenario | CAGR_OOS | Sharpe_OOS | MaxDD | Status | Decision Reason | Evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
+| **S2_VZGated+LT2_N750_E4_F10eps015** | S2_VZGated + LT2-N750 + E4 + F10 ε=0.015 (F8 R5_CALM_BOOST + ε-deadband 0.015, l_max=7.0) | CFDLeverage + LongCycleSignal + VolRegime + RegimeCapBullTilt + EpsilonDeadband | 2026-05-26 | D | +36.8% | 0.934 | −63.1% | Shortlisted (WFA G7 PASS, **採用推奨・ユーザー判断待ち**) | G7 WFA PASS（CI95_lo=+27.93%・全候補中最高, WFE=+1.208）。Sharpe_OOS最高+0.934・CAGR_OOS最高+36.8%。IS-OOS gap=-4.31pp⚠ は4候補中最大（汎化性懸念）。Trades/yr=52（E4比約2倍）。採用変更はユーザー判断待ち。 | [INTEGRATION_DEBATE_2026-05-26.md](INTEGRATION_DEBATE_2026-05-26.md), [G7_WFA_F10_2026-05-26.md](G7_WFA_F10_2026-05-26.md), [src/g7_wfa_f10.py](src/g7_wfa_f10.py) |
+| **S2_VZGated+LT2_N750_vz065_lmax5** | S2_VZGated + LT2-N750 + E4 (vz_thr=0.65, l_max=5.0) | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-26 | D | +33.5% | 0.947 | −51.8% | Shortlisted (WFA G9 PASS, Sharpe最高・MaxDD最良) | G9 WFA PASS（CI95_lo=+24.82%, WFE=+1.272）。Sharpe_OOS=+0.947 は全候補中最高。MaxDD=-51.8% は4候補中最良（E4比+8.2pp 改善）。IS-OOS gap=-3.91pp（E4比-2.1pp 悪化）。Trades/yr=27 でE4同等コスト。 | [INTEGRATION_DEBATE_2026-05-26.md](INTEGRATION_DEBATE_2026-05-26.md), [G9_WFA_VZ065_LMAX5_2026-05-26.md](G9_WFA_VZ065_LMAX5_2026-05-26.md) |
+| **S2_VZGated+LT2_N750_F10lmax5** | S2_VZGated + LT2-N750 + F10 ε=0.015 (l_max=5.0) | CFDLeverage + LongCycleSignal + VolRegime + RegimeCapBullTilt + EpsilonDeadband | 2026-05-26 | D | +33.6% | 0.943 | −54.2% | Shortlisted (WFA G8 PASS, P10_5Y最高) | G8 WFA PASS（CI95_lo=+25.57%, WFE=+1.278）。P10_5Y=+12.8% は4候補中最高。IS-OOS gap=-3.37pp は4候補中2位（E4に次いで良好）。Worst10Y★=+16.9%（E4比-1.8pp 劣後）。Trades/yr=52（lev_raw+wn/wb 正計上）。 | [INTEGRATION_DEBATE_2026-05-26.md](INTEGRATION_DEBATE_2026-05-26.md), [G8_WFA_F10LMAX5_2026-05-26.md](G8_WFA_F10LMAX5_2026-05-26.md), [f10lmax5_fullmetrics.csv](f10lmax5_fullmetrics.csv), [src/g8_wfa_lmax5.py](src/g8_wfa_lmax5.py) |
 | **S2_VZGated+LT2_N750_E4_F8R5** | S2_VZGated + LT2-N750 + E4 + F8 R5_CALM_BOOST (tilt=10, cap=calm0.15/bullVZ0.10/bearVZ0.05) | CFDLeverage + LongCycleSignal + VolRegime + RegimeCapBullTilt | 2026-05-24 | D | +36.83% | 0.934 | −63.07% | Shortlisted | G5 WFA PASS（CI95_lo=+27.92%, WFE=+1.208）。Sharpe/CAGR/WFAはE4より優位だが Trades/yr 182回（E4比7倍）のコスト負担と OOS 偶然性疑いにより採用見送り。Active に戻す条件: Trades/yr 削減策実装 or コスト込み実証（実取引ログ）。 | [F8_REGIME_TILT_2026-05-24.md](F8_REGIME_TILT_2026-05-24.md), [G5_WFA_F8R5_2026-05-24.md](G5_WFA_F8R5_2026-05-24.md), [g5_wfa_f8r5_summary.csv](g5_wfa_f8r5_summary.csv) |
 | **S2_VZGated+LT2_N750_E4_F7v3** | S2_VZGated + LT2-N750 + E4 + F7v3 Bull-Tilt (A:tilt=2.0, flat cap=0.10) | CFDLeverage + LongCycleSignal + VolRegime + BullTilt | 2026-05-24 | D | +36.30% | 0.926 | −61.96% | Shortlisted | G4 WFA PASS（CI95_lo=+27.15%, WFE=+1.203）。Trades/yr 183回（E4比7倍）の同一理由で採用見送り。F8-R5よりMaxDD良好（−61.96%）。Trades削減策実装後の再評価候補。 | [F7V3_BULL_TILT_2026-05-24.md](F7V3_BULL_TILT_2026-05-24.md), [G4_WFA_F7V3_2026-05-24.md](G4_WFA_F7V3_2026-05-24.md) |
 | **S2_VZGated+LT2_N750_E4RegimeKLT** | S2_VZGated + LT2-N750 + E4 Regime k_lt (k_lo=0.1, k_hi=0.8, vz_thr=0.7) / tiltなし | CFDLeverage + LongCycleSignal + VolRegime | 2026-05-24 | D | +33.53% | 0.891 | −60.01% | Shortlisted | 旧 Active（〜2026-05-24）。F7v3 Bull-Tilt が Sharpe +0.926 で上回り降格。WFA G3 PASS済み（CI95_lo=+26.51%, WFE=+1.131）。MaxDD −60.01% は本プロジェクト最良水準。最保守的な fallback 候補。 | [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md), [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md) |
@@ -228,7 +231,8 @@
 
 ### CFDLeverage（CFD 動的レバレッジ）
 - **Active**: S2_VZGated+LT2_N750_E4RegimeKLT → §1
-- **Shortlisted**: S2_VZGated+LT2_N750（旧Active, WFA完了済み fallback 第一候補）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, S2_VZGated, P2_VolTarget, S4_RelVol, CFD_7x_Fixed → §2
+- **Shortlisted (2026-05-26追加)**: S2_VZGated+LT2_N750_E4_F10eps015（WFA G7 PASS 採用推奨待ち）, S2_VZGated+LT2_N750_vz065_lmax5（WFA G9 PASS Sharpe最高/MaxDD最良）, S2_VZGated+LT2_N750_F10lmax5（WFA G8 PASS P10_5Y最高） → §2
+- **Shortlisted (既存)**: S2_VZGated+LT2_N750（旧Active, WFA完了済み fallback 第一候補）, S2_VZGated+LT4_N750_k0.7, S2_VZGated+LT6_N500_k0.7, S2_VZGated+LT7_k0.5, S2_VZGated, P2_VolTarget, S4_RelVol, CFD_7x_Fixed → §2
 - **Rejected**: CFD_LMAX_Sweep_Rejects, CFD_NVOL_Sweep_Rejects, Discrete_Leverage_Rejects, Marugoto_Leverage, Lev2x3x_Baseline, E1_Ensemble_S2_Rejects, F1_Alloc_Sweep_Rejects, **P1_SOFR_Adaptive** (18/18 S2未満), **P3_Momentum_Lev** (16/16 S2未満, gap+14.66pp), **P4_Composite** (三因子乗算、全24config S2未満), **P5_Kelly_Sizing** (12/12 S2未満), **S1_Conviction** (A2直接変換、IS-OOSgap+21pp), **S3_Decomposed_A2** (gap+22.39pp 致命的過剰適合), **S4_RelVol_Gated** (36/36 S2未満), S2_TV/KVZ/GATEMIN_Sweep_Rejects → §3.3
 - **関連分析**: Leverage_Bin_Analysis_V1_V4 → §3.5
 
@@ -367,6 +371,7 @@
 
 ## 変更履歴
 
+- 2026-05-26: §2 Shortlisted に F10 ε=0.015 (G7 WFA PASS, CI95_lo=+27.93%) / vz065+lmax5 (G9 PASS, CI95_lo=+24.82%) / F10+lmax5 (G8 PASS, CI95_lo=+25.57%) の3戦略を追加。採用変更はユーザー判断待ち（INTEGRATION_DEBATE_2026-05-26.md 参照）。§5 逆引きの CFDLeverage / VolRegime を更新。
 - 2026-05-24 (G3 WFA): E4 Regime k_lt の WFA が α∩β PASS (CI95_lo=+26.51%, t_p=0.0000, WFE=+1.131)。暫定 Active → **正式 Active 確定**。REF-N750 サニティ CI95_lo +25.73% / WFE +1.145 は G1 参照値と完全一致（diff -0.00pp / +0.000）。§1 Active 行から「暫定」表記を削除、CI95_lo / WFE 実測値を記入。Evidence に G3 関連ファイル 3点を追記。
 - 2026-05-24: Active を `S2_VZGated+LT2_N750` → `S2_VZGated+LT2_N750_E4RegimeKLT` に暫定昇格（E4 sweep 64 config / 12 PASS / 採用 config: k_lo=0.1, k_hi=0.8, vz_thr=0.7）。旧 Active は §2 Shortlisted へ移動（WFA PASS 済みで fallback 価値あり）。§5 逆引きに新テーマ `VolRegime` 追加。E4 WFA 完了次第、暫定→正式 Active へ確定予定。
 - 2026-05-23: Active を `S2_VZGated+LT2_N1500` → `S2_VZGated+LT2_N750` に差し戻し（コミット 8503200）。CAGR_OOS +31.16%・MaxDD −59.45%・Worst10Y★ +18.10% のリスク主要軸で N=750 が優位と再確認。N=1500 は Sharpe_OOS 最高値（+0.885）の実績で Shortlisted に移動。
