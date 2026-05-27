@@ -267,9 +267,9 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 
 新しい指標を追加する場合は、本書 §3 に式・コード参照・注意事項を追記してから採用する。
 
-### §3.12 統一指標セット（9指標）とレポート標準（v1.1 確定）
+### §3.12 統一指標セット（10指標）とレポート標準（v1.2 確定）
 
-すべての sweep / grid / 戦略比較レポートは以下の **9指標**を標準セットとして使用する。
+すべての sweep / grid / 戦略比較レポートは以下の **10指標**を標準セットとして使用する。
 
 | # | 指標 | 種別 | 列ヘッダ（短縮） | MD表示（<br>折り返し） |
 |---|---|---|---|---|
@@ -280,13 +280,23 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 | 5 | P10_5Y▷ | 一次 | `P10▷` | `P10▷` |
 | 6 | IS-OOS gap | 一次 | `Gap` | `IS-OOS<br>gap` |
 | 7 | Trades/yr | 一次 | `Tr` | `Tr` |
-| 8 | WFA_CI95_lo | WFA補助 | `CI95_lo` | `CI95<br>_lo` |
-| 9 | WFA_WFE | WFA補助 | `WFE` | `WFE` |
+| 8 | OvFit | 補助 | `OvFit` | `OvFit` |
+| 9 | WFA_CI95_lo | WFA補助 | `CI95_lo` | `CI95<br>_lo` |
+| 10 | WFA_WFE | WFA補助 | `WFE` | `WFE` |
 
 **列ヘッダの2行折り返し**: MD テーブルでは `<br>` を使って長い列名を2行に折り返し列幅を縮小する。全指標がスクロールなしに収まることを確認する（§5.6 参照）。
 
+**OvFit（過学習リスクスコア）**: `|IS_OOS_gap|` の絶対値に基づく評価。
+- `✅ LOW`  : `|gap| ≤ 2pp`   （優秀。IS/OOS 期間が整合）
+- `⚠ MED`  : `2pp < |gap| ≤ 5pp` （許容。注意が必要）
+- `❌ HIGH` : `|gap| > 5pp`   （過剰適合疑い）
+- `—`      : `IS_OOS_gap` が NaN（評価不能）
+
+`IS_OOS_gap = CAGR_IS - CAGR_OOS` の絶対値で判定（符号は問わない）。実装は `src/_sweep_format.py::_ovfit()`。
+
 **CSV 列順序**（標準）: パラメータ列の後に以下の順:
 `CAGR_IS, CAGR_OOS, Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, IS_OOS_gap, Trades_yr, WFA_CI95_lo, WFA_WFE`
+（OvFit は IS_OOS_gap から自動算出のため CSV には保存しない。MD 表示時に `_ovfit()` で計算）
 
 **WFA 計算ポリシー（sweep スクリプト）**:
 1. 各セルの一次指標（#1〜7）はインラインで必ず計算する。
@@ -294,23 +304,25 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 3. 促進ゲート `Sharpe_OOS > 0.800 AND IS_OOS_gap < 5pp AND CAGR_OOS > 0` を満たすセルは `wfa_queue.csv` に追記する。
 4. `src/g2_wfa_shortlist.py` が `wfa_queue.csv` を読み WFA を計算し対象 CSV を更新する。
 
-**MD テーブル列構成（厳格ルール・v1.1 明文化）**:
+**MD テーブル列構成（厳格ルール・v1.2 明文化）**:
 
-1. **CAGR は `CAGR_OOS` の1列のみ**。`CAGR_IS` / `CAGR_FULL` を MD ヘッダに含めることは **v1.1 違反**（CSV には保存可、本文中の言及も可）。
-2. **MD ヘッダは必ず `src/_sweep_format.py` の `MD_HEADER_1P` / `MD_HEADER_2P` / `MD_HEADER_STRAT` を import して使用**。手書きヘッダは禁止。
-3. **§5.3 必須指標テーブル（IS/OOS/FULL 縦長3列構造）は単体戦略レポート専用**。sweep / grid / 戦略横並び比較表には適用しない。横並び表は §3.12 の9指標標準に従う。
-4. 戦略横並び比較レポートは `MD_HEADER_STRAT` / `fmt_row_strat` を使用する。§1.3 参考値戦略は `sharpe_ref_mark='‡'` / `maxdd_ref_mark='‡'` を付与する。
+1. **MD ヘッダは Strategy/Param + 10指標 = 11列**（v1.2 で OvFit 列を必須追加）。
+2. **CAGR は `CAGR_OOS` の1列のみ**。`CAGR_IS` / `CAGR_FULL` を MD ヘッダに含めることは **v1.1 違反**（CSV には保存可、本文中の言及も可）。
+3. **MD ヘッダは必ず `src/_sweep_format.py` の `MD_HEADER_1P` / `MD_HEADER_2P` / `MD_HEADER_STRAT` を import して使用**。手書きヘッダは禁止。
+4. **§5.3 必須指標テーブル（IS/OOS/FULL 縦長3列構造）は単体戦略レポート専用**。sweep / grid / 戦略横並び比較表には適用しない。横並び表は §3.12 の10指標標準に従う。
+5. 戦略横並び比較レポートは `MD_HEADER_STRAT` / `fmt_row_strat` を使用する。§1.3 参考値戦略は `sharpe_ref_mark='‡'` / `maxdd_ref_mark='‡'` を付与する。
 
 **Sweep スクリプト実装チェックリスト**（PR前必須）:
-- [ ] `row` dict に `Trades_yr`, `WFA_CI95_lo`, `WFA_WFE` が含まれている
-- [ ] MD テーブルが `src/_sweep_format.py` の `MD_HEADER_2P` / `MD_HEADER_1P` を使用している
+- [ ] `row` dict に `Trades_yr`, `WFA_CI95_lo`, `WFA_WFE` が含まれている（OvFit は `IS_OOS_gap` から自動算出）
+- [ ] MD テーブルが `src/_sweep_format.py` の `MD_HEADER_2P` / `MD_HEADER_1P` を使用している（11列ヘッダ）
 - [ ] `<br>` 折り返しヘッダを使用している
 - [ ] **MD ヘッダに `CAGR_IS` / `CAGR_FULL` 列を含めていない**（v1.1 違反）
 - [ ] 促進ゲート通過セルを `wfa_queue.csv` に追記している
 
 **戦略横並び比較スクリプト / 手書き比較レポート実装チェックリスト**（PR前必須）:
-- [ ] MD テーブルが `MD_HEADER_STRAT` を使用している（手書きヘッダ禁止）
+- [ ] MD テーブルが `MD_HEADER_STRAT` を使用している（手書きヘッダ禁止、11列）
 - [ ] CAGR_OOS の1列のみで、`CAGR<br>IS` / `CAGR<br>FULL` が MD ヘッダに無い
+- [ ] `OvFit` 列が全行にある（LOW/MED/HIGH/— のいずれか）
 - [ ] §1.3 参考値戦略は Sharpe / MaxDD 値の右に `‡` を付与している
 - [ ] WFA 未計算戦略は `CI95_lo` / `WFE` を `—` 表示している
 - [ ] CSV 側は `CAGR_IS` / `CAGR_FULL` を保持しており参照可能（§3.12 CSV 列順序）
@@ -466,6 +478,7 @@ START
 | v1.0 | 2026-05-21 | 初版発行。Scenario D を現行標準として確定。Worst10Y★ をカレンダー年方式に統一。Sharpe Rf=0 の過大評価注意を明文化。参考値判定フロー（§6）を導入。 |
 | v1.1 | 2026-05-22 | §3.9 WFA_CI95_lo・§3.10 WFA_WFE を WFA補助指標として追加（旧§3.9 コード参照を §3.11 に繰り下げ）。非標準WFA指標（Stable_Sharpe・WinRate_yr・WorstK5_mean_CAGR・IR_vs_BH）を廃止。統一指標セットを7+2=9指標に確定。§3.12 sweep スクリプト標準（9指標・WFA ポリシー・<br>列折り返し）追加。§5.5 sweep チェックリスト追加。 |
 | v1.1.1 | 2026-05-22 | §3.12 に「CAGR は CAGR_OOS の1列のみ・手書きヘッダ禁止・戦略比較用 MD_HEADER_STRAT」を明文化。戦略比較スクリプト用チェックリストを新設。`src/_sweep_format.py` に `MD_HEADER_STRAT` / `fmt_row_strat` を追加しスコープを戦略比較まで拡張。 |
+| v1.2 | 2026-05-27 | §3.12 統一指標セットに #8 `OvFit`（過学習リスクスコア）を追加し 9指標→10指標 / 11列ヘッダに拡張。`MD_HEADER_1P/2P/STRAT` / `fmt_row_1p/2p/strat` を全て更新し、`_ovfit()` ヘルパーを新規追加。OvFit は `\|IS_OOS_gap\|` から自動算出（✅ LOW: ≤2pp / ⚠ MED: ≤5pp / ❌ HIGH: >5pp）のため CSV 列追加は不要。 |
 
 ### 今後の改訂方針
 

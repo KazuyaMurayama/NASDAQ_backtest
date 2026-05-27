@@ -1,16 +1,21 @@
 """
 gen_strategy_comparison_20260527.py
 ====================================
-STRATEGY_PERFORMANCE_COMPARISON_2026-05-27.md 生成スクリプト (v1.7)
+STRATEGY_PERFORMANCE_COMPARISON_2026-05-27.md 生成スクリプト (v1.8)
 
-§3.12 v1.1 準拠:
+§3.12 v1.2 準拠:
 - MD_HEADER_STRAT / fmt_row_strat を import（手書きヘッダ禁止）
 - CAGR_IS / CAGR_FULL を MD テーブルヘッダに含めない
-- Trades_yr / WFA_CI95_lo / WFA_WFE 必須
+- Trades_yr / OvFit / WFA_CI95_lo / WFA_WFE 必須（11列）
 
 v1.7 変更点:
 - Group A / Group B の二分割テーブル構造を廃止
 - 全 21 戦略を 1 つの統合テーブルに集約（10列 × 21行）
+
+v1.8 変更点:
+- G11 WFA（14戦略一括）の結果を統合 → 全 21 行に CI95_lo / WFE 数値が埋まる
+- OvFit 列を追加（§3.12 v1.2 10指標標準 / 11列ヘッダ）
+- 統合表を 11 列 × 21 行 に拡張
 """
 
 import pandas as pd
@@ -51,6 +56,18 @@ def _wfa(csv_name, strat):
     df = pd.read_csv(ROOT / csv_name)
     row = df[df['strategy'] == strat].iloc[0]
     return float(row['WFA_CI95_lo']), float(row['WFA_WFE'])
+
+
+# G11 WFA（14戦略一括）結果を事前ロード
+_G11_DF = pd.read_csv(ROOT / 'g11_wfa_all_remaining_summary.csv')
+
+
+def _wfa_g11(strat_id):
+    """G11 サマリー CSV から (CI95_lo, WFE) を取得"""
+    row = _G11_DF[_G11_DF['strategy'] == strat_id]
+    if row.empty:
+        raise ValueError(f'G11 strategy not found: {strat_id}')
+    return float(row['WFA_CI95_lo'].iloc[0]), float(row['WFA_WFE'].iloc[0])
 
 
 def mr(d, ci95=None, wfe=None, trades_override=None):
@@ -101,64 +118,77 @@ r_vz5 = mr(_vz5_raw, ci95=_vz5_ci, wfe=_vz5_wfe)
 
 # ─── Block 2: [B] B4 実験（1行） ─────────────────────────────────────────────
 
-# 05: B4 k_lo=0
+# 05: B4 k_lo=0 (G11 WFA)
 _b4_raw = _get_row('b4_klo_zero_results.csv',
                    k_lo=0.0, k_hi=0.7, vz_thr=0.7)
-r_b4 = mr(_b4_raw)
+_b4_ci, _b4_wfe = _wfa_g11('B4-klo0')
+r_b4 = mr(_b4_raw, ci95=_b4_ci, wfe=_b4_wfe)
 
 # ─── Block 3: [A] A系実験（7行） ─────────────────────────────────────────────
 
-# 06: A1 alpha=2
+# 06: A1 alpha=2 (G11 WFA)
 _a1_2 = _get_row('a1_soft_regime_klt_results.csv', alpha=2.0)
-r_a1_2 = mr(_a1_2)
+_a1_2_ci, _a1_2_wfe = _wfa_g11('A1-alpha2')
+r_a1_2 = mr(_a1_2, ci95=_a1_2_ci, wfe=_a1_2_wfe)
 
-# 07: A1 alpha=3
+# 07: A1 alpha=3 (G11 WFA)
 _a1_3 = _get_row('a1_soft_regime_klt_results.csv', alpha=3.0)
-r_a1_3 = mr(_a1_3)
+_a1_3_ci, _a1_3_wfe = _wfa_g11('A1-alpha3')
+r_a1_3 = mr(_a1_3, ci95=_a1_3_ci, wfe=_a1_3_wfe)
 
-# 08: A1 alpha=5
+# 08: A1 alpha=5 (G11 WFA)
 _a1_5 = _get_row('a1_soft_regime_klt_results.csv', alpha=5.0)
-r_a1_5 = mr(_a1_5)
+_a1_5_ci, _a1_5_wfe = _wfa_g11('A1-alpha5')
+r_a1_5 = mr(_a1_5, ci95=_a1_5_ci, wfe=_a1_5_wfe)
 
-# 09: A1 alpha=8
+# 09: A1 alpha=8 (G11 WFA)
 _a1_8 = _get_row('a1_soft_regime_klt_results.csv', alpha=8.0)
-r_a1_8 = mr(_a1_8)
+_a1_8_ci, _a1_8_wfe = _wfa_g11('A1-alpha8')
+r_a1_8 = mr(_a1_8, ci95=_a1_8_ci, wfe=_a1_8_wfe)
 
-# 10: A2 dyn_lmax
+# 10: A2 dyn_lmax (G11 WFA)
 _a2 = _get_row('a2_dyn_lmax_results.csv', lmax_base=6.0, vol_sens=2.0)
-r_a2 = mr(_a2)
+_a2_ci, _a2_wfe = _wfa_g11('A2-lmax6vs2')
+r_a2 = mr(_a2, ci95=_a2_ci, wfe=_a2_wfe)
 
-# 11: A2B rolling_vref
+# 11: A2B rolling_vref (G11 WFA)
 _a2b = _get_row('a2b_dyn_lmax_rolling_vref_results.csv', lmax_base=6.0, vol_sens=2.0)
-r_a2b = mr(_a2b)
+_a2b_ci, _a2b_wfe = _wfa_g11('A2B-rolling')
+r_a2b = mr(_a2b, ci95=_a2b_ci, wfe=_a2b_wfe)
 
-# 12: A3 regime_asset_tilt
+# 12: A3 regime_asset_tilt (G11 WFA)
 _a3 = _get_row('a3_regime_asset_tilt_results.csv', vov_thr=1.3, alpha_max=0.2)
-r_a3 = mr(_a3)
+_a3_ci, _a3_wfe = _wfa_g11('A3-vov')
+r_a3 = mr(_a3, ci95=_a3_ci, wfe=_a3_wfe)
 
 # ─── Block 4: [C] C系実験（2行） ─────────────────────────────────────────────
 
-# 13: C2 adaptive_deadband
+# 13: C2 adaptive_deadband (G11 WFA)
 _c2 = _get_row('c2_adaptive_deadband_results.csv', eps_0=0.020, mode='adaptive')
-r_c2 = mr(_c2)
+_c2_ci, _c2_wfe = _wfa_g11('C2-adaptive')
+r_c2 = mr(_c2, ci95=_c2_ci, wfe=_c2_wfe)
 
-# 14: C3 yang_zhang
+# 14: C3 yang_zhang (G11 WFA)
 _c3 = _get_row('c3_yang_zhang_results.csv', yz_n=10, vz_thr=0.7)
-r_c3 = mr(_c3)
+_c3_ci, _c3_wfe = _wfa_g11('C3-yz')
+r_c3 = mr(_c3, ci95=_c3_ci, wfe=_c3_wfe)
 
 # ─── Block 5: [D5] D5 グリッド（7行） ────────────────────────────────────────
 
-# 15: D5 vz=0.60/lmax=4.5（WFA 未実施）
+# 15: D5 vz=0.60/lmax=4.5 (G11 WFA)
 _d5_60_45 = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.60, l_max=4.5)
-r_d5_60_45 = mr(_d5_60_45)
+_d5_60_45_ci, _d5_60_45_wfe = _wfa_g11('D5-vz060-lmax45')
+r_d5_60_45 = mr(_d5_60_45, ci95=_d5_60_45_ci, wfe=_d5_60_45_wfe)
 
-# 16: D5 vz=0.60/lmax=5.0（WFA 未実施）
+# 16: D5 vz=0.60/lmax=5.0 (G11 WFA)
 _d5_60_50 = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.60, l_max=5.0)
-r_d5_60_50 = mr(_d5_60_50)
+_d5_60_50_ci, _d5_60_50_wfe = _wfa_g11('D5-vz060-lmax50')
+r_d5_60_50 = mr(_d5_60_50, ci95=_d5_60_50_ci, wfe=_d5_60_50_wfe)
 
-# 17: D5 vz=0.65/lmax=4.5（WFA 未実施）
+# 17: D5 vz=0.65/lmax=4.5 (G11 WFA)
 _d5_65_45 = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.65, l_max=4.5)
-r_d5_65_45 = mr(_d5_65_45)
+_d5_65_45_ci, _d5_65_45_wfe = _wfa_g11('D5-vz065-lmax45')
+r_d5_65_45 = mr(_d5_65_45, ci95=_d5_65_45_ci, wfe=_d5_65_45_wfe)
 
 # 18: D5 vz=0.65/lmax=5.5 (G10 WFA)
 _d5_65_55_raw = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.65, l_max=5.5)
@@ -175,9 +205,10 @@ _d5_65_70_raw = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.65, l_max=7.0)
 _d5_70_ci, _d5_70_wfe = _wfa('g10_wfa_vz065_lmax_row_summary.csv', 'vz065-lmax7')
 r_d5_65_70 = mr(_d5_65_70_raw, ci95=_d5_70_ci, wfe=_d5_70_wfe)
 
-# 21: D5 vz=0.70/lmax=5.0（WFA 未実施）
+# 21: D5 vz=0.70/lmax=5.0 (G11 WFA)
 _d5_70_50 = _get_row('d5_vz_lmax_grid_results.csv', vz_thr=0.70, l_max=5.0)
-r_d5_70_50 = mr(_d5_70_50)
+_d5_70_50_ci, _d5_70_50_wfe = _wfa_g11('D5-vz070-lmax50')
+r_d5_70_50 = mr(_d5_70_50, ci95=_d5_70_50_ci, wfe=_d5_70_50_wfe)
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +220,7 @@ HEADER_1, HEADER_2 = MD_HEADER_STRAT
 lines = []
 W = lines.append  # alias
 
-W('# 戦略パフォーマンス比較表 v1.7 — 2026-05-27 統合21戦略比較')
+W('# 戦略パフォーマンス比較表 v1.8 — 2026-05-27 統合21戦略 全 WFA 完了版')
 W('')
 W('作成日: 2026-05-27')
 W('最終更新日: 2026-05-27')
@@ -231,11 +262,12 @@ W('---')
 W('')
 
 # ── §2 統合 21 戦略比較表 ───────────────────────────────────────────────────
-W('## 📊 §2 全戦略 統合比較表（21戦略 × 10指標）')
+W('## 📊 §2 全戦略 統合比較表（21戦略 × 10指標 / 11列）')
 W('')
 W('> **単位**: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年')
 W('> ★ = Sharpe_OOS > +0.885 / ◎ = > +0.770（S2ベースライン）')
-W('> WFA 列が `—` の行は WFA 未実施（合計 14/21 行が未実施 / 7行が PASS 済み）')
+W('> **OvFit**: ✅ LOW (|gap| ≤ 2pp) / ⚠ MED (≤ 5pp) / ❌ HIGH (> 5pp)')
+W('> WFA 実施完了: **21/21 行（G3/G7/G8/G10 + G11 一括補完）**')
 W('')
 W(HEADER_1)
 W(HEADER_2)
@@ -274,8 +306,8 @@ W(fmt_row_strat('[D5] vz=0.70/lmax=5.0', r_d5_70_50))
 W('')
 W(MD_METRIC_GLOSSARY)
 W('')
-W('**WFA 完了行**: 7/21（E4 ◆ + Active候補3行 + D5 vz=0.65 系3行）')
-W('**WFA 未実施行**: 14/21（B4, A1×4, A2/A2B/A3, C2/C3, D5 vz=0.60/0.70 系4行）')
+W('**WFA 完了行**: **21/21**（G3 ◆ + G7/G8 + G10 vz=0.65 系3行 + **G11 一括補完 14行**）')
+W('**WFA 未実施行**: 0/21（全行完了 — 2026-05-27 G11 完了）')
 W('')
 W('---')
 W('')
@@ -414,7 +446,9 @@ W('| `g8_wfa_lmax5_summary.csv` | G8 | F10+lmax5 / E4-lmax5 WFA |')
 W('| `f10_epsilon_deadband_results.csv` | F10 | F10 ε sweep 9指標 |')
 W('| `g7_wfa_f10_summary.csv` | G7 | F10 ε=0.015 WFA |')
 W('| `g3_wfa_e4_summary.csv` | G3 | E4 ◆ WFA |')
-W('| `EVALUATION_STANDARD.md` | — | 評価基準 v1.1 |')
+W('| `g11_wfa_all_remaining_summary.csv` | G11 | 残り 14戦略一括 WFA（B4, A1×4, A2/A2B/A3, C2/C3, D5 4行） |')
+W('| `g11_wfa_all_remaining_per_window.csv` | G11 | 残り 14戦略 WFA 窓別詳細 |')
+W('| `EVALUATION_STANDARD.md` | — | 評価基準 v1.2（10指標標準） |')
 W('| `CURRENT_BEST_STRATEGY.md` | — | ベスト戦略単一の真実 |')
 W('')
 W('---')
@@ -427,11 +461,12 @@ W('| 版 | 日付 | 変更内容 |')
 W('|----|------|---------|')
 W('| **v1.0** | 2026-05-27 | 初版。Group A × 4 + Group B × 13 計 17 戦略の §3.12 準拠 9指標比較表（2 テーブル分割）。 |')
 W('| **v1.7** | 2026-05-27 | Group A/B 分割を廃止。**1 テーブル × 21 戦略** に統合。A1 α=3/5、D5 vz=0.60/lmax=5.0、vz=0.65/lmax=4.5、vz=0.70/lmax=5.0 の 4 行を追加。実験別判定サマリーを 1 テーブルに統合。 |')
+W('| **v1.8** | 2026-05-27 | **G11 一括 WFA 完了**（14戦略 / 全 PASS）→ **全 21 行に CI95_lo / WFE 数値が埋まる**。`EVALUATION_STANDARD.md` を v1.2 に更新し `OvFit` 列を §3.12 標準セットに追加。統合表ヘッダを **11 列**（10指標 + Strategy）に拡張。 |')
 W('')
 W('---')
 W('')
 W('*管理者: Kazuya Murayama*')
-W('*準拠: `EVALUATION_STANDARD.md v1.1` / `src/_sweep_format.py MD_HEADER_STRAT`*')
+W('*準拠: `EVALUATION_STANDARD.md v1.2` / `src/_sweep_format.py MD_HEADER_STRAT (10指標 / 11列)`*')
 
 # ---------------------------------------------------------------------------
 # 書き出し
