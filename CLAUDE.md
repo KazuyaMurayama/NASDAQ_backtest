@@ -170,3 +170,13 @@ Claude Code 自身が以下を `Glob` / `Read` で機械的に検証する。欠
 ```
 
 「CLAUDE.md を見てください」「次回ご自身でチェックリストに従ってください」は両ブロックとも禁止文。Claude Code 側の継続タスクは次回トリガー検出時に自分で実行する責務である。
+
+<!-- SKILLS_RULES_START -->
+## Skill 起動ルール（v1.0 / 2026-05-27）
+- **時系列・トレンド分析** → `time-series-analysis`
+- **A/B テスト・戦略比較の統計検定** → `ab-test-analysis`
+- **新戦略/新指標の先行研究調査** → `research-deep`
+- **大規模 sweep/grid 計画時** → `sp-writing-plans` でフェーズ分割
+- **比較レポートの図表** → `mermaid-agents365`
+- **コード変更後（プロダクション影響あり）** → `code-review` 必須
+<!-- SKILLS_RULES_END -->
