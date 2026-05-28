@@ -172,11 +172,13 @@ Claude Code 自身が以下を `Glob` / `Read` で機械的に検証する。欠
 「CLAUDE.md を見てください」「次回ご自身でチェックリストに従ってください」は両ブロックとも禁止文。Claude Code 側の継続タスクは次回トリガー検出時に自分で実行する責務である。
 
 <!-- SKILLS_RULES_START -->
-## Skill 起動ルール（v1.0 / 2026-05-27）
-- **時系列・トレンド分析** → `time-series-analysis`
-- **A/B テスト・戦略比較の統計検定** → `ab-test-analysis`
-- **新戦略/新指標の先行研究調査** → `research-deep`
-- **大規模 sweep/grid 計画時** → `sp-writing-plans` でフェーズ分割
-- **比較レポートの図表** → `mermaid-agents365`
-- **コード変更後（プロダクション影響あり）** → `code-review` 必須
+## Skill 起動ルール（v2.0 / 2026-05-28）
+以下のスキルは **必須・スキップ禁止**。該当シーンでは SKILL.md を読んでから作業を開始すること。
+
+- **時系列・トレンド分析を行う時は必ず** `.claude/skills/time-series-analysis/SKILL.md` を読み、手順に従って分析を実行する
+- **A/B テスト・戦略比較の統計検定を行う時は必ず** `.claude/skills/ab-test-analysis/SKILL.md` を読み、手順に従って検定を実行する
+- **新戦略・新指標の先行研究調査が必要な時は必ず** `.claude/skills/research-deep/SKILL.md` を読んでから並列 Web リサーチを実行する
+- **大規模 sweep/grid 計画を立てる時は必ず** `.claude/skills/sp-writing-plans/SKILL.md` を読んでフェーズ分割計画を作成し、`.claude/skills/sp-executing-plans/SKILL.md` の手順で実行する
+- **比較レポートに図表が必要な時は必ず** `.claude/skills/mermaid-agents365/SKILL.md` を読んでからダイアグラムを作成する
+- **成果物を納品・コミットする前に必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
 <!-- SKILLS_RULES_END -->
