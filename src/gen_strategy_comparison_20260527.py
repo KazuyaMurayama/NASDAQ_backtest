@@ -1,12 +1,12 @@
 """
 gen_strategy_comparison_20260527.py
 ====================================
-STRATEGY_PERFORMANCE_COMPARISON_2026-05-27.md 生成スクリプト (v1.8)
+STRATEGY_PERFORMANCE_COMPARISON_2026-05-27.md 生成スクリプト (v1.9)
 
-§3.12 v1.2 準拠:
+§3.12 v1.3 準拠:
 - MD_HEADER_STRAT / fmt_row_strat を import（手書きヘッダ禁止）
 - CAGR_IS / CAGR_FULL を MD テーブルヘッダに含めない
-- Trades_yr / OvFit / WFA_CI95_lo / WFA_WFE 必須（11列）
+- Trades_yr / Overfit(WFE) / WFA_CI95_lo 必須（10列）
 
 v1.7 変更点:
 - Group A / Group B の二分割テーブル構造を廃止
@@ -16,6 +16,12 @@ v1.8 変更点:
 - G11 WFA（14戦略一括）の結果を統合 → 全 21 行に CI95_lo / WFE 数値が埋まる
 - OvFit 列を追加（§3.12 v1.2 10指標標準 / 11列ヘッダ）
 - 統合表を 11 列 × 21 行 に拡張
+
+v1.9 変更点:
+- OvFit列 + WFE列 → Overfit(WFE) 1列に統合（§3.12 v1.3 / 9指標 / 10列ヘッダ）
+- Overfit判定をIS-OOSgapベースからWFEベースに変更
+  (✅ LOW=WFE∈[0.5,2.0] / ⚠ MED=WFE>2.0 / ❌ HIGH=WFE<0.5)
+- WFE値は小数1桁表示（例: 1.1）
 """
 
 import pandas as pd
@@ -262,11 +268,11 @@ W('---')
 W('')
 
 # ── §2 統合 21 戦略比較表 ───────────────────────────────────────────────────
-W('## 📊 §2 全戦略 統合比較表（21戦略 × 10指標 / 11列）')
+W('## 📊 §2 全戦略 統合比較表（21戦略 × 9指標 / 10列）')
 W('')
 W('> **単位**: CAGR_OOS / Worst10Y★ / P10▷ / MaxDD = %、IS-OOS gap = pp、Tr = 回/年')
 W('> ★ = Sharpe_OOS > +0.885 / ◎ = > +0.770（S2ベースライン）')
-W('> **OvFit**: ✅ LOW (|gap| ≤ 2pp) / ⚠ MED (≤ 5pp) / ❌ HIGH (> 5pp)')
+W('> **Overfit(WFE)**: ✅ LOW (WFE∈[0.5,2.0]) / ⚠ MED (WFE>2.0) / ❌ HIGH (WFE<0.5)')
 W('> WFA 実施完了: **21/21 行（G3/G7/G8/G10 + G11 一括補完）**')
 W('')
 W(HEADER_1)
@@ -462,11 +468,12 @@ W('|----|------|---------|')
 W('| **v1.0** | 2026-05-27 | 初版。Group A × 4 + Group B × 13 計 17 戦略の §3.12 準拠 9指標比較表（2 テーブル分割）。 |')
 W('| **v1.7** | 2026-05-27 | Group A/B 分割を廃止。**1 テーブル × 21 戦略** に統合。A1 α=3/5、D5 vz=0.60/lmax=5.0、vz=0.65/lmax=4.5、vz=0.70/lmax=5.0 の 4 行を追加。実験別判定サマリーを 1 テーブルに統合。 |')
 W('| **v1.8** | 2026-05-27 | **G11 一括 WFA 完了**（14戦略 / 全 PASS）→ **全 21 行に CI95_lo / WFE 数値が埋まる**。`EVALUATION_STANDARD.md` を v1.2 に更新し `OvFit` 列を §3.12 標準セットに追加。統合表ヘッダを **11 列**（10指標 + Strategy）に拡張。 |')
+W('| **v1.9** | 2026-05-28 | **OvFit + WFE 列を統合** → `Overfit(WFE)` 1列に。判定基準をIS-OOS gapベースからWFEベースに変更（✅LOW=WFE∈[0.5,2.0]）。§3.12 v1.3 / **10列**（9指標 + Strategy）。 |')
 W('')
 W('---')
 W('')
 W('*管理者: Kazuya Murayama*')
-W('*準拠: `EVALUATION_STANDARD.md v1.2` / `src/_sweep_format.py MD_HEADER_STRAT (10指標 / 11列)`*')
+W('*準拠: `EVALUATION_STANDARD.md v1.3` / `src/_sweep_format.py MD_HEADER_STRAT (9指標 / 10列)`*')
 
 # ---------------------------------------------------------------------------
 # 書き出し
