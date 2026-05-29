@@ -85,7 +85,7 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - 成果物・スクリプトは本リポジトリ内のみに保存。`C:\\Users\\user\\Desktop` への出力禁止（ユーザー明示指定時を除く）。
 
 <!-- SKILLS_RULES_START -->
-## Skill 起動ルール（v2.0 / 2026-05-28）
+## Skill 起動ルール（v2.1 / 2026-05-29）
 以下のスキルは **必須・スキップ禁止**。該当シーンでは SKILL.md を読んでから作業を開始すること。
 
 - **時系列・トレンド分析を行う時は必ず** `.claude/skills/time-series-analysis/SKILL.md` を読み、手順に従って分析を実行する
@@ -93,5 +93,6 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - **新戦略・新指標の先行研究調査が必要な時は必ず** `.claude/skills/research-deep/SKILL.md` を読んでから並列 Web リサーチを実行する
 - **大規模 sweep/grid 計画を立てる時は必ず** `.claude/skills/sp-writing-plans/SKILL.md` を読んでフェーズ分割計画を作成し、`.claude/skills/sp-executing-plans/SKILL.md` の手順で実行する
 - **比較レポートに図表が必要な時は必ず** `.claude/skills/mermaid-agents365/SKILL.md` を読んでからダイアグラムを作成する
-- **成果物を納品・コミットする前に必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
+- **戦略評価・比較レポートの品質チェック（QC）・レビュー・ステークホルダー共有前は必ず** `.claude/skills/analysis-qa-checklist/SKILL.md` を読んでチェックリストを実施する
+- **成果物の納品・コミット前、または品質チェック（QC）・レビューフェーズに入る時は必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
 <!-- SKILLS_RULES_END -->
