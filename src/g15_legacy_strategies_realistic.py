@@ -130,16 +130,17 @@ LEGACY_RAW = {
         cfd_drag=CFD_DRAG_DH,    # TQQQ ETF → SBI CFD は cost neutral
         maxdd_penalty=0.0, has_residual_cost=True,
     ),
-    # ADDITIONAL_ANALYSIS_REPORT_2026-03-30.md (推定 OOS CAGR)
-    # Full Sharpe 0.846 / Full CAGR 22.20% → vol ≈ 26.24% (Rf=0)
-    # OOS Sharpe 0.479 → OOS CAGR ≈ 0.479 × 26.24% ≈ 12.57% (vol 同一仮定)
+    # g15b_ens2_oos_scenarioD.py で実測（max_lev=1.0、TQQQ Scenario D コスト）
+    # 旧推定値 (12.57%/0.479) は ADDITIONAL_ANALYSIS_REPORT_2026-03-30 の Sharpe 比からの推定。
+    # backtest_engine.run_backtest() が 0.9% フラットコストで SOFR スケーリング欠落していたため、
+    # 過小コスト→過大 raw 値が源泉。正しい TQQQ 2×SOFR + TER + swap で再計算すると衝撃の値に。
     'Ens2_AsymSlope': dict(
-        name='[Legacy] Ens2(Asym+Slope) max_lev=1.0 ‡§ ⚠↑↑',
-        CAGR_OOS=0.1257, Sharpe_OOS=0.479, MaxDD_FULL=-0.4899,
-        Worst10Y_star=0.0984, P10_5Y=np.nan, IS_OOS_gap=0.10,  # 推定 (FULL 22.20% - OOS 12.57%)
-        Trades_yr=0.7, WFA_WFE=np.nan, WFA_CI95_lo=np.nan,
-        cfd_drag=CFD_DRAG_ENS,   # unleveraged → CFD 利用なし
-        maxdd_penalty=0.0, has_residual_cost=False,  # CFD 非該当
+        name='[Legacy] Ens2(Asym+Slope) max_lev=1.0 ‡ ⚠↑↑⚠↑↑',
+        CAGR_OOS=0.0092, Sharpe_OOS=0.154, MaxDD_FULL=-0.5388,
+        Worst10Y_star=-0.0084, P10_5Y=0.0000, IS_OOS_gap=0.1331,
+        Trades_yr=0.52, WFA_WFE=np.nan, WFA_CI95_lo=np.nan,
+        cfd_drag=CFD_DRAG_ENS,   # max_lev=1 = TQQQ (3x) × 信号 [0,1] = avg eff_L 1.12x
+        maxdd_penalty=0.0, has_residual_cost=False,  # TQQQ ベース、SBI CFD 換算は別問題
     ),
 }
 
