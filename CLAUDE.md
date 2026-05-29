@@ -81,6 +81,9 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 
 > 「監査」「品質チェック」「Phase 1/2/3」「WFAを回す」等を検出したら `.claude/rules/audit-protocol.md` を読んで実行する
 
+## ファイル保存ルール
+- 成果物・スクリプトは本リポジトリ内のみに保存。`C:\\Users\\user\\Desktop` への出力禁止（ユーザー明示指定時を除く）。
+
 <!-- SKILLS_RULES_START -->
 ## Skill 起動ルール（v2.0 / 2026-05-28）
 以下のスキルは **必須・スキップ禁止**。該当シーンでは SKILL.md を読んでから作業を開始すること。
