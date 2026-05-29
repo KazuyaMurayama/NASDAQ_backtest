@@ -95,4 +95,5 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - **比較レポートに図表が必要な時は必ず** `.claude/skills/mermaid-agents365/SKILL.md` を読んでからダイアグラムを作成する
 - **戦略評価・比較レポートの品質チェック（QC）・レビュー・ステークホルダー共有前は必ず** `.claude/skills/analysis-qa-checklist/SKILL.md` を読んでチェックリストを実施する
 - **成果物の納品・コミット前、または品質チェック（QC）・レビューフェーズに入る時は必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
+- **データ品質・整合性の確認が必要な時は必ず** `.claude/skills/data-quality-audit/SKILL.md` を読んで監査を実行する
 <!-- SKILLS_RULES_END -->
