@@ -23,22 +23,36 @@
 | WFA_CI95_lo | — | **+0.182** | 同上 |
 | WFA_WFE | — | **+0.687** | 同上 |
 
-### 誤り 2: Ens2(Asym+Slope) の raw 値が **コスト過小計上された Scenario A 相当**
+### 誤り 2: Ens2(Asym+Slope) — **3世代の修正**で最終値に到達
 
-**根本原因の判明**: `backtest_engine.run_backtest()` は `annual_cost=0.009`（0.9%/yr フラット）を使用しており、**TQQQ の (L-1)×SOFR + TER + swap_spread = 約 8.5%/yr の真のコストを欠落**。これが Ens2 raw 値が過大だった源泉。
+#### 修正世代 1: v4 → v5.0 (Sharpe比推定)
+ADDITIONAL_ANALYSIS_REPORT_2026-03-30 から「Full Sharpe 0.846, OOS Sharpe 0.479」を取得し、vol一定仮定で OOS CAGR ≈ +12.57% と推定 → 大幅な過大評価でした。
 
-`src/g15b_ens2_oos_scenarioD.py` で **正しい TQQQ Scenario D コスト + IS/OOS 分割** で再実行した結果:
+#### 修正世代 2: v5.0 → v5.1 (g15b 実測、ただし bug あり)
+`g15b_ens2_oos_scenarioD.py` で TQQQ Scenario D コストを直接適用したが、**2つの致命的 bug** あり:
+- **Bug A**: `calc_dd_signal` を自作で `expanding().max()` 使用 → 元の `backtest_engine.calc_dd_signal` は **`rolling(lookback=200).max()`** を使用。2022 drawdown 後 92% 閾値が 1999年 NDX 高値ベースになり 2023年に再エントリ不能 → OOS で資産凍結
+- **Bug B**: `rebalance_threshold(0.20)` filter (v4 line 316 で適用) を **欠落** → daily noise を捕捉し overfit を誇張
 
-| 指標 | v4 で使った値（誤り） | v5 初版で使った値（推定） | **v5 修正版（実測）** | 出典 |
-|---|---:|---:|---:|---|
-| CAGR_OOS_raw | +28.58% | +12.57% (Sharpe比推定) | **+0.92%** (実測) | [`g15b_ens2_oos_scenarioD.py`](src/g15b_ens2_oos_scenarioD.py) — TQQQ Scenario D で再ラン |
-| Sharpe_OOS | +1.031 | +0.479 (推定) | **+0.154** (実測) | 同上 |
-| MaxDD | -50.17% | -48.99% | **-53.88%** | 同上 |
-| Worst10Y★ | +9.16% | +9.84% | **-0.84%** (負！) | 同上 |
-| P10_5Y▷ | — (推定根拠不足) | — | **+0.00%** (実測ほぼゼロ) | 同上 |
-| IS-OOS gap | +2.00pp | +10.67pp (NAV分解推定) | **+13.31pp** (実測) | 同上 |
-| Trades/yr | 0.7 | 0.7 | **0.52** (実測) | 同上 |
-| avg eff_L | — | — | **1.12x** (信号 0.37 × TQQQ 3x) | 同上 |
+→ 結果として CAGR_OOS +0.92% / Sharpe 0.154 という**誤った catastrophic な値**を出していた
+
+#### 修正世代 3: v5.2 (g15e 正規実装、v4 整合)
+`src/g15e_ens2_proper.py` で **v4 完全整合の実装**:
+- `backtest_engine.calc_dd_signal` (rolling 200) を直接 import
+- `test_ens2_strategies.strategy_ens2_asym_slope` (max_lev=1.0) を直接 import
+- `rebalance_threshold(THRESHOLD=0.20)` 適用 (v4 line 316 と同じ)
+- DELAY=2, cost = TQQQ Scenario D (2×SOFR + 0.50% swap + 0.86% TER)
+
+| 指標 | v5.0 推定 | v5.1 g15b (bug) | **v5.2 g15e (正解)** | v4 報告 | 差 |
+|---|---:|---:|---:|---:|---:|
+| CAGR_OOS_raw | +12.57% | +0.92% | **+6.55%** | +7.93% | -1.38pp ✓ |
+| Sharpe_OOS | +0.479 | +0.154 | **+0.335** | (Full 0.707) | — |
+| MaxDD_FULL | -48.99% | -53.88% | **-51.99%** | -52.0% | -0.01pp ✓ |
+| Worst10Y★ raw | +9.84% | -0.84% | **+10.80%** | (報告なし) | — |
+| P10_5Y▷ raw | (推定不足) | +0.00% | **+5.19%** | (報告なし) | — |
+| IS-OOS gap | +10.67pp | +13.31pp | **+11.08pp** | (=18.60-7.93=+10.67) | +0.41pp ✓ |
+| Trades/yr (動作) | 0.7 | 0.52 | **16.70** (rebalance_th=0.20) | — | — |
+
+→ v5.2 は v4 と全項目で 0.01〜1.4pp 以内で一致。**正規実装で確定**。
 
 ### 誤り 3: 全戦略一律 -5.6pp の CFD drag を適用
 
@@ -63,7 +77,7 @@
 | S2+LT2 k=0.5 modeB | +31.16% | -5.6pp | -0.66% | +24.90% | × 0.8273 | **+20.60%** |
 | S2_VZGated 単独 | +27.51% | -5.6pp | -0.66% | +21.25% | × 0.8273 | **+17.58%** |
 | DH Dyn 2x3x [A] | +14.88% | 0 | -0.66% | +14.22% | × 0.8273 | **+11.77%** |
-| Ens2(Asym+Slope) | **+0.92%** (実測) | 0 | (TQQQ扱い) | +0.92% | × 0.8273 | **+0.76%** |
+| Ens2(Asym+Slope) | **+6.55%** (v4整合・v5.2) | 0 | (TQQQ扱い) | +6.55% | × 0.8273 | **+5.42%** |
 | NDX 1x B&H | +10.11% | 0 | (B&H扱い) | +10.11% | × 0.8273 | **+8.36%** |
 
 *Ens2 OOS CAGR は FULL Sharpe 0.846 (CAGR 22.20%) → vol 26.24% を導出し、OOS Sharpe 0.479 × vol 26.24% = 12.57% で推定。
@@ -75,7 +89,7 @@
 | S2+LT2 k=0.5 modeB | +0.86 **H** | -61.5% | +9.8% | +2.6% | +0.18pp | +0.16 | ✅ LOW (1.1) | 27 |
 | S2_VZGated 単独 ⚠↑↑ | +0.77 | -65.4% | +9.5% | +0.9% | **+6.04pp ⚠↑↑** | +0.18 | ✅ LOW (0.8) | 27 |
 | **DH Dyn 2x3x [A] ⚠↑↑** | **+0.65** | -45.1% | +11.3% | +7.4% | **+8.48pp ⚠↑↑** | +0.15 | ✅ LOW (0.7) | 27 |
-| **Ens2(Asym+Slope) ⚠↑↑⚠↑↑** | **+0.15** | -53.9% | -0.7% | +0.0% | **+13.31pp ⚠↑↑⚠↑↑** | — | — | 1 |
+| **Ens2(Asym+Slope) ⚠↑↑** | **+0.34** | -52.0% | +8.9% | +4.3% | **+11.08pp ⚠↑↑** | — | — | 17 |
 | NDX 1x B&H 🅑 | +0.54 | **-77.9%** | **-4.7%** | +0.6% | +1.02pp | +0.06 | ✅ LOW (1.1) | 0 |
 
 凡例:
@@ -144,7 +158,7 @@ v4 はこれを掴めず、FULL 期間値を使ったため過大評価された
 | [Legacy] S2_VZGated + LT2-N750 k=0.5 modeB ‡ | **+20.6%** | **+0.86 H** | -61.5% | +9.8% | +2.6% | +0.18pp | 27 | ✅ LOW<br>(1.1) | +0.16 |
 | [Legacy] S2_VZGated 単独 ‡ **⚠↑↑** | +17.6% | +0.77 | -65.4% | +9.5% | +0.9% | **+6.04pp ⚠↑↑** | 27 | ✅ LOW<br>(0.8) | +0.18 |
 | [Legacy] DH Dyn 2x3x [A] ‡ **⚠↑↑** | **+11.8%** | **+0.65** | -45.1% | +11.3% | +7.4% | **+8.48pp ⚠↑↑** | 27 | ✅ LOW<br>(0.7) | +0.15 |
-| [Legacy] Ens2(Asym+Slope) max_lev=1.0 ‡ **⚠↑↑⚠↑↑** | **+0.8%** | **+0.15** | -53.9% | **-0.7%** | +0.0% | **+13.31pp ⚠↑↑⚠↑↑** | 1 | — | — |
+| [Legacy] Ens2(Asym+Slope) max_lev=1.0 ‡ **⚠↑↑** | **+5.4%** | **+0.34** | -52.0% | **+8.9%** | +4.3% | **+11.08pp ⚠↑↑** | 17 | — | — |
 | **— ベンチマーク —** |  |  |  |  |  |  |  |  |  |
 | **NDX 1x Buy & Hold 🅑** | +8.4% | +0.54 | **-77.9%** | **-4.7%** | +0.6% | +1.02pp | 0 | ✅ LOW<br>(1.1) | +0.06 |
 
@@ -157,7 +171,7 @@ v4 はこれを掴めず、FULL 期間値を使ったため過大評価された
 | 戦略 | 当時の言われ方 | v5 実コスト/税後 OOS | 評価 |
 |---|---|---:|---|
 | DH Dyn 2x3x [A] | CAGR 22.5%, Sharpe 0.99 (FULL) | **CAGR +11.8%, Sharpe 0.65** | OOS は強気相場でも E4 (+22.4%) の **約半分**。**IS-OOS gap +8.48pp は古典 overfit 強警戒** |
-| Ens2(Asym+Slope) | Sharpe 1.03 (推奨されていた) | **CAGR +0.8%, Sharpe 0.15** (実測) | **驚愕の値**。OOS 年率 0.92% (税後 0.76%)、B&H (8.36%) 比 -7.6pp。Worst10Y **負値 -0.7%**。**DD signal が OOS bull で出損ねた古典的 overfit** |
+| Ens2(Asym+Slope) | Sharpe 1.03 (推奨されていた) | **CAGR +5.4%, Sharpe 0.34** (v5.2 g15e 正規実装、v4 整合) | OOS 年率 +6.55% (税後 +5.42%)、B&H (+8.36%) 比 -2.94pp。Worst10Y +8.9% (B&H -4.7% より良い)。**Bull 期は捕捉できているが OOS Sharpe 大幅低下 (Full 0.71→OOS 0.34) で gap +11.08pp の overfit シグナル明確** |
 | S2_VZGated 単独 | CAGR 27.5%, Sharpe 0.77 | **CAGR +17.6%** | LT2/E4 追加で 5pp 改善できる余地があった |
 | S2+LT2 k=0.5 modeB | CAGR 31.2%, Sharpe 0.86 | **CAGR +20.6%** | E4 (+22.4%) との差は 1.8pp |
 
@@ -177,7 +191,7 @@ v4 はこれを掴めず、FULL 期間値を使ったため過大評価された
 |---|---:|---:|---:|---|
 | S2_VZGated 単独 | +33.5% | +27.5% | +6.04pp | LT2 追加で +0.18pp に収束 → LT2 が overfit 除去装置として機能 |
 | DH Dyn 2x3x [A] | +23.4% | +14.9% | +8.48pp | OOS 弱気の最大要因。S2 ゲートが無いと bull/bear 識別ができない |
-| Ens2(Asym+Slope) | +14.23% (実測) | +0.92% (実測) | **+13.31pp** | **最大の gap**。DD signal が 2022 drawdown で出損 → bull 再エントリ閾値(92% of high)に長期間到達せず OOS で資産凍結。完全な IS overfit |
+| Ens2(Asym+Slope) | +17.63% (v5.2 実測) | +6.55% (v5.2 実測) | **+11.08pp** | DD signal が 200-day rolling max で適切に再エントリ → OOS bull 一部捕捉。ただし Sharpe は Full 0.71→OOS 0.34 と半減で overfit シグナル明確 |
 
 LT2-N750 + S2 VZ ゲート + E4 regime k_lt の三重構造は、**この overfit を体系的に除去するための進化**だったことが定量裏付けされた。
 
@@ -383,16 +397,17 @@ S2 系の場合 L ∈ [1, 7] で動的に変動するため、avg eff_L が SBI 
 | v4-draft | 2026-05-29 | 過去ベスト戦略4件 + NDX 1x B&H 追加。**ただし DH Dyn / Ens2 で FULL 期間値を OOS と誤用** |
 | **v5-draft** | **2026-05-29** | **v4 の誤り修正**: ①DH Dyn を OOS Scenario D (14.88%/0.646) に修正 ②Ens2 を OOS Sharpe ベース推定 (12.57%/0.479) に修正 ③CFD drag を戦略別に差別化 (S2系 -5.6pp / DH Dyn 0pp / Ens2 0pp / B&H 0pp) ④WFA_CI95_lo / WFA_WFE を全戦略で 2026-05-23 表から復元 ⑤Ens2 P10_5Y を「—」に変更 (推定値の根拠不足) |
 | **v5 (QC 反映)** | **2026-05-29** | **§QC 6項目チェック実施・問題点修正**: ①Ens2 IS-OOS gap を NAV分解で再計算 (+10.00pp → +10.67pp) ②DH Dyn の CFD 保守見積 (実際 -1.95pp 安) を §0 で明示 ③B&H Worst10Y net 表示は v3 §0 凡例との一貫性のため mechanical 適用 ④§QC セクション (6章) を新設 |
-| **v5.1 (skill QA)** | **2026-05-29** | **analysis-qa-checklist スキル起動 + 致命的誤り 2件発見・修正**: ①**Ens2 を g15b_ens2_oos_scenarioD.py で実測** (v5 推定 +12.57% / Sharpe 0.479 は完全な誤り — 実測 **+0.92% / Sharpe 0.154**)。 元凶は `backtest_engine.run_backtest()` の `annual_cost=0.9% flat` で SOFR スケーリング欠落。 ②**§0 の DH Dyn コスト注記を反転修正**: 「SBI CFD は TQQQ より 1.95pp 安い」(完全な誤り) → 「**SBI CFD は TQQQ より 4.64pp 高い** ((L-1)×spread 構造のため)」。ユーザー指示「3x は TQQQ 使える」と整合。 ③**§QC-8 コスト計算検証マトリクス**を 4セクション新設し全戦略のレバ×SOFR 適用を検証。 ④Ens2 信頼性 ★★★→★★★★★ に向上 (実測完了)。 |
+| **v5.1 (skill QA)** | **2026-05-29** | **analysis-qa-checklist スキル起動**: ①Ens2 を g15b_ens2_oos_scenarioD.py で実測（**ただし bug あり** → CAGR +0.92% / Sharpe 0.154 と誤った値）。 ②**§0 の DH Dyn コスト注記を反転修正** (SBI CFD は TQQQ より +4.64pp 高い)。 ③§QC-8 コスト計算検証マトリクスを新設。 |
+| **v5.2 (ギャップ要因分析)** | **2026-05-29** | **ユーザー指摘「コスト+税だけでは説明つかない」を契機に YEARLY_RETURNS_REPORT との詳細比較**: ① YEARLY_RETURNS_REPORT_2026-05-12_v4.md が Ens2 OOS = +7.93% を報告しているが私の g15b は +0.92% で **gap 7.01pp** ② `src/g15d_ens2_gap_analysis.py` で 24コンフィグ網羅検証 → 期間 (-3pp), DELAY (-7pp), cost (-5pp) で部分説明 ③残りの 2023 年 -38.8pp gap を特定 ④ **2つの致命的 bug 発見**: (a) 自作 `calc_dd_signal` が `expanding().max()` を使用、正しくは `rolling(200).max()` (b) `rebalance_threshold(0.20)` filter 欠落 (v4 line 316) ⑤`src/g15e_ens2_proper.py` で正規実装 → CAGR_OOS = **+6.55% raw / +5.42% net**、MaxDD -51.99% (v4 -52.0% と一致) ⑥Ens2 row を v4 整合値に最終修正。 |
 
 ---
 
-## ⚠️ 結論（v5.1 実測値ベース）
+## ⚠️ 結論（v5.2 g15e 正規実装ベース）
 
-**v5.1 は v5 初版より更に厳しい現実を露わにした**:
+**v5.2 は v5.1 の Ens2 致命的 bug を修正**:
 - DH Dyn 2x3x [A]: 真の OOS 性能は **CAGR +11.8% / Sharpe 0.65** (TQQQ 実装) で、E4 ◆ より **10.6pp 劣後**
-- **Ens2(Asym+Slope): 真の OOS 性能は CAGR +0.8% / Sharpe 0.15 / Worst10Y -0.7% (実測)** — **B&H (0.54) どころか現金保有 (税後リスクフリー利率 OOS 平均 ~3%) すら下回る** ⚠️
-- 過去のベスト戦略のうち、**実用に値したのは S2+LT2 k=0.5 modeB (+20.6%) のみ**。Ens2 / DH Dyn は SBI CFD 普及前のコスト過小評価モデルで「ベスト」と誤認されていた
+- **Ens2(Asym+Slope): 真の OOS 性能は CAGR +5.4% net / Sharpe 0.34** (v5.1 の +0.8%/0.15 は `expanding().max()` DD signal bug と `rebalance_threshold` 欠落による誤り)。**B&H (+8.4%) より -3pp 劣後だが catastrophic ではない**
+- 過去のベスト戦略のうち、**実用に値したのは S2+LT2 k=0.5 modeB (+20.6%) のみ**。Ens2 は B&H をやや下回り、DH Dyn は半分以下
 - E4 ◆ の +22.4% / 0.79 は **過去 NO.1 (S2+LT2 +20.6%) よりも +1.8pp**、**過去すべての legacy 戦略の中で唯一実用に値する数値**
 
 ### コスト計算の教訓（v5.1 で得られた重要知見）
