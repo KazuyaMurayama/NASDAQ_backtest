@@ -52,15 +52,15 @@
 | **D5 vz=0.60/lmax=5.0** | **+21.2%** | **+0.80 M** | **-52.3%** | **+11.4%** | **+5.2%** | -1.10pp | 28 | ✅ LOW<br>(1.18) | **+0.16** |
 | **D5 vz=0.65/lmax=5.5 [Active候補] ✅⚠** | **+23.7%** | **+0.84 H** | **-55.3%** | **+11.0%** | **+4.5%** | -4.00pp ⚠ | 28 | ✅ LOW<br>(1.26) | **+0.17** |
 | **E4 Regime k_lt ◆** | **+22.4%** | **+0.79 M** | **-62.0%** | **+9.8%** | **+2.2%** | -2.41pp | 28 | ✅ LOW<br>(1.15) | **+0.16** |
-| DH Dyn 2x3x [A] | +12.3% | +0.65 | -45.1% | +10.9% | +9.2% | -8.48pp ⚠⚠ | ~27 | N/A | N/A |
-| 1x Buy & Hold (BH 1x) | +8.4% | +0.54 | -77.9% | -4.0% | +0.9% | -1.02pp | 0 | N/A | N/A |
+| DH Dyn 2x3x [A] | +10.7% | +0.65 | −45.1%¹ | +10.9% | +9.2% | -8.48pp ⚠⚠ | ~27 | N/A | N/A |
+| 1x Buy & Hold (BH 1x) | +8.4% | +0.54 | −58.8%² | -4.0% | +0.9% | -1.02pp | 0 | N/A | N/A |
 
 *計算式*:
 - 1-5 (SBI CFD): `(CAGR - 0.66%) × 0.8273`（v3.1 §3-A モデル、SBI スプレッド WFA 実測値ベース）
-- 6-7 (ETF): `CAGR × 0.8273`（コスト既反映、税のみ調整）
-- MaxDD: FULL期間値（cost-after, tax-pre）
-- Worst10Y / P10_5Y: 6-7 は v4 年次値から rolling 計算（uniform ×0.8273）
-- DH [A] OOS Sharpe / CAGR_IS-OOS gap: [CFD_S2_YEARLY_RETURNS_2026-05-17.md](CFD_S2_YEARLY_RETURNS_2026-05-17.md) §OOS統計参照
+- 6-7 (ETF): **年次リターン ×0.8273 逐年複利**（`src/recalc_no6_no7_aftertax.py` で再計算済み。旧: CAGR_pre×0.8273 単純スケーリング → 廃止）
+- MaxDD: ¹ DH Dyn は FULL期間 pre-tax 値（−45.1%）。日次 after-tax データ未計算のため pre-tax を保持。after-tax 年次近似: −25.3%（過小評価の恐れあり）。² BH 1x は日次NASDAQデータで after-tax 逐年計算した値（−58.8%）。pre-tax は −77.9%。
+- Worst10Y / P10_5Y: 6-7 は v4 年次値から rolling 計算（×0.8273 逐年適用）
+- DH [A] OOS Sharpe / IS-OOS gap: [CFD_S2_YEARLY_RETURNS_2026-05-17.md](CFD_S2_YEARLY_RETURNS_2026-05-17.md) §OOS統計参照（pre-tax ⓒ）
 
 ---
 
@@ -165,9 +165,9 @@
 
 | 指標 | 候補戦略レンジ | DH Dyn [A] | BH 1x | 候補 vs ベンチ |
 |---|---:|---:|---:|:---|
-| CAGR_OOS (手取り) | +21.2% ~ +23.7% | +12.3% | +8.4% | **候補は DH の ~1.8倍, BH の ~2.7倍** |
+| CAGR_OOS (手取り) | +21.2% ~ +23.7% | +10.7% | +8.4% | **候補は DH の ~2.0〜2.2倍, BH の ~2.5〜2.8倍** |
 | Sharpe_OOS | +0.80 ~ +0.85 | +0.65 | +0.54 | 候補は DH 比 +23~31%、BH 比 +48~57% |
-| MaxDD | -52.3% ~ -56.4% | -45.1% | -77.9% | DH より深く、BH より浅い（CFD レバ特有） |
+| MaxDD (pre-tax) | -52.3% ~ -56.4% | -45.1% | -77.9%（after-tax: -58.8%²） | DH より深く、BH pre-tax より浅い（CFD レバ特有）|
 | Worst10Y (手取り) | +9.6% ~ +11.4% | +10.9% | -4.0% | DH と同水準。BH は深刻に下回る |
 
 ### 5-3 採用変更を意思決定する際の判断軸
@@ -198,7 +198,7 @@
 ### §6-1 注意事項
 
 1. **コスト枠組み相違**: 戦略 1-5 は SBI CFD 想定（SOFR+3.0% + 未含 -0.66%）。戦略 6 (DH [A]) は ETF (TQQQ+TMF+Gold2x ETN) 想定（SOFR+TER）。戦略 7 (BH 1x) はコスト調整なし。**完全 apples-to-apples 比較ではない**。
-2. **税モデル限界**: §3-A `×0.8273` は CAGR 比例単純化。実際は損益通算・3年繰越・NISA非適用（CFD）等で実効税率が変動。詳細は [STRATEGY_PERFORMANCE_COMPARISON_20260529.md §RISK](STRATEGY_PERFORMANCE_COMPARISON_20260529.md) 参照。
+2. **税モデル**: §3-A `×0.8273` を**年次リターンに逐年適用して複利計算**（No.6/7 は `src/recalc_no6_no7_aftertax.py` で再計算済み。旧の CAGR_pre×0.8273 単純スケーリングを廃止）。実際は損益通算・3年繰越・NISA非適用（CFD）等で実効税率が変動。詳細は [STRATEGY_PERFORMANCE_COMPARISON_20260529.md §RISK](STRATEGY_PERFORMANCE_COMPARISON_20260529.md) 参照。
 3. **OOS 部分年**: 2026 は 2026-03-26 までの部分年（年率換算なし、実績パーセンテージ）。OOS CAGR 計算で重みが小さい。
 4. **WFA 未実施 (DH [A]/BH 1x)**: 戦略 6-7 は g14 WFA に含まれていない（CFD フレームワーク外）。WFE / CI95_lo は N/A。
 5. **Worst10Y / P10_5Y (DH [A]/BH 1x)**: 戦略 6-7 は v4 年次値から本レポートで rolling 計算（手取り uniform ×0.8273 model）。
@@ -225,6 +225,6 @@
 
 ---
 
-*管理者: Kazuya Murayama*
-*生成: Claude (Opus 4.7) on 2026-05-29*
-*準拠: `EVALUATION_STANDARD.md v1.3` (9指標標準), v3.1 §3-A 税モデル*
+*管理者: 男座員也（Kazuya Oza）*
+*生成: Claude (Opus 4.7) on 2026-05-29 / 手取りCAGR再計算: 2026-06-01*
+*準拠: `EVALUATION_STANDARD.md v1.3` (9指標標準), v3.1 §3-A 税モデル（逐年複利適用）*
