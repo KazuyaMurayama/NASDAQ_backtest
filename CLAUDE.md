@@ -85,7 +85,7 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - 成果物・スクリプトは本リポジトリ内のみに保存。`C:\\Users\\user\\Desktop` への出力禁止（ユーザー明示指定時を除く）。
 
 <!-- SKILLS_RULES_START -->
-## Skill 起動ルール（v2.1 / 2026-05-29）
+## Skill 起動ルール（v2.2 / 2026-06-01）
 以下のスキルは **必須・スキップ禁止**。該当シーンでは SKILL.md を読んでから作業を開始すること。
 
 - **時系列・トレンド分析を行う時は必ず** `.claude/skills/time-series-analysis/SKILL.md` を読み、手順に従って分析を実行する
@@ -96,4 +96,10 @@ https://github.com/KazuyaMurayama/nasdaq-strategy-gas
 - **戦略評価・比較レポートの品質チェック（QC）・レビュー・ステークホルダー共有前は必ず** `.claude/skills/analysis-qa-checklist/SKILL.md` を読んでチェックリストを実施する
 - **成果物の納品・コミット前、または品質チェック（QC）・レビューフェーズに入る時は必ず** `.claude/skills/sp-verification-before-completion/SKILL.md` のチェックリストを実行する
 - **データ品質・整合性の確認が必要な時は必ず** `.claude/skills/data-quality-audit/SKILL.md` を読んで監査を実行する
+### ブランチ管理（絶対厳守）
+- **デフォルト: mainへ直接コミット**。ブランチ作成はユーザーが明示的に指示した場合のみ。
+- ブランチを作成した場合、必ず `main` へマージ → ブランチ削除 → push を完了してから作業完了とする。
+- ブランチにファイルを置いたまま回答を完了することを禁止。「完了 = mainにマージ済み＆push済み」。
+- ブランチが残存している場合は、次セッション開始時に `git branch -a` で確認し、即マージ・削除する。
+
 <!-- SKILLS_RULES_END -->
