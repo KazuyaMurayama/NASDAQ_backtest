@@ -1,0 +1,5 @@
+strategy,L_avg_full,L_avg_oos,L_max_full,L_max_oos,trades_yr_lev_gt05,trades_yr_lev_gt001,sum_abs_dL_per_yr
+E4 Regime k_lt,,4.3624,,7.0000,20.4945,75.7971,56.6995
+F10 eps015,,4.3765,,7.0000,20.4945,75.7971,56.6995
+D5 vz065 lmax5p5,,4.0708,,5.5000,13.9692,56.1637,39.4486
+DH Dyn 2x3x [A],1.6204,1.6455,3.0000,3.0000,22.1019,27.1155,20.3853
