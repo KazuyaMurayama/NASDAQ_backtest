@@ -267,23 +267,43 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 
 新しい指標を追加する場合は、本書 §3 に式・コード参照・注意事項を追記してから採用する。
 
-### §3.12 統一指標セット（9指標）とレポート標準（v1.3 確定 2026-05-28）
+### §3.12 統一指標セット（9指標）とレポート標準（v1.4 確定 2026-06-02）
 
 すべての sweep / grid / 戦略比較レポートは以下の **9指標**を標準セットとして使用する。
 
-| # | 指標 | 種別 | 列ヘッダ（短縮） | MD表示（<br>折り返し） |
-|---|---|---|---|---|
-| 1 | CAGR_OOS | 一次 | `CAGR_OOS` | `CAGR<br>_OOS` |
-| 2 | Sharpe_OOS | 一次 | `Sharpe` | `Sharpe` |
-| 3 | MaxDD(FULL) | 一次 | `MaxDD` | `MaxDD` |
-| 4 | Worst10Y★ | 一次 | `W10Y★` | `Worst<br>10Y★` |
-| 5 | P10_5Y▷ | 一次 | `P10▷` | `P10▷` |
-| 6 | IS-OOS gap | 一次 | `Gap` | `IS-OOS<br>gap` |
-| 7 | Trades/yr | 一次 | `Tr` | `Tr` |
-| 8 | Overfit(WFE) | WFA補助 | `Overfit(WFE)` | `Overfit<br>(WFE)` |
-| 9 | WFA_CI95_lo | WFA補助 | `CI95_lo` | `CI95<br>_lo` |
+| # | 指標 | 種別 | 列ヘッダ（短縮）| MD表示（4行折り返し）| 列順 |
+|---|---|---|---|---|---|
+| 1 | CAGR_OOS | 一次 | `CAGR⓽_OOS` | `CAGR<br>⓽<br>_<br>OOS` | 1 |
+| 2 | **IS-OOS gap CAGR** | 一次 | `IS-OOS gap CAGR` | `IS-OOS<br>gap<br>CAGR` | **2 (v1.4 で移動)** |
+| 3 | Sharpe_OOS | 一次 | `Sharpeⓒ_OOS` | `Sharpe<br>ⓒ<br>_OOS` | 3 |
+| 4 | MaxDD(FULL) | 一次 | `MaxDDⓒ` | `MaxDD<br>ⓒ` | 4 |
+| 5 | Worst10Y★ CAGR | 一次 | `Worst10Y★⓽CAGR` | `Worst<br>10Y★<br>⓽<br>CAGR` | 5 |
+| 6 | P10_5Y▷ CAGR | 一次 | `P10⓽5Y▷CAGR` | `P10<br>⓽<br>5Y▷<br>CAGR` | 6 |
+| 7 | Trades/yr | 一次 | `Tradeⓞ(回/年)` | `Trade<br>ⓞ<br>(回/<br>年)` | 7 |
+| 8 | Overfit(WFE) | WFA補助 | `Overfitⓞ(WFE)` | `Overfit<br>ⓞ<br>(WFE)` | 8 |
+| 9 | WFA_CI95_lo | WFA補助 | `CI95ⓡ_lo` | `CI95<br>ⓡ<br>_lo` | 9 |
 
-**列ヘッダの2行折り返し**: MD テーブルでは `<br>` を使って長い列名を2行に折り返し列幅を縮小する。全指標がスクロールなしに収まることを確認する（§5.6 参照）。
+**v1.4 変更点**:
+1. **IS-OOS gap CAGR を CAGR_OOS の右隣（第2列）へ移動**（v1.3 では第6列だった）
+2. **「IS-OOS gap」→「IS-OOS gap CAGR」へ列名変更**（CAGR 単位を明示）
+3. **列ヘッダを 4行折り返し（v1.3 は 2-3行）** — 列幅を更に縮小、状態凡例マーカ ⓽/ⓒ/ⓞ/ⓡ を独立行に
+4. **取引コスト評価は日次レベル必須**（年率近似 `Trades_yr × spread × L_avg × κ` は高頻度・低Δ戦略を過大評価する）
+
+**取引コスト評価ルール（v1.4 必須）**:
+- 全戦略の `CAGR_IS` / `CAGR_OOS` は **日次レベルで取引コストを反映**してから算出すること
+- 実装パターン:
+  - CFD: `daily_cost(t) = |Δ(wn × lev_mod × L_s2)| × spread_one_way`
+  - ETF: `daily_cost(t) = (|Δw_TQQQ| + |Δw_TMF| + ...) × per_unit_cost`
+- 参考実装: [src/g18_daily_trade_cost_wfa.py](src/g18_daily_trade_cost_wfa.py)
+- 表内に yr_cost (年率取引コスト概算) を表示することは**禁止**（CAGR に反映済みで二重表示になる）
+
+**状態凡例マーカ**:
+- **⓽** = 税後（手取り）: CAGR_OOS, Worst10Y★ CAGR, P10_5Y▷ CAGR
+- **ⓒ** = コスト後（税引き前）: Sharpe_OOS, MaxDD
+- **ⓞ** = 原値（コスト・税で不変）: Trades/yr, Overfit(WFE)
+- **ⓡ** = 実測値（WFA計算）+ 税調整: CI95_lo
+
+**列ヘッダの4行折り返し**: MD テーブルでは `<br>` を3つ使って長い列名を4行に折り返し、列幅を最小化する。全指標がスクロールなしに収まることを確認する（§5.6 参照）。
 
 **Overfit(WFE)（過学習リスクスコア v1.3）**: `WFA_WFE` 値に基づく評価。OvFit列とWFE列を1列に統合。
 - `✅ LOW`  : `0.5 ≤ WFE ≤ 2.0`（正常域。IS/OOS の汎化効率が適正）
@@ -480,6 +500,8 @@ START
 | v1.1 | 2026-05-22 | §3.9 WFA_CI95_lo・§3.10 WFA_WFE を WFA補助指標として追加（旧§3.9 コード参照を §3.11 に繰り下げ）。非標準WFA指標（Stable_Sharpe・WinRate_yr・WorstK5_mean_CAGR・IR_vs_BH）を廃止。統一指標セットを7+2=9指標に確定。§3.12 sweep スクリプト標準（9指標・WFA ポリシー・<br>列折り返し）追加。§5.5 sweep チェックリスト追加。 |
 | v1.1.1 | 2026-05-22 | §3.12 に「CAGR は CAGR_OOS の1列のみ・手書きヘッダ禁止・戦略比較用 MD_HEADER_STRAT」を明文化。戦略比較スクリプト用チェックリストを新設。`src/_sweep_format.py` に `MD_HEADER_STRAT` / `fmt_row_strat` を追加しスコープを戦略比較まで拡張。 |
 | v1.2 | 2026-05-27 | §3.12 統一指標セットに #8 `OvFit`（過学習リスクスコア）を追加し 9指標→10指標 / 11列ヘッダに拡張。`MD_HEADER_1P/2P/STRAT` / `fmt_row_1p/2p/strat` を全て更新し、`_ovfit()` ヘルパーを新規追加。OvFit は `\|IS_OOS_gap\|` から自動算出（✅ LOW: ≤2pp / ⚠ MED: ≤5pp / ❌ HIGH: >5pp）のため CSV 列追加は不要。 |
+| v1.3 | 2026-05-28 | §3.12 Overfit(WFE) を WFA_WFE ベース判定に変更し OvFit列とWFE列を1列に統合（10列 = 9指標標準）。 |
+| **v1.4** | **2026-06-02** | **§3.12 列順変更: IS-OOS gap CAGR を CAGR_OOS の右隣（第2列）へ移動・列名に CAGR 単位を明示。列ヘッダを4行折り返しに変更（状態凡例マーカ ⓽/ⓒ/ⓞ/ⓡ を独立行へ）。取引コスト評価を日次レベル必須化（年率近似は禁止）。yr_cost 列の表内表示禁止。`MD_HEADER_1P/2P/STRAT` 更新。** |
 
 ### 今後の改訂方針
 

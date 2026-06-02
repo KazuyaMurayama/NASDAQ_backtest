@@ -88,23 +88,23 @@ def _ovfit_wfe(wfe):
 # ---------------------------------------------------------------------------
 
 # 1パラメータ sweep (例: b6 — N のみ)
-# <br> で列ヘッダを2〜3行に折り返し → 列幅を縮小 (§5.6)
+# v1.4: 列順変更 — IS-OOS gap CAGR を CAGR_OOS の右隣へ移動 / 4行折り返しで列幅を更に縮小
 MD_HEADER_1P = (
-    '| Param | CAGR<br>_OOS | Sharpe<br>_OOS | MaxDD | Worst<br>10Y★<br>CAGR | P10<br>5Y▷<br>CAGR | IS-OOS<br>gap | Trade<br>（回/年） | Overfit<br>(WFE) | CI95<br>_lo |',
-    '|:------|-------------:|---------------:|------:|----------------------:|-------------------:|--------------:|------------------:|:----------------:|-----------:|',
+    '| Param | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
+    '|:------|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
 )
 
 # 2パラメータ sweep (例: b3/b4/b5/b7/b8 — N × k_lt)
 MD_HEADER_2P = (
-    '| N | k_lt | CAGR<br>_OOS | Sharpe<br>_OOS | MaxDD | Worst<br>10Y★<br>CAGR | P10<br>5Y▷<br>CAGR | IS-OOS<br>gap | Trade<br>（回/年） | Overfit<br>(WFE) | CI95<br>_lo |',
-    '|--:|-----:|-------------:|---------------:|------:|----------------------:|-------------------:|--------------:|------------------:|:----------------:|-----------:|',
+    '| N | k_lt | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
+    '|--:|-----:|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
 )
 
 # 戦略横並び比較表（複数戦略を1行ずつ並べる: e2_hybrid / STRATEGY_COMPARISON 等）
-# 列順・列幅は MD_HEADER_1P/2P と完全に一致させる（§3.12）
+# 列順・列幅は MD_HEADER_1P/2P と完全に一致させる（§3.12 v1.4）
 MD_HEADER_STRAT = (
-    '| Strategy | CAGR<br>_OOS | Sharpe<br>_OOS | MaxDD | Worst<br>10Y★<br>CAGR | P10<br>5Y▷<br>CAGR | IS-OOS<br>gap | Trade<br>（回/年） | Overfit<br>(WFE) | CI95<br>_lo |',
-    '|:---------|-------------:|---------------:|------:|----------------------:|-------------------:|--------------:|------------------:|:----------------:|-----------:|',
+    '| Strategy | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
+    '|:---------|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
 )
 
 # WFA 未計算注記（スイープ MDテーブル下に挿入）
@@ -130,16 +130,16 @@ MD_METRIC_GLOSSARY = (
 # ---------------------------------------------------------------------------
 
 def fmt_row_2p(n, k_lt, r, ref_s2=0.770, ref_lt2=0.885):
-    """N × k_lt 型の1行を返す (b3/b4/b5/b7/b8 共通)"""
+    """N × k_lt 型の1行を返す (b3/b4/b5/b7/b8 共通) — v1.4: IS-OOS gap CAGR を 2列目に"""
     mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
     return (
         f'| {n:>4d} | {k_lt:.1f} '
         f'| {_fp1(r["CAGR_OOS"])} '
+        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_ff2(r["Sharpe_OOS"])}{mark} '
         f'| {_fp1(r["MaxDD_FULL"])} '
         f'| {_fp1(r["Worst10Y_star"])} '
         f'| {_fp1(r["P10_5Y"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_tr(r.get("Trades_yr"))} '
         f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
         f'| {_wfa(r.get("WFA_CI95_lo"))} |'
@@ -147,16 +147,16 @@ def fmt_row_2p(n, k_lt, r, ref_s2=0.770, ref_lt2=0.885):
 
 
 def fmt_row_1p(param_label, r, ref_s2=0.770, ref_lt2=0.885):
-    """1パラメータ型の1行を返す (b6 等)"""
+    """1パラメータ型の1行を返す (b6 等) — v1.4: IS-OOS gap CAGR を 2列目に"""
     mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
     return (
         f'| {param_label} '
         f'| {_fp1(r["CAGR_OOS"])} '
+        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_ff2(r["Sharpe_OOS"])}{mark} '
         f'| {_fp1(r["MaxDD_FULL"])} '
         f'| {_fp1(r["Worst10Y_star"])} '
         f'| {_fp1(r["P10_5Y"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_tr(r.get("Trades_yr"))} '
         f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
         f'| {_wfa(r.get("WFA_CI95_lo"))} |'
@@ -184,14 +184,15 @@ def fmt_row_strat(label, r, ref_s2=0.770, ref_lt2=0.885,
     mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
     s_sfx = sharpe_ref_mark or ''
     m_sfx = maxdd_ref_mark  or ''
+    # v1.4: IS-OOS gap CAGR を CAGR_OOS の右隣（2列目）に配置
     return (
         f'| {label} '
         f'| {_fp1(r["CAGR_OOS"])} '
+        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_ff2(r["Sharpe_OOS"])}{mark}{s_sfx} '
         f'| {_fp1(r["MaxDD_FULL"])}{m_sfx} '
         f'| {_fp1(r["Worst10Y_star"])} '
         f'| {_fp1(r["P10_5Y"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
         f'| {_tr(r.get("Trades_yr"))} '
         f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
         f'| {_wfa(r.get("WFA_CI95_lo"))} |'
