@@ -1,0 +1,10 @@
+metric,value
+actual_diff_pp,3.2681015963883953
+cum1+diff_median,2.7283648631926227
+cum1+diff_CI_low,-1.1995198148520205
+cum1+diff_CI_high,6.792314059958819
+cum1+diff_P(>0)%,91.92
+paired_median,3.439011672365211
+paired_CI_low,-1.6240615878813138
+paired_CI_high,9.772785096592251
+paired_P(>0)%,90.73
