@@ -21,10 +21,11 @@
 - **Task D**: F10 Trades/yr 内訳分解 → **F10 追加 trades は wn-tilt 由来 7.9/yr のみ**
 
 ### C. 重要発見ハイライト
-- **新 SOTA 候補: F10+D5 ハイブリッド (vz=0.65/lmax=7/ε=0.015)**
-  - CAGR_OOS net = **+21.49%** (F10 ε=0.015 比 +2.05pp 優位)
-  - IS-OOS gap = **-1.27pp** (negative = OOS > IS = excellent generalization)
+- **🔍 NEW CANDIDATE (要 v6.3 追加検証): F10+D5 ハイブリッド (vz=0.65/lmax=7/ε=0.015)**
+  - CAGR_OOS net = +21.49% (F10 ε=0.015 比 +2.05pp 優位)
+  - IS-OOS gap = -1.27pp (negative = OOS > IS)
   - Sharpe = +0.829, MaxDD = -65.95%, Worst10Y★ = +9.98%
+  - ⚠️ **QC 警告 (Agent 3)**: 負 gap は generalization の保証ではなく **OOS regime fit の疑い**。CAGR_IS は F10 とほぼ同じ (0.2023 vs 0.2019, +0.04pp)、**CAGR_OOS のみが +2.05pp 改善**。vz=0.65 で gap 負方向は **lmax=7 でしか発生しない非単調パターン** (lmax=5 は +1.23pp, lmax=5.5 は +0.73pp)。**vz_thr robustness sweep + WFA + 年次寄与分解 + Bootstrap を完了するまで「v7 即時昇格」は不可**。詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260602_v62_QC.md](STRATEGY_PERFORMANCE_INTEGRATED_20260602_v62_QC.md)
 
 ---
 
@@ -34,8 +35,8 @@ CFD spread = 0.05% (中庸 GMO/楽天想定) / DH per-unit = 0.10% (retail $100k
 
 | # | Strategy | CAGR<br>⓽<br>OOS | IS-OOS<br>gap | Sharpe<br>ⓒ<br>OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽ | P10<br>⓽<br>5Y▷ | Trades<br>ⓞ /年 | Overfit<br>(WFE) | CI95<br>_lo |
 |:--:|:---------|--------:|------:|------:|--------:|--------:|--------:|----:|:---:|----:|
-| 1 | **🔴 NEW SOTA: vz=0.65+lmax=7+F10ε** | **+21.49%** | **-1.27pp** | +0.829 | -65.95% | +9.98% | +5.84% | 52 | ✅ LOW<br>(~1.2) | +0.19 推 |
-| 2 | F10 ε=0.015 ★ | +19.44% | +0.75pp | +0.78 M | -66.03% | +10.42% | +5.11% | 52 | ✅ LOW<br>(1.2) | +0.194 |
+| 1? | **🔍 NEW CANDIDATE (要検証): vz=0.65+lmax=7+F10ε** | +21.49% | -1.27pp ⚠ | +0.829 | -65.95% | +9.98% | +5.84% | 52 | ✅ LOW<br>(~1.2) | +0.19 推 |
+| 2 | F10 ε=0.015 ★ (暫定首位) | +19.44% | +0.75pp | +0.78 M | -66.03% | +10.42% | +5.11% | 52 | ✅ LOW<br>(1.2) | +0.194 |
 | 3 | **F8 R5_CALM_BOOST** (新規) | **+19.43%** | +0.77pp | +0.776 | -66.01% | +10.42% | +5.12% | 181 | ✅ LOW<br>(1.2) | +0.194 |
 | 4 | **F7v3+E4 A:tilt=2.0** (新規) | **+18.93%** | +0.84pp | +0.769 | -65.05% | +10.24% | +5.78% | ~50 | ✅ LOW<br>(1.2) | +0.193 推 |
 | 5 | D5 vz=0.65/lmax=5.5 | +17.86% | +2.22pp | +0.79 M | **-55.88%** | +12.21% | +6.76% | 28 | ✅ LOW<br>(1.3) | +0.192 |
@@ -252,9 +253,9 @@ CFD spread = 0.05% (中庸 GMO/楽天想定) / DH per-unit = 0.10% (retail $100k
 
 | 判断 | 推奨 |
 |---|---|
-| **🔴 即時 v7 候補昇格対象** | **NEW SOTA (vz=0.65+lmax=7+F10ε)** — 要 G19F WFA 50窓実証 |
+| **🔍 要 v6.3 追加検証 (即時昇格不可)** | **NEW CANDIDATE (vz=0.65+lmax=7+F10ε)** — vz_thr robustness sweep + WFA 50窓 + 年次寄与分解 + Bootstrap 必須 (QC Agent 3 指摘) |
 | **継続 Active** | E4 ◆ (現行確定 WFA PASS、保守候補) |
-| **Active 候補** | F10 ε=0.015 ★ (v6.1 推奨、WFA PASS 済) |
+| **Active 候補 (暫定首位)** | F10 ε=0.015 ★ (v6.1 推奨、WFA PASS 済、NEW CANDIDATE 検証完了まで保持) |
 | **Shortlisted** | D5 vz=0.65/lmax=5.5 (Sharpe / MaxDD バランス良) |
 | **不採用** | F8 R5_CALM_BOOST (F10 と同等、Trades 多すぎ表記; 実取引差小) |
 | **保留** | F7v3+E4 A:tilt=2.0 (F10 と同等、独自性弱) |
@@ -303,9 +304,14 @@ NEW SOTA (vz=0.65+lmax=7+F10ε) は本 v6.2 で**初発見**であり:
 
 ## 🔍 §10 v7 候補課題 (v6.2 更新)
 
-### §10-1 即時着手 (v6.3)
-1. **NEW SOTA (vz=0.65+lmax=7+F10ε) の WFA 50窓厳密検証** ★★★
-2. NEW SOTA の Worst10Y★ / P10_5Y▷ / CI95_lo の正規計算
+### §10-1 即時着手 (v6.3) — QC Agent 3 指摘の NEW CANDIDATE 検証パッケージ
+
+1. **vz_thr robustness sweep** ★★★ — {0.625, 0.65, 0.675, 0.70, 0.725} × lmax=7+ε=0.015 (5 configs)。vz=0.65 のみ勝つなら overfit 確定
+2. **NEW CANDIDATE WFA 50窓厳密検証** ★★★ — g14 同等で CI95_lo / WFE / t-stat 計算
+3. **年次寄与分解** ★★ — OOS +2.05pp 改善が 2022 単年由来か全年均等か (NEW CAND vs F10)
+4. **Bootstrap on OOS** ★★ — +2.05pp 改善の 95%CI が 0 を跨ぐか統計検定
+5. **Permutation test** ★ — vz_thr ラベルシャッフルで gap=-1.27pp が偶然か検定
+6. NEW CANDIDATE の Worst10Y★ / P10_5Y▷ / CI95_lo の正規計算
 
 ### §10-2 v7 中期
 3. **DH Dyn [A] の SOFR シナリオ感応度** — 高/低 SOFR で WFA 再実行、macro spurious 度の定量化
