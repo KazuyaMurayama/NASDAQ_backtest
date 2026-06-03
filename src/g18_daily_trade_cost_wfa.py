@@ -153,6 +153,45 @@ def build_dh_nav_with_cost(close, lev_raw, wn_A, wg_A, wb_A, dates,
     return nav_adj, daily_trade_cost.sum() / (len(dates)/252.0)
 
 
+def build_dh_nav_with_timing_cost(close, lev_raw, wn_A, wg_A, wb_A, dates,
+                                  gold_2x, bond_3x, sofr, per_unit_cost,
+                                  lev_mod=None, L_s2_values=None):
+    """DH NAV + optional CFD-style timing.
+
+    lev_mod=None and L_s2_values=None → build_dh_nav_with_cost と完全一致。
+    lev_mod  : (n,) np.ndarray or None — vz-gated NASDAQ exposure factor (0〜1)
+    L_s2_values : (n,) np.ndarray or None — vz-gated leverage cap (lev_raw×3 にキャップ)
+
+    daily_turnover(t) = |Δw_TQQQ| + |Δw_TMF| + |Δw_Gold| (modified weights を使用)
+    """
+    n = len(close)
+    if lev_mod is None:
+        lev_mod_arr = np.ones(n)
+    else:
+        lev_mod_arr = np.nan_to_num(np.asarray(lev_mod, dtype=float), nan=1.0)
+
+    lev_eff = np.asarray(lev_raw, dtype=float) * 3.0
+    if L_s2_values is not None:
+        L_s2 = np.nan_to_num(np.asarray(L_s2_values, dtype=float), nan=lev_eff.max())
+        lev_eff = np.minimum(lev_eff, L_s2)
+
+    nav_base = _make_nav(close, lev_mod_arr, wn_A, wg_A, wb_A,
+                          dates, gold_2x, bond_3x, sofr, lev_eff)
+
+    wn = np.asarray(wn_A); wg = np.asarray(wg_A); wb = np.asarray(wb_A)
+    dwn = np.zeros_like(wn); dwn[1:] = np.abs(np.diff(wn))
+    dwg = np.zeros_like(wg); dwg[1:] = np.abs(np.diff(wg))
+    dwb = np.zeros_like(wb); dwb[1:] = np.abs(np.diff(wb))
+    turnover = dwn + dwb + dwg
+    turnover = np.nan_to_num(turnover, nan=0.0)
+    daily_trade_cost = turnover * per_unit_cost
+
+    r_base = np.nan_to_num(nav_base.pct_change().fillna(0).values, nan=0.0)
+    r_adj = r_base - daily_trade_cost
+    nav_adj = pd.Series(np.cumprod(1.0 + r_adj), index=nav_base.index)
+    return nav_adj, daily_trade_cost.sum() / (len(dates)/252.0)
+
+
 def metrics_from_nav(nav, dates, ret_nas, is_end=IS_END_TS, oos_start=OOS_START_TS):
     """NAV から IS/OOS の CAGR, Sharpe, MaxDD, IS-OOS gap, Worst10Y, P10_5Y を算出。"""
     nav = nav.astype('float64')

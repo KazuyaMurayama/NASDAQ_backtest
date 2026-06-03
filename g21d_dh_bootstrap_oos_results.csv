@@ -1,0 +1,6 @@
+metric,value
+actual_diff_pp,1.084325
+paired_median_pp,0.064773
+paired_CI_low_pp,-6.333225
+paired_CI_high_pp,5.878274
+P_diff_gt0_pct,51.010000
