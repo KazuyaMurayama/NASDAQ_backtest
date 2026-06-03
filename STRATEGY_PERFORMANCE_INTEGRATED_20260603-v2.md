@@ -1,34 +1,40 @@
-# 戦略パフォーマンス統合レポート v6.3 — NEW CANDIDATE 5検証完了版 (2026-06-02)
+# 戦略パフォーマンス統合レポート v2 — NEW CANDIDATE 5検証完了版 (2026-06-03)
 
-**作成日**: 2026-06-02
+**作成日**: 2026-06-03（v2：§0' 列構成を v6.1 添付フォーマットと完全一致に修正）
 **生成者**: Claude (Opus 4.7)
 **準拠**: EVALUATION_STANDARD.md v1.4 / v3.1 §3-A 税モデル / v6.1 日次取引コスト / v6.2 7戦略拡張
 **前版**:
-- [v6.1](STRATEGY_PERFORMANCE_INTEGRATED_20260602.md) (4戦略)
+- [v6.1](STRATEGY_PERFORMANCE_INTEGRATED_20260602.md) (4戦略) ← §0' のヘッダ参照元
 - [v6.2](STRATEGY_PERFORMANCE_INTEGRATED_20260602_v62.md) (7戦略、QC で NEW SOTA→NEW CANDIDATE)
 - [v6.2 QC](STRATEGY_PERFORMANCE_INTEGRATED_20260602_v62_QC.md) (3 並列エージェント QC)
+- [v6.3](STRATEGY_PERFORMANCE_INTEGRATED_20260602_v63.md) (5 検証完了、§0' 列ズレ未修正版 — 本ファイルで修正)
 
 ---
 
-## 📋 §0 v6.3 主要変更点
+## 📋 §0 v2 主要変更点（v6.3 → v2）
 
-### A. NEW CANDIDATE (vz=0.65+lmax=7+F10ε=0.015) 5検証完了
+### A. **§0' 候補戦略比較表の列構成を v6.1 添付フォーマットと完全一致に修正** ← v2 唯一の差分
+- 旧 v6.3: `CAGR<br>⓽<br>_OOS`（3 行）
+- 新 v2: `CAGR<br>⓽<br>_<br>OOS`（4 行、v6.1 line 108 と同一）
+- アライメント行も v6.1 と同一の列幅指定に統一
+
+### B. NEW CANDIDATE (vz=0.65+lmax=7+F10ε=0.015) 5検証完了（v6.3 から継承）
 QC Agent 3 の指摘に応じて、5 統計検証 (v6.3-1〜v6.3-5) を全件実施。
 
-### B. 8戦略統合年次リターン表 (1977-2026) を追加
+### C. 8戦略統合年次リターン表 (1977-2026)（v6.3 から継承）
 v6.1 形式踏襲、税後・日次取引コスト後、moderate ケース。
 
-### C. NEW CANDIDATE の最終判定: **🟢 条件付き昇格 (Active 候補追加)**
+### D. NEW CANDIDATE の最終判定: **🟢 条件付き昇格 (Active 候補追加)**（v6.3 から継承）
 3 検証 PASS + 2 検証 marginal で、F10 ★ と並ぶ「**双頭 Active 候補**」として運用推奨。
 
 ---
 
-## 🎯 §0' 候補戦略 統合比較表 (v6.3 採用判断版) — EVALUATION_STANDARD §3.12 v1.4 準拠
+## 🎯 §0' 候補戦略 統合比較表 (v2 採用判断版・列構成 v6.1 完全一致) — EVALUATION_STANDARD §3.12 v1.4 準拠
 
 **moderate ケース**: CFD spread = 0.05% (中庸 GMO/楽天想定) / 税後 (§3-A `(yr − 0.66%) × 0.8273` 逐年複利) / 日次取引コスト後
 
-| Strategy | CAGR<br>⓽<br>_OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |
-|:---|---:|---:|---:|---:|---:|---:|---:|:---:|---:|
+| Strategy | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |
+|:---------|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|
 | **🟢 vz=0.65+l7+F10ε** (NEW CANDIDATE) | **+21.49%** | **-1.27pp** | **+0.829** | -65.95% | +9.96% | +5.84% | 52 | ✅ LOW<br>(1.4) | **+0.199** |
 | **D5 vz=0.65/lmax=5.5** | +17.86% | +2.22pp | +0.79 M | **-55.88%** | +12.21% | +6.76% | 28 | ✅ LOW<br>(1.3) | +0.192 |
 | **DH Dyn 2x3x [A]** | +9.56% | +10.29pp ⚠⚠ | +0.60 | -41.57% | **+12.57%** | **+8.77%** | 27 | ✅ LOW<br>(0.7) | +0.175 |
