@@ -222,6 +222,44 @@ W2/W3 はコストが高い（preset/TMF rotation の transition turnover）。
 
 ---
 
+## 🔬 §6.5 DH-W1 統計検証結果 (v1.1 追記)
+
+### WFA 50 窓 (g23d)
+| 戦略 | CI95_lo | WFE | p_value | Trades/yr | 判定 |
+|---|---:|---:|---:|---:|---|
+| DH-REF | +17.54% | 0.662 | 0.0000 | 27.8 | ✅PASS (overfit 残存) |
+| **DH-W1** | **+13.95%** | **0.997** | 0.0000 | 17.8 | ✅PASS (**完全汎化**) |
+
+→ W1 の WFE 0.997 は IS 期間と OOS 期間の CAGR が ほぼ完全に一致することを意味し、過学習が構造的に解消された証拠
+
+### Bootstrap (W1 vs REF, OOS paired block, 10000×21d, seed=42) (g23e)
+- 実 CAGR_OOS diff = **+5.57pp** (W1 - REF, raw daily compounding)
+- Bootstrap median diff = **+3.65pp** (positive)
+- 95% CI: [-9.14, +15.18] pp (wide due to OOS 5 年)
+- P(diff > 0): **72.1%** (positive bias 強いが statistical significance 未達)
+- 判定: ⚠ marginal positive — DH-Z2 vs REF (median +3.80, P 71.1%) と統計的に同水準
+
+### W1 閾値 (enter, exit) sensitivity sweep (g23f, 24 組合せ)
+| 評価項目 | 結果 |
+|---|---|
+| OOS CAGR 範囲 | **+12.0% 〜 +16.7%** (全 24 組合せ正、過適化リスク低) |
+| IS CAGR 範囲 | +11.8% 〜 +17.6% |
+| gap 範囲 | -2.3pp 〜 +2.7pp (全て < +5pp) |
+| 採用値 (0.7, 0.3) OOS rank | 13 / 24 (中央値) |
+| 採用値 MaxDD rank | **1 / 24** (-34.57% で最良級) |
+| 別解 1 (enter=0.5, exit=0.1) | OOS +16.67% (最高) / MaxDD -41.86% (高 DD) → aggressive variant |
+| 別解 2 (enter=0.6, exit=0.3) | OOS +14.84% / gap +0.91pp (最小) → gap 最小化 variant |
+
+→ **採用値 (0.7, 0.3) は MaxDD 重視の保守的選択**。OOS 重視なら (0.5, 0.1)、gap 最小化なら (0.6, 0.3) を別タスクで検証可。
+
+### 統計検証総合
+- ✅ **WFA**: 完全汎化 + CI95_lo > 0
+- ⚠ **Bootstrap**: median positive だが OOS 5 年で marginal
+- ✅ **Sweep**: 24 組合せ全て正 OOS、過適化なし
+- **総合判定**: DH-W1 は **Active 候補昇格に値する**。Bootstrap significance は OOS 期間延長で改善見込み
+
+---
+
 ## 📁 §7 一次根拠ファイル
 
 | ファイル | 役割 |
@@ -232,6 +270,15 @@ W2/W3 はコストが高い（preset/TMF rotation の transition turnover）。
 | [src/g23b_dh_refinement_metrics.py](src/g23b_dh_refinement_metrics.py) | 9 指標 + 累積 CAGR + 年次取得 |
 | [g23b_dh_refinement_metrics.csv](g23b_dh_refinement_metrics.csv) | 7 戦略 9 指標表 |
 | [g23b_dh_refinement_yearly_aftertax.csv](g23b_dh_refinement_yearly_aftertax.csv) | 7 戦略 1974-2026 年次税後 |
+| [src/g23d_dh_w1_wfa.py](src/g23d_dh_w1_wfa.py) | W1 WFA 50 窓 |
+| [g23d_dh_w1_wfa.csv](g23d_dh_w1_wfa.csv) | W1 WFA 結果 |
+| [src/g23e_dh_w1_bootstrap.py](src/g23e_dh_w1_bootstrap.py) | W1 vs REF Bootstrap (paired block) |
+| [g23e_dh_w1_bootstrap_results.csv](g23e_dh_w1_bootstrap_results.csv) | Bootstrap 結果 |
+| [src/g23f_dh_w1_threshold_sweep.py](src/g23f_dh_w1_threshold_sweep.py) | (enter, exit) 24 組合せ sweep |
+| [g23f_dh_w1_threshold_sweep.csv](g23f_dh_w1_threshold_sweep.csv) | Sweep 結果 |
+| [src/g24_5strategies_verification.py](src/g24_5strategies_verification.py) | 5 戦略全指標 canonical 再計算 + diff |
+| [g24_5strategies_verification.csv](g24_5strategies_verification.csv) | 5 戦略再計算指標 |
+| [g24_5strategies_yearly.csv](g24_5strategies_yearly.csv) | 5 戦略 1974-2026 年次 (canonical) |
 
 ---
 
@@ -240,6 +287,7 @@ W2/W3 はコストが高い（preset/TMF rotation の transition turnover）。
 | Ver | 日付 | 主要変更 |
 |---|---|---|
 | v1.0 | 2026-06-03 | 初版。W1/W2/W3 3 候補検証完了、W1 採用推奨判定。コスト前提を §0' に明記、§1 標準 9 指標 + 累積 CAGR OOS/IS、§2 年次表、§3 統計、§4 OOS 累積、§5 個別判定、§6 推奨アクション。親レポート v4.2 と同形式。 |
+| **v1.1** | **2026-06-03** | **§6.5 統計検証セクション追加**: WFA 50 窓 (W1 WFE=0.997 完全汎化、CI95_lo=+13.95%、Trades=18 で REF 27 を下回る安定性)、Bootstrap W1 vs REF (median +3.65pp positive、P=72.1% marginal)、(enter, exit) 24 組合せ閾値 sweep (全て OOS +12〜16.7% 正、過適化なし、採用 (0.7, 0.3) は MaxDD 最良 1/24 ranking)。総合判定: **DH-W1 は Active 候補昇格に値する**。 |
 
 ---
 
