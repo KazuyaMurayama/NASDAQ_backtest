@@ -1,0 +1,12 @@
+metric,value
+actual_gap_pp,2.166394
+actual_cagr_oos_pct,12.256651
+null_gap_mean_pp,1.687582
+null_gap_5pct_pp,-2.923682
+null_gap_95pct_pp,5.192400
+P_gap_lt_zero_under_null_pct,23.000000
+P_gap_le_actual_under_null_pct,52.000000
+null_cagr_mean_pct,12.189703
+null_cagr_5pct,8.738535
+null_cagr_95pct,15.490497
+P_cagr_ge_actual_under_null_pct,45.000000

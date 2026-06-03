@@ -156,7 +156,12 @@ def build_dh_nav_with_cost(close, lev_raw, wn_A, wg_A, wb_A, dates,
 def build_dh_nav_with_timing_cost(close, lev_raw, wn_A, wg_A, wb_A, dates,
                                   gold_2x, bond_3x, sofr, per_unit_cost,
                                   lev_mod=None, L_s2_values=None):
-    """DH NAV + optional CFD-style timing.
+    """# DEPRECATED 2026-06-03: leverage scaling (lev_mod continuous multiplier
+    on TQQQ position + L_s2 cap) violates ETF binary-hold constraint.
+    Do not use for new strategies. See DH-Z series (g22a〜g22f) for the correct
+    approach: binary HOLD/OUT mask + allocation pattern switching, no lev scaling.
+
+    DH NAV + optional CFD-style timing.
 
     lev_mod=None and L_s2_values=None → build_dh_nav_with_cost と完全一致。
     lev_mod  : (n,) np.ndarray or None — vz-gated NASDAQ exposure factor (0〜1)

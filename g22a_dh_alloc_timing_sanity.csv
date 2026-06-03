@@ -1,0 +1,6 @@
+Strategy,timing,allocation,hold_ratio_pct,peak_lev_eff,nav_final,yr_cost_pct
+DH-Z1 (DH base + binary vz),vz_binary,dh_base,52.6084,2.4000,3264.6385,1.5044
+DH-Z2 (F10 e tilt + binary vz),vz_binary,f10,52.6084,2.8500,3419.8315,1.7368
+DH-Z3 (DH base + composite),composite,dh_base,34.8242,2.4000,14.9687,1.1235
+DH-Z4 (Fixed bull 80/10/10 + binary vz),vz_binary,fixed_bull,52.6084,2.4000,3160.1318,1.3242
+"DH-Z5 (Regime preset switch, always IN)",always_in,regime,100.0000,2.4000,29730.6775,0.7256

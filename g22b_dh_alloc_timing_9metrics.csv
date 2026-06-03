@@ -1,0 +1,7 @@
+Strategy,CAGR_OOS_pct,IS_OOS_gap_pp,Sharpe_OOS,MaxDD_FULL_pct,Worst10Y_CAGR_pct,P10_5Y_CAGR_pct
+DH Dyn 2x3x [A] (REF),9.5568,10.4590,0.6037,-41.5655,12.5721,8.7663
+DH-Z1 (DH base + binary vz),11.4103,2.9675,0.7915,-39.4466,6.9393,5.4776
+DH-Z2 (F10 e tilt + binary vz),12.2567,2.1664,0.8374,-38.9200,6.3554,5.3270
+DH-Z3 (DH base + composite),4.2181,0.6538,0.4869,-52.5889,-6.4591,-4.1190
+DH-Z4 (Fixed bull 80/10/10 + binary vz),11.2323,3.1329,0.7689,-41.3275,5.8393,6.1910
+"DH-Z5 (Regime preset switch, always IN)",8.0684,11.5313,0.5497,-45.3880,10.6989,9.2478
