@@ -1,0 +1,4 @@
+Strategy,hold_ratio_pct,peak_lev_eff,nav_final,yr_cost_pct
+"DH-W1 (Asymm+Hysteresis, DH base)",53.1399,2.4000,6127.9317,0.6266
+DH-W2 (Z2 binary + TMF rotation),52.6084,2.8500,5008.0329,2.7803
+DH-W3 (3-state preset switch),58.3567,2.4000,2194.8993,2.8601
