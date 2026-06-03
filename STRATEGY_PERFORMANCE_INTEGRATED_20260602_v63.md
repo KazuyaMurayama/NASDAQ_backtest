@@ -23,6 +23,33 @@ v6.1 形式踏襲、税後・日次取引コスト後、moderate ケース。
 
 ---
 
+## 🎯 §0' 候補戦略 統合比較表 (v6.3 採用判断版) — EVALUATION_STANDARD §3.12 v1.4 準拠
+
+**moderate ケース**: CFD spread = 0.05% (中庸 GMO/楽天想定) / 税後 (§3-A `(yr − 0.66%) × 0.8273` 逐年複利) / 日次取引コスト後
+
+| Strategy | CAGR<br>⓽<br>_OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |
+|:---|---:|---:|---:|---:|---:|---:|---:|:---:|---:|
+| **🟢 vz=0.65+l7+F10ε** (NEW CANDIDATE) | **+21.49%** | **-1.27pp** | **+0.829** | -65.95% | +9.96% | +5.84% | 52 | ✅ LOW<br>(1.4) | **+0.199** |
+| **D5 vz=0.65/lmax=5.5** | +17.86% | +2.22pp | +0.79 M | **-55.88%** | +12.21% | +6.76% | 28 | ✅ LOW<br>(1.3) | +0.192 |
+| **DH Dyn 2x3x [A]** | +9.56% | +10.29pp ⚠⚠ | +0.60 | -41.57% | **+12.57%** | **+8.77%** | 27 | ✅ LOW<br>(0.7) | +0.175 |
+| **NDX 1x B&H** (Benchmark) | +8.27% | +1.64pp | +0.516 | -77.93% | -4.85% | +0.59% | 0 | — | — |
+
+太字 = 列最良値 / 🟢 = v6.3 で「条件付き昇格」確定 / ⚠⚠ = IS-OOS gap > +5pp (古典 overfit 強警戒)
+
+凡例（EVALUATION_STANDARD §3.12 v1.4）:
+- ⓽ = 税後（手取り）: CAGR_OOS / Worst10Y★ / P10_5Y▷
+- ⓒ = コスト後（税引前据置）: Sharpe_OOS / MaxDD / IS-OOS gap
+- ⓞ = 原値（コスト・税で不変）: Trade / Overfit(WFE)
+- ⓡ = 再計算値（g14 実測 + §3-A 税調整）: CI95_lo
+
+データ出典:
+- NEW CANDIDATE / D5 / DH: [g20f_unified_yearly_returns.csv](g20f_unified_yearly_returns.csv) + [g20b_new_candidate_wfa_summary.csv](g20b_new_candidate_wfa_summary.csv) + [g14_wfa_sbi_cfd_summary.csv](g14_wfa_sbi_cfd_summary.csv)
+- NDX 1x B&H: [g19e_3strategies_daily_cost.csv](g19e_3strategies_daily_cost.csv)
+- 詳細コスト前提: §1' (本ファイル下部)
+- 5 検証結果 (NEW CANDIDATE): §1〜§3 (本ファイル下部)
+
+---
+
 ## 📋 §1' コスト・税金 調整前提 (v6.3 強化版 — 全コスト網羅 + ロジック再チェック)
 
 ### §1'-1 メイン調整テーブル (全 14 ステップ、CFD 戦略基準)
