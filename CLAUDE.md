@@ -61,9 +61,24 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 
 ---
 
-## 5. 📛 ドキュメント命名規則・日付ルール
-- `FINAL_` プレフィックス禁止 / `<TOPIC>_YYYY-MM-DD.md` 形式 / SUPERSEDED ヘッダで旧版置換
-- レポート系 .md 新規作成時は H1直下に `作成日: YYYY-MM-DD` / `最終更新日: YYYY-MM-DD` を必須記載。更新時は最終更新日のみ書き換え（作成日は固定）
+## 5. 📛 ドキュメント命名規則・日付ルール（v2.0 / 2026-06-03 改訂）
+
+### ファイル名
+- `FINAL_` プレフィックス禁止 / `<TOPIC>_YYYYMMDD.md` 形式（**サフィックス・ハイフンなし**）/ SUPERSEDED ヘッダで旧版置換
+  - 例: `STRATEGY_COMPARISON_20260603.md`
+- **同日中の追加更新**: `-v2`、`-v3` を追加（例: `STRATEGY_COMPARISON_20260603-v2.md`）
+- **翌日の1回目**: v サフィックスをリセット（例: `STRATEGY_COMPARISON_20260604.md`）
+
+### 表記の区別
+- **ファイル名**: ハイフン**なし** `YYYYMMDD`
+- **本文中の日付表記**: ハイフン**あり** `YYYY-MM-DD`
+
+### 旧形式（廃止・新規禁止）
+- ❌ `<TOPIC>_2026-06-03.md`（旧 v1.0 形式・ハイフン区切り）
+- ✅ `<TOPIC>_20260603.md`（**現行 v2.0**）
+
+### H1直下の日付メタデータ
+レポート系 .md 新規作成時は H1直下に `作成日: YYYY-MM-DD` / `最終更新日: YYYY-MM-DD` を必須記載。更新時は最終更新日のみ書き換え（作成日は固定）。
 - 除外: README / CLAUDE.md / FILE_INDEX / tasks.md / CHANGELOG / LICENSE
 - 詳細は [docs/rules/07_doc-naming-and-dates.md](docs/rules/07_doc-naming-and-dates.md)
 
