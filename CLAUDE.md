@@ -52,6 +52,7 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 4. `Trades_yr` 欠落・`Overfit(WFE)` 欠落・手書きヘッダ・`CAGR_IS/FULL` の MD 掲載のいずれも v1.3 違反として**再提出対象**。
 5. **Overfit(WFE) 列**は `WFA_WFE` から自動算出（`fmt_row_*` 内で `_ovfit_wfe()` が呼ばれる）。列値は2行表示（例: `✅ LOW<br>(1.1)`）。判定: ✅LOW=WFE∈[0.5,2.0] / ⚠MED=WFE>2.0 / ❌HIGH=WFE<0.5。WFE値は小数点1桁。WFE別列は廃止（Overfit(WFE)に統合済み）。
 6. **MD レポートをサブエージェントに委託する場合**: タスク prompt に必ず明記「`src/_sweep_format.py` の `MD_HEADER_*` を import 必須、手書きヘッダ禁止、`CAGR_IS/FULL` を MD ヘッダに含めない、`Overfit(WFE)` 列必須（10列 / 9指標標準）」
+7. **統合比較レポート（採用判断・戦略比較）** は §0'（累積CAGR⓽列含む11列）・§1'（14ステップ）・§5（年次リターン 1977-2026）・§6（統計サマリ 1974-2026）の**4セクション必須**。`MD_HEADER_INTEGRATED` / `fmt_row_integrated` / `fmt_annual_table` / `fmt_stats_table` を `src/_sweep_format.py` から import。詳細: [docs/rules/09_integrated-report-standard.md](docs/rules/09_integrated-report-standard.md)
 
 ---
 
@@ -96,6 +97,7 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 | 06 | [docs/rules/06_strategy-verification.md](docs/rules/06_strategy-verification.md) | 新検証アイデア着手前プロトコル |
 | 07 | [docs/rules/07_doc-naming-and-dates.md](docs/rules/07_doc-naming-and-dates.md) | ドキュメント命名・日付ルール |
 | 08 | [docs/rules/08_evaluation-metrics.md](docs/rules/08_evaluation-metrics.md) | 評価指標ルール（9指標厳守） |
+| 09 | [docs/rules/09_integrated-report-standard.md](docs/rules/09_integrated-report-standard.md) | 統合比較レポート標準（§0'/§1'/§5/§6 必須4セクション） |
 
 > 「監査」「品質チェック」「Phase 1/2/3」「WFAを回す」等を検出したら `.claude/rules/audit-protocol.md` を読んで実行する
 

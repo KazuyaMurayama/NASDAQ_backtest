@@ -1,7 +1,7 @@
 """
 _sweep_format.py — Sweep MDテーブル共有フォーマッタ
 =====================================================
-EVALUATION_STANDARD §3.12 / §5.6 準拠 (v1.3, 2026-05-28)
+EVALUATION_STANDARD §3.12 / §5.6 準拠 (v1.4, 2026-06-03)
 
 統一指標セット（9指標）:
   1. CAGR_OOS    2. Sharpe  3. MaxDD  4. W10Y★
@@ -18,8 +18,12 @@ Overfit(WFE)（過学習リスクスコア）: WFE値に基づく評価
   - MD_HEADER_1P  / fmt_row_1p   : 1パラメータ sweep（b6 等）
   - MD_HEADER_2P  / fmt_row_2p   : 2パラメータ sweep（b3/b4/b5/b7/b8 等）
   - MD_HEADER_STRAT / fmt_row_strat : 戦略横並び比較（e2_hybrid / STRATEGY_COMPARISON 等）
+  - MD_HEADER_INTEGRATED / fmt_row_integrated : 統合比較レポート v6.1（11列・累積CAGR⓽列含む）
+  - fmt_annual_table  : §5 年次リターン表（1977-2026 / moderate / 税後）
+  - fmt_stats_table   : §6 統計サマリ（1974-2026 / moderate / 7行）
 
 CAGR は CAGR_OOS の1列のみ。CAGR_IS / CAGR_FULL を MD ヘッダに含めると v1.1 違反。
+（例外: MD_HEADER_INTEGRATED の「累積CAGR⓽ OOS/IS」列は IS/OOS を1セル内に併記する形式のため非違反）
 """
 import numpy as np
 
@@ -197,3 +201,129 @@ def fmt_row_strat(label, r, ref_s2=0.770, ref_lt2=0.885,
         f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
         f'| {_wfa(r.get("WFA_CI95_lo"))} |'
     )
+
+
+# ---------------------------------------------------------------------------
+# 統合比較レポート v6.1 / v4.2 — 11列フォーマッタ（採用判断・戦略横並び）
+# 列順: Strategy | CAGR⓽_OOS | 累積CAGR⓽ OOS/IS | IS-OOS gap |
+#        Sharpe ⓒ | MaxDD ⓒ | Worst10Y★⓽ | P10⓽ 5Y▷ | Trade ⓞ | Overfit ⓞ | CI95 ⓡ
+# docs/rules/09_integrated-report-standard.md 参照
+# ---------------------------------------------------------------------------
+
+def _cum_cagr_cell(cagr_oos, cagr_is):
+    """累積CAGR⓽ OOS/IS セル: 'OOS: +xx%<br>IS: +xx%'"""
+    oos_str = _fp1(cagr_oos)
+    if cagr_is is None or (isinstance(cagr_is, float) and np.isnan(cagr_is)):
+        is_str = '  —  '
+    else:
+        is_str = _fp1(cagr_is)
+    return f'OOS: {oos_str}<br>IS: {is_str}'
+
+
+# 統合比較表ヘッダ (v6.1 / v4.2 — 累積CAGR⓽ 列含む 11 列)
+MD_HEADER_INTEGRATED = (
+    '| Strategy | CAGR<br>⓽<br>_<br>OOS | 累積<br>CAGR<br>⓽<br>OOS/IS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
+    '|:---------|-------------:|:------------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
+)
+
+
+def fmt_row_integrated(label, r, ref_s2=0.770, ref_lt2=0.885,
+                       sharpe_ref_mark=None, maxdd_ref_mark=None):
+    """統合比較表の 1 行（11列 / MD_HEADER_INTEGRATED 対応）。
+
+    Parameters
+    ----------
+    label : str
+        戦略名（Markdown 装飾は呼び出し側で付与）
+    r : dict
+        必須キー: CAGR_OOS, IS_OOS_gap, Sharpe_OOS, MaxDD_FULL,
+                  Worst10Y_star, P10_5Y, Trades_yr, WFA_WFE, WFA_CI95_lo
+        任意キー: CAGR_IS（ない場合は累積CAGR IS セルが '—'）
+    """
+    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+    s_sfx = sharpe_ref_mark or ''
+    m_sfx = maxdd_ref_mark  or ''
+    return (
+        f'| {label} '
+        f'| {_fp1(r["CAGR_OOS"])} '
+        f'| {_cum_cagr_cell(r["CAGR_OOS"], r.get("CAGR_IS"))} '
+        f'| {_gap_pp(r["IS_OOS_gap"])} '
+        f'| {_ff2(r["Sharpe_OOS"])}{mark}{s_sfx} '
+        f'| {_fp1(r["MaxDD_FULL"])}{m_sfx} '
+        f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r["P10_5Y"])} '
+        f'| {_tr(r.get("Trades_yr"))} '
+        f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
+        f'| {_wfa(r.get("WFA_CI95_lo"))} |'
+    )
+
+
+# ---------------------------------------------------------------------------
+# §5 年次リターン表（1977-2026 / moderate / 税後）フォーマッタ
+# ---------------------------------------------------------------------------
+
+def fmt_annual_table(strategies, yearly_returns, start_year=1977):
+    """§5 年次リターン表を Markdown テーブル文字列として返す。
+
+    Parameters
+    ----------
+    strategies : list[str]
+        列ヘッダ（戦略名、順序そのまま）
+    yearly_returns : dict[str, dict[int, float]]
+        yearly_returns[strategy][year] = annual_return（比率。例: 0.20 = +20%）
+        税後・moderate コスト後の値を渡すこと。
+    start_year : int
+        表示開始年（default=1977、LT2-N750 ウォームアップ後）
+    """
+    header = '| 年 | ' + ' | '.join(strategies) + ' |'
+    sep = '|---:|' + ':---:|' * len(strategies)
+    rows = [header, sep]
+    all_years = sorted({y for s in yearly_returns.values() for y in s})
+    for yr in all_years:
+        if yr < start_year:
+            continue
+        cells = []
+        for s in strategies:
+            v = yearly_returns.get(s, {}).get(yr)
+            cells.append('  —  ' if v is None else f'{v * 100:+.1f}')
+        rows.append('| ' + str(yr) + ' | ' + ' | '.join(cells) + ' |')
+    return '\n'.join(rows)
+
+
+# ---------------------------------------------------------------------------
+# §6 統計サマリ（1974-2026 / moderate / 税後）フォーマッタ
+# ---------------------------------------------------------------------------
+
+def fmt_stats_table(strategies, yearly_returns, start_year=1974):
+    """§6 統計サマリ（7行: mean/median/std/max/min/プラス年/マイナス年）を返す。
+
+    Parameters
+    ----------
+    strategies : list[str]
+    yearly_returns : dict[str, dict[int, float]]
+        return は比率。税後・moderate コスト後。
+    start_year : int
+        集計開始年（default=1974。§5 と異なり IS 期間全体を含む）
+    """
+    header = '| 統計 | ' + ' | '.join(strategies) + ' |'
+    sep = '|:---|' + ':---:|' * len(strategies)
+    rows = [header, sep]
+
+    stat_defs = [
+        ('平均 (mean)',     lambda a: f'{np.mean(a) * 100:+.2f}%'),
+        ('中央値 (median)', lambda a: f'{np.median(a) * 100:+.2f}%'),
+        ('標準偏差 (std)',  lambda a: f'{np.std(a) * 100:+.2f}%'),
+        ('最大 (max)',      lambda a: f'{np.max(a) * 100:+.2f}%'),
+        ('最小 (min)',      lambda a: f'{np.min(a) * 100:+.2f}%'),
+        ('プラス年数',      lambda a: str(sum(1 for x in a if x > 0))),
+        ('マイナス年数',    lambda a: str(sum(1 for x in a if x < 0))),
+    ]
+
+    for stat_name, fn in stat_defs:
+        cells = []
+        for s in strategies:
+            rets = np.array([r for yr, r in yearly_returns.get(s, {}).items()
+                             if yr >= start_year])
+            cells.append('—' if len(rets) == 0 else fn(rets))
+        rows.append(f'| {stat_name} | ' + ' | '.join(cells) + ' |')
+    return '\n'.join(rows)
