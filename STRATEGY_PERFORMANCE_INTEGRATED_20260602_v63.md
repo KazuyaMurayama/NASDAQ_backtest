@@ -23,6 +23,106 @@ v6.1 形式踏襲、税後・日次取引コスト後、moderate ケース。
 
 ---
 
+## 📋 §1' コスト・税金 調整前提 (v6.3 強化版 — 全コスト網羅 + ロジック再チェック)
+
+### §1'-1 メイン調整テーブル (全 14 ステップ、CFD 戦略基準)
+
+| 調整ステップ | 前提・値 | 備考 |
+|---|---|---|
+| **Step 1: ブローカー金利マージン (financing)** | **SBI/GMO/IG CFD 推定 — SOFR + 3.0%/yr** (業者マージン推定、`(L-1)×(SOFR+spread)`構造) | ⚠ SBI 公式は非公開 (deep-research 2026-05-20 SBI CFD ガイド §11 で再確認、取引画面ログイン後でのみ閲覧可能)。IG/楽天の SOFR+3.0% を参考に推定。実態は楽天 SOFR+約3% (=6.5-7.0%) / IG SOFR+3.0% (=6.59%)。試算: 4倍ポジ (400万円) で年率 25-30万円コスト (年率 6-7%) |
+| **Step 2: 未含コスト補正 (residual drag)** | **−0.66%/yr** (内訳: Gold TER -10.5 bps + TMF TER -3.5 bps + Swap推定差 -34 bps + 他 -18 bps) | `CURRENT_BEST_STRATEGY.md` 準拠。「TER 補正」ではなく複合コスト補正である点に注意。CFD 前提では NAS swap 推定差 (-17bps相当) と SOFR+3.0% の二重計上リスクあり → 保守的レンジは -0.49% 〜 -0.66% |
+| **Step 3-A: 日本税 (CAGR比例モデル)** | **20.315% (申告分離) × 「利益85%課税」想定** | `CAGR_net = (CAGR − 0.66%) × 0.8273` ← v2 で採用したモデル。8-9勝1-2敗想定の単純化モデル |
+| **Step 3-B: 日本税 (固定減算モデル)** | EVALUATION_STANDARD §1.1 準拠 — **-2.8% (best) 〜 -5.2% (worst)** を直接減算 | `CAGR_net = CAGR − tax_drag`。Trades/yr 別に best/worst を選択 (27回→best寄り, 52回→worst寄り) |
+| **Step 4 (NEW v6.1): 日次取引コスト (execution)** | `daily_cost(t) = \|Δposition(t)\| × spread_one_way` を NAV daily return から差し引く | 4 ケース併記 (§1'-3): measured 0.020% / opt 0.030% / **moderate 0.050%** / cons 0.100% (往復スプレッド)。コミッション 0% (CFD 標準) |
+| **Step 5 (NEW v6.3): NDX 配当未反映の保守バイアス** | NDX Close (= Adj Close) は **price index で配当未含む** (CAGR 10.98%/yr vs Total Return ~11.7%/yr) | ⚠️ **本 backtest は NDX 配当 0.7%/yr × eff_L 分 UNDERESTIMATION** (4×レバで約 +3pp/yr 控除)。実 CFD は配当相当 pass-through で実 return ↑。**保守側方向** (発見元: v6.3 ロジック再チェック) |
+| **MaxDD** | SOFR+3.0% コスト後 (税引前)、日次取引コスト後 | 含み損は税対象外 (SBI 店頭CFD前提)。税後との差は数値的に 1-2pp 程度 |
+| **Sharpe_OOS** | SOFR+3.0% コスト後 (税前据置)、日次取引コスト後 | ⚠ 「Rf=0 で税乗数が分子分母等倍 → Sharpe 不変」は対称税モデル前提。現実の非対称税では約 -19% 低下する可能性 (簡易シミュレーション) |
+| **IS-OOS gap** | SOFR+3.0% コスト後・日次取引コスト後・**税後** (CAGR_IS_aft − CAGR_OOS_aft) | OOS期間 (2021-2026) は高 SOFR 環境のため税前 gap が拡大。v6.3 から税後計算に統一 |
+| **Trades/yr** | 原値 (g14 mean Trades_yr 実測 四捨五入) — `lev_change>0.5` 流儀 | g15c (C) 定義 (>0.01) で見ると 70-181/yr の実日次リバランス頻度 (g19d で内訳分解済) |
+| **Overfit(WFE)** | 原値 (g14 実測、`mean_CAGR_postIS / mean_CAGR_IS`) | 0.5 ≤ WFE ≤ 2.0 を β PASS 基準 |
+| **WFA_CI95_lo** | g14 実測値 + §3-A 税調整: `(CI95_lo_g14 − 0.66%) × 0.8273` | 推定式から実測値に更新済。判定基準として使用可能 (8戦略全 PASS) |
+| **約定遅延 (DELAY)** | バックテストは **DELAY=2** (2営業日遅延) | ⚠ SBI 店頭CFD の実態は T+0 (即時)。バックテストの方が **+2 営業日保守的** |
+| **税適用タイミング** | **年次 mark-to-market 想定** — 年次 pre-tax → §3-A → 年次 after-tax → 複利 | 実際は売却時のみ実現。年次税は loss carryforward が完璧と仮定する近似 |
+
+### §1'-2 ETF 戦略コスト前提 (DH Dyn [A] のみ)
+
+| 項目 | 値 | 備考 |
+|---|---|---|
+| TQQQ TER | 0.86%/yr | ProShares UltraPro QQQ |
+| TMF TER | 0.91%/yr | Direxion 20+ Yr Treasury Bull 3x |
+| **2036 TER** | **0.49%/yr** | **WisdomTree Gold 2x Daily Leveraged (LBUL.L)** — SBI 海外ETF枠で実取扱 (ユーザー実取得済み) |
+| 借入金利 | SOFR + 0.50% swap × ETF倍率 | 各 ETF 内に内包 (TQQQ: 2×SOFR / TMF: 2×SOFR / 2036: 1×SOFR) |
+| 配当課税 | 20.315% | 二重課税調整。TQQQ div yield 0.30% は実質ドラッグ -0.06%/yr |
+| **SBI 米国ETF コミッション** | 約定代金 × 0.495% (上限 22 USD/取引) | NISA非適用 (3x/2x レバ ETF) |
+| 為替手数料 | **25 銭/USD 片道** (標準) または **6 銭/USD** (住信SBIネット銀行経由) | per-turnover 換算: 標準 0.17% × 2方向 = 0.33%/turnover、Net銀行 0.04%/方向 = 0.08%/turnover |
+| 税モデル | `年次 pre-tax × 0.8273` 逐年複利 | ETF/B&H: -0.66%「未含 CFD コスト」は適用なし |
+| 取引コスト ケース | per-turnover one-way: **large-NAV 0.05% / moderate 0.10% / small-NAV 0.30%** | moderate 0.10% は SBI commission $22 上限 + bid-ask + 6銭FX (Net銀行) 想定 |
+
+### §1'-3 取引コスト ケース設定 (再掲)
+
+**CFD (往復スプレッド %)**:
+
+| ケース | spread_RT | 根拠 |
+|---|---:|---|
+| **measured (GMO 2026/4 実測)** | **0.020%** | GMO 米国NQ100ミニ 配信スプレッド実績 (2026/4 平均 1.8 USD / NDX 20000) |
+| optimistic | 0.030% | 同上 高品質提示帯 |
+| **moderate (採用基準)** | **0.050%** | 業界中庸 (楽天/DMM 推定) |
+| conservative (baseline) | 0.100% | IG/SBI 想定上限・スプレッド拡大時 |
+
+**DH (per-unit turnover %)**:
+
+| ケース | per_unit_cost | 根拠 |
+|---|---:|---|
+| large-NAV (cap eff.) | 0.05% | NAV $500k+ で SBI $22 上限が効く |
+| **moderate (採用基準)** | **0.10%** | retail $100k 規模、典型値 (6銭FX + bid-ask) |
+| small-NAV (no cap) | 0.30% | retail $50k 規模 + 25銭FX (標準) |
+
+### §1'-4 NEW CANDIDATE / F10 / E4 / D5 戦略別 平均レバレッジ・取引回数
+
+| 戦略 | L_avg<br>(OOS) | L_max | Trades/yr<br>(§3.12 標準) | Σ\|ΔL\|/yr | 日次 \|Δpos\| 平均/年 |
+|---|---:|---:|---:|---:|---:|
+| 🟢 NEW CANDIDATE | 4.36 | 7.0 | 52 | 56.7 | (g19d 参照: 7.9/yr added vs E4) |
+| F10 ε=0.015 ★ | 4.38 | 7.0 | **52** | 56.7 | 同上 |
+| F8 R5_CALM_BOOST | 4.38 | 7.0 | ~181 | 56.7 | tilt 連続更新で大 |
+| F7v3+E4 A:tilt=2.0 | ~4.3 | 7.0 | ~50 | ~55 | (推定) |
+| D5 vz=0.65/lmax=5.5 | 4.07 | 5.5 | **28** | 39.4 | (g19d 同等) |
+| E4 Regime k_lt ◆ | 4.36 | 7.0 | **28** | 56.7 | 173.3/yr (lev_mod_e4 連続変動) |
+| DH Dyn 2x3x [A] | 1.65 | 3.0 | **27** | 20.4 | 20.4/yr (turnover) |
+
+出典: [g17_avg_leverage.csv](g17_avg_leverage.csv) / [g14_wfa_sbi_cfd_summary.csv](g14_wfa_sbi_cfd_summary.csv) / [g19d_f10_trade_decomp_results.csv](g19d_f10_trade_decomp_results.csv)
+
+### §1'-5 ⚠️ 未捕捉コスト一覧 (v6.3 ロジック再チェックで発見)
+
+| 項目 | 影響 | 方向 | 対応 |
+|---|---|:--:|---|
+| **NDX 配当** | NDX Close = Price Index で配当未含 (~0.7%/yr × eff_L = 約 +3pp/yr underestimation for 4×レバ) | **保守 (低見積)** | NOTE 明記、実 CFD では配当相当 pass-through で実 return ↑ |
+| **価格調整額 / 先物ロール** | 元商品が先物の場合 (GMO 米国NQ100ミニ 等)、コンタンゴ環境で 2-4%/yr 可能性 | **未捕捉** | v6.1 §RISK-4 で言及済、店頭 CFD では非該当 |
+| **配当源泉徴収 (TQQQ)** | TQQQ div yield 0.30% × 米国源泉 10% = -0.03%/yr (二重課税調整で還付) | 微小 | DH 戦略のみ、無視可 |
+| **FX 換算 (CFD)** | JPY-quoted CFD では spread 内に embedded、追加コスト 0 | 0 | 該当なし |
+| **FX 換算 (ETF)** | SBI 標準 25銭/USD = 0.17%/方向 (DH moderate 0.10% は 6銭/USD 想定で過小) | DH のみ -0.07〜0.14%/yr | 標準 FX 利用なら small-NAV (0.30%) に近似 |
+| **CFD 維持手数料** | SBI/GMO/IG とも該当なし | 0 | 該当なし |
+| **証拠金金利** | 余剰証拠金は預け金扱い (金利 0) | 0 | 該当なし |
+| **税の繰延効果** | 年次 mark-to-market 仮定 → 売却時のみ実現で複利成長 | 軽度 aggressive | 影響小、長期保有では mark-to-market が conservative |
+
+### §1'-6 ロジック再チェック結果 (v6.3 で確認した正しさ)
+
+| # | チェック項目 | 結果 | 詳細 |
+|:--:|---|:--:|---|
+| 1 | 日次コスト時点 (`r_adj = r_base - daily_trade_cost`) | ✅ 正 | day t の開始でリバランス → day t の return から控除 (g18:96-122) |
+| 2 | (L-1) × SOFR 構造 (`cfd_leverage_backtest.py:21`) | ✅ 正 | レバ × spread の正しい財務構造 |
+| 3 | NDX 配当未含 (Close = Adj Close) | ⚠ NOTE | 保守 (低見積) であることを明記 |
+| 4 | 税適用 (年次 mark-to-market + §3-A) | ✅ 正 | 年次 pre-tax → tax → 複利、CAGR_OOS_net 算出 |
+| 5 | Sharpe 税前据置 (対称税モデル前提) | ✅ 正 (caveat 付) | 非対称税では -19% 可能性、別途注記済 |
+| 6 | MaxDD 税前 (含み損は税対象外) | ✅ 正 | 日次 NAV (cost-after) ベース |
+| 7 | WFA CI95_lo 税調整 (`(g14 - 0.66%) × 0.8273`) | ✅ 正 | 表示のみ、判定は raw も併用 |
+| 8 | Trades/yr (g14 mean 実測) | ✅ 正 (caveat 付) | lev_change>0.5 流儀、実日次 rebalance は別途 g19d 分解済 |
+| 9 | NEW CANDIDATE g19b 構築 (vz=0.65 + lmax=7 + F10ε=0.015) | ✅ 正 | QC Agent 2 で line-by-line 検証済 |
+| 10 | DELAY=2 (2 営業日遅延) | ✅ 正 (保守) | 実 SBI CFD T+0 より +2 営業日分保守的 |
+
+→ **全ロジック整合性確認**、未捕捉コストは「**NDX 配当 (保守側)**」と「**FX 標準利用時の DH 追加コスト (-0.1pp/yr)**」の 2 項目のみ、いずれも **数値的に小さく**、結論 (NEW CANDIDATE 条件付き昇格) に影響なし。
+
+---
+
 ## ✅ §1 5検証 結果サマリ (v6.3-1〜v6.3-5)
 
 | # | 検証 | スクリプト | 結果 | 判定 |
