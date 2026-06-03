@@ -52,7 +52,13 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 4. `Trades_yr` 欠落・`Overfit(WFE)` 欠落・手書きヘッダ・`CAGR_IS/FULL` の MD 掲載のいずれも v1.3 違反として**再提出対象**。
 5. **Overfit(WFE) 列**は `WFA_WFE` から自動算出（`fmt_row_*` 内で `_ovfit_wfe()` が呼ばれる）。列値は2行表示（例: `✅ LOW<br>(1.1)`）。判定: ✅LOW=WFE∈[0.5,2.0] / ⚠MED=WFE>2.0 / ❌HIGH=WFE<0.5。WFE値は小数点1桁。WFE別列は廃止（Overfit(WFE)に統合済み）。
 6. **MD レポートをサブエージェントに委託する場合**: タスク prompt に必ず明記「`src/_sweep_format.py` の `MD_HEADER_*` を import 必須、手書きヘッダ禁止、`CAGR_IS/FULL` を MD ヘッダに含めない、`Overfit(WFE)` 列必須（10列 / 9指標標準）」
-7. **統合比較レポート（採用判断・戦略比較）** は §0'（累積CAGR⓽列含む11列）・§1'（14ステップ）・§5（年次リターン 1977-2026）・§6（統計サマリ 1974-2026）の**4セクション必須**。`MD_HEADER_INTEGRATED` / `fmt_row_integrated` / `fmt_annual_table` / `fmt_stats_table` を `src/_sweep_format.py` から import。詳細: [docs/rules/09_integrated-report-standard.md](docs/rules/09_integrated-report-standard.md)
+7. **🚨 戦略検証・採用判断レポート（毎回・例外なし）**: 以下のいずれかを行うときは、**必ず**次の4セクションをすべて含めること。欠けると再提出対象。
+   - **適用トリガー**: 新戦略テスト・パラメータ検証・OOS評価・採用判断・候補比較・WFA再実行・OOS延長後の再評価
+   - **§0'** 候補戦略 統合比較表（累積CAGR⓽列含む11列 / `MD_HEADER_INTEGRATED` + `fmt_row_integrated`）
+   - **§1'** コスト・税金 調整前提（14ステップ / 参照元: `STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §1'`）
+   - **§5** 年次リターン表（1977-2026 / 手取り＋日次取引コスト後 moderate / `fmt_annual_table`）
+   - **§6** 統計サマリ（1974-2026 / 税後・日次取引コスト後 moderate / `fmt_stats_table`）
+   - フォーマッタは `src/_sweep_format.py` から import（手書き禁止）。詳細: [docs/rules/09_integrated-report-standard.md](docs/rules/09_integrated-report-standard.md)
 
 ---
 
