@@ -42,6 +42,33 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
    Stable_Sharpe / WinRate_yr / WorstK5_mean_CAGR / IR_vs_BH
 3. **根拠**: [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) v1.1 §3
 
+### 🆕 v4.5 (2026-06-05) 追加: Active 候補昇格の保守的採用基準 3 軸
+
+新戦略を **Active 候補に昇格判断する際** には以下 3 軸すべてで baseline (現行 §1 Active または比較対象 REF) を上回るか同等であることを必須条件とする:
+
+1. **min(IS, OOS) CAGR** = `min(cum_CAGR_IS, cum_CAGR_OOS)`
+   - 論拠: IS=44 年 vs OOS=6 年 のサンプルサイズ非対称 + 戦略選択バイアス補正 + regime drift リスク
+2. **Worst10Y★ CAGR** (rolling 10 年複利の最悪値、税後)
+3. **P10_5Y▷ CAGR** (rolling 5 年複利の 10th percentile、税後)
+
+**WFE 補助判定** (regime luck 警告):
+- WFE ≤ 1.2: OK
+- 1.2 < WFE ≤ 1.5: ⚠ 注意 (追加検証推奨)
+- **WFE > 1.5: ❌ regime luck 強疑い、min ルール厳格適用必要**
+
+詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)
+
+#### Active 候補 (v4.5 環境別、2026-06-05)
+
+| 環境 | 戦略 | min CAGR | 備考 |
+|---|---|---:|---|
+| **CFD 利用可** | **vz=0.65+l7+F10ε** | **+20.23%** | min ranking 1 位、§1 昇格判断ユーザー待ち |
+| **ETF only** | **DH-W1** | +13.66% | ETF 制約下で DH +9.56→+13.66 唯一改善 |
+
+#### ⚠ 命名規則 (v4.4 以降、必須遵守)
+
+vz=0.65+l7+F10ε を **「NEW」「NEW CANDIDATE」と呼ぶことは廃止**。パラメータ表記 `vz=0.65+l7+F10ε` または Registry ID `vz065_l7_F10eps015` で参照する。
+
 ---
 
 ## 3. 📋 sweep / grid / 戦略比較レポート生成時のルール（必須・違反は再提出）

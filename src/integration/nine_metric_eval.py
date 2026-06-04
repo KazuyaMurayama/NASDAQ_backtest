@@ -2,11 +2,13 @@
 
 For each candidate NAV vs baseline NAV, compute and diff:
   CAGR_OOS, IS-OOS gap, Sharpe_OOS, MaxDD,
-  Worst10Y_CAGR, P10_5Y_CAGR.
+  Worst10Y_CAGR, P10_5Y_CAGR,
+  Trades/yr (NAV-proxy), WFE (50-window), CI95_lo (50-window Sharpe CI).
 
-Trades/yr, WFE, CI95_lo are NOT computed at this stage (they require
-WFA execution, which is Session S3/S4 work). Phase B PASS judgment
-relies on the 6 metrics above + degradation guard.
+Session S3 (2026-06-05): Trades/yr, WFE, CI95_lo are now computed as
+NAV-based proxies (rolling-window Sharpe + sign-flip approximation).
+These are screening-grade approximations; true Trades/yr & WFE require
+full WFA execution and are tracked via Phase D audit (g20/g30).
 """
 from __future__ import annotations
 
@@ -65,6 +67,89 @@ def _is_oos_split(nav: pd.Series, split_date: str = '2018-01-01') -> tuple:
 
 
 # ------------------------------------------------------------------
+# New (S3): NAV-proxy Trades/yr, WFE, CI95_lo
+# ------------------------------------------------------------------
+
+def _trades_per_year_from_nav(
+    nav: pd.Series,
+    baseline_nav: pd.Series | None = None,
+) -> float:
+    """Approximate annual trades from NAV via daily-return sign flips.
+
+    If baseline_nav is provided, count sign flips of (cand_ret - base_ret),
+    which is a better proxy for *signal-induced* trading activity. Otherwise
+    count flips in candidate returns directly (less informative).
+    """
+    n = nav.dropna()
+    if len(n) < 252:
+        return float('nan')
+    ret = n.pct_change().dropna()
+    if baseline_nav is not None:
+        base_ret = baseline_nav.pct_change().reindex(ret.index).fillna(0)
+        diff = ret - base_ret
+        # threshold: ignore tiny noise (< 1bp) to avoid spurious flips
+        sign = np.sign(diff.where(diff.abs() > 1e-4, 0.0))
+    else:
+        sign = np.sign(ret)
+    flips = (sign != sign.shift(1)).fillna(False).sum()
+    years = (n.index[-1] - n.index[0]).days / 365.25
+    return float(flips / max(years, 1e-9))
+
+
+def _wfe(nav: pd.Series, n_windows: int = 50) -> float:
+    """Walk-Forward Efficiency: mean(rolling-window Sharpe) / full-sample Sharpe.
+
+    NAV-proxy version: split the full sample into n_windows equal chunks,
+    compute Sharpe in each, return ratio of mean to full Sharpe. A WFE of
+    1.0 means perfectly consistent; <1 means full Sharpe was inflated by
+    a few hot windows; >1 means the average window beats the aggregate.
+    """
+    n = nav.dropna()
+    n_obs = len(n)
+    if n_obs < n_windows * 60:
+        return float('nan')
+    full_sharpe = _sharpe(n)
+    if full_sharpe == 0 or np.isnan(full_sharpe):
+        return float('nan')
+    win_size = n_obs // n_windows
+    sharpes = []
+    for i in range(n_windows):
+        start = i * win_size
+        end = (i + 1) * win_size if i < n_windows - 1 else n_obs
+        s = _sharpe(n.iloc[start:end])
+        if not np.isnan(s):
+            sharpes.append(s)
+    if not sharpes:
+        return float('nan')
+    return float(np.mean(sharpes) / full_sharpe)
+
+
+def _ci95_lo(nav: pd.Series, n_windows: int = 50) -> float:
+    """Lower 95% CI bound of rolling-window Sharpe across n_windows.
+
+    NAV-proxy version: split into n_windows equal chunks, compute Sharpe
+    in each, return mean - 1.96 * SE. Lower CI lo = more risk of true
+    Sharpe being negative / weaker than reported.
+    """
+    n = nav.dropna()
+    n_obs = len(n)
+    if n_obs < n_windows * 60:
+        return float('nan')
+    win_size = n_obs // n_windows
+    sharpes = []
+    for i in range(n_windows):
+        start = i * win_size
+        end = (i + 1) * win_size if i < n_windows - 1 else n_obs
+        s = _sharpe(n.iloc[start:end])
+        if not np.isnan(s):
+            sharpes.append(s)
+    if len(sharpes) < 3:
+        return float('nan')
+    arr = np.array(sharpes)
+    return float(arr.mean() - 1.96 * arr.std() / np.sqrt(len(arr)))
+
+
+# ------------------------------------------------------------------
 # Public evaluator
 # ------------------------------------------------------------------
 
@@ -111,6 +196,21 @@ def evaluate(
     m['cand_p10_5y'] = _pct_window_cagr(candidate_nav, 5, pct=0.10)
     m['base_p10_5y'] = _pct_window_cagr(baseline_nav, 5, pct=0.10)
     m['p10_5y_diff'] = m['cand_p10_5y'] - m['base_p10_5y']
+
+    # Trades/yr (NAV-proxy from sign flips of cand-base return diff)
+    m['cand_trades_yr'] = _trades_per_year_from_nav(candidate_nav, baseline_nav)
+    m['base_trades_yr'] = _trades_per_year_from_nav(baseline_nav)
+    m['trades_yr_diff'] = m['cand_trades_yr'] - m['base_trades_yr']
+
+    # WFE (50-window rolling Sharpe / full Sharpe)
+    m['cand_wfe'] = _wfe(candidate_nav)
+    m['base_wfe'] = _wfe(baseline_nav)
+    m['wfe_diff'] = m['cand_wfe'] - m['base_wfe']
+
+    # CI95_lo (50-window rolling Sharpe 95% CI lower bound)
+    m['cand_ci95_lo'] = _ci95_lo(candidate_nav)
+    m['base_ci95_lo'] = _ci95_lo(baseline_nav)
+    m['ci95_lo_diff'] = m['cand_ci95_lo'] - m['base_ci95_lo']
 
     return m
 
@@ -286,4 +386,112 @@ def judge_improvement_relaxed(metrics: dict) -> dict:
         'n_improved_relaxed': n_imp,
         'n_degraded_relaxed': n_deg,
         'judgment_relaxed': judgment,
+    }
+
+
+# ------------------------------------------------------------------
+# Full 9+1 metric judgment (Session S3, 2026-06-05)
+# ------------------------------------------------------------------
+
+def judge_improvement_full(metrics: dict) -> dict:
+    """Full 9+1 metric judgment per docs/rules/08.
+
+    Adds 3 axes on top of the relaxed 6-axis judgment:
+      - trades_yr: hard cap at 200/yr (cand_trades_yr > 200 → severe degradation)
+      - wfe:      improved if diff >= +0.05, degraded if cand_wfe < 0.95 OR diff < -0.10
+      - ci95_lo:  improved if diff >= +0.05, degraded if diff < -0.05
+
+    PASS thresholds (8 axes, since trades_yr is hard cap only):
+      STRONG_PASS_FULL   : n_improved >= 5 AND no severe degradation
+      STANDARD_PASS_FULL : n_improved >= 3 AND no severe degradation
+      MARGINAL_FULL      : n_improved >= 1
+      FAIL_FULL          : otherwise
+    """
+    improvements: list = []
+    degradations: list = []
+
+    # 6 axes from relaxed (same thresholds for fairness)
+    v = metrics.get('cagr_oos_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('cagr_oos')
+        elif v < -0.02:
+            degradations.append('cagr_oos')
+
+    v = metrics.get('sharpe_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.03:
+            improvements.append('sharpe')
+        elif v < -0.05:
+            degradations.append('sharpe')
+
+    v = metrics.get('maxdd_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.02:
+            improvements.append('maxdd')
+        elif v < -0.10:
+            degradations.append('maxdd')
+
+    v = metrics.get('worst10y_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('worst10y')
+        elif v < -0.02:
+            degradations.append('worst10y')
+
+    v = metrics.get('p10_5y_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('p10_5y')
+        elif v < -0.02:
+            degradations.append('p10_5y')
+
+    v = metrics.get('is_oos_gap_diff', 0.0)
+    if not pd.isna(v):
+        if v <= -0.005:
+            improvements.append('is_oos_gap')
+        elif v > 0.03:
+            degradations.append('is_oos_gap')
+
+    # Trades/yr (hard cap — does NOT count as improvement, only as severe deg)
+    cand_trades = metrics.get('cand_trades_yr', 0.0)
+    if not pd.isna(cand_trades) and cand_trades > 200:
+        degradations.append('trades_yr_cap')
+
+    # WFE
+    wfe_diff = metrics.get('wfe_diff', 0.0)
+    cand_wfe = metrics.get('cand_wfe', 1.0)
+    if not pd.isna(wfe_diff):
+        if wfe_diff >= 0.05:
+            improvements.append('wfe')
+        elif (not pd.isna(cand_wfe) and cand_wfe < 0.95) or wfe_diff < -0.10:
+            degradations.append('wfe')
+
+    # CI95_lo
+    v = metrics.get('ci95_lo_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.05:
+            improvements.append('ci95_lo')
+        elif v < -0.05:
+            degradations.append('ci95_lo')
+
+    n_imp = len(improvements)
+    n_deg = len(degradations)
+    has_severe = n_deg > 0
+
+    if n_imp >= 5 and not has_severe:
+        judgment = 'STRONG_PASS_FULL'
+    elif n_imp >= 3 and not has_severe:
+        judgment = 'STANDARD_PASS_FULL'
+    elif n_imp >= 1:
+        judgment = 'MARGINAL_FULL'
+    else:
+        judgment = 'FAIL_FULL'
+
+    return {
+        'improved_axes_full': '|'.join(improvements),
+        'degraded_axes_full': '|'.join(degradations),
+        'n_improved_full': n_imp,
+        'n_degraded_full': n_deg,
+        'judgment_full': judgment,
     }

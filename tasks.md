@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-06-03
+最終更新: 2026-06-05
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -10,7 +10,9 @@
 ## 🟡 Pending
 
 ### 短期（実装フェーズ）
-- [ ] **CURRENT_BEST_STRATEGY.md 更新判断**: vz065+lmax5 vs F10+lmax5 vs E4 の採用変更を最終決定（INTEGRATION_DEBATE_2026-05-26.md 参照）
+- [ ] **CURRENT_BEST_STRATEGY.md §1 Active 昇格判断 (v4.5 以降)**: vz=0.65+l7+F10ε を CFD 環境 Active として §1 正式昇格させるか、E4 RegimeKLT を維持するか。実運用変更 (Googleスプレッドシート同期等) を伴うためユーザー承認必須
+- [ ] **DH-W1 を ETF only 環境向け副 Active として CURRENT_BEST_STRATEGY.md に正式登録**: 環境別 Active 制度の運用ルール確立
+- [ ] **CURRENT_BEST_STRATEGY.md 更新判断 (v4 以前)**: vz065+lmax5 vs F10+lmax5 vs E4 の採用変更を最終決定（INTEGRATION_DEBATE_2026-05-26.md 参照、v4.5 で部分的に整理済）
 - [ ] **STRATEGY_PERFORMANCE_COMPARISON v1.7**: F10 ε=0.015 / vz065+lmax5 / F10+lmax5 の3候補列を追加
 - [ ] **p10_f10lmax5_fullmetrics.py Trades/yr バグ修正**: 現状は lev_raw 変化のみカウント（=27/yr）→ lev_raw+wn/wb 変化を合算（=52/yr）に修正。CSV も再生成
 - [ ] Approach A への GAS 切替実装 (閾値 0.15 と同時変更, nasdaq-strategy-gas 側)
@@ -40,6 +42,19 @@
 - ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- **2026-06-05 (v4.5)**: **保守的採用基準 min(IS, OOS) CAGR + Worst10Y + P10_5Y 3 軸導入** + **AH 棄却** + **環境別 Active 候補確定**
+  - 論拠: サンプルサイズ非対称 (IS=44y vs OOS=6y)、戦略選択バイアス補正、regime drift リスク、WFE>1.5 で regime luck 警告
+  - **CFD 環境 Active 候補**: vz=0.65+l7+F10ε (min CAGR=+20.23%、5 戦略中 1 位)
+  - **ETF 環境 Active 候補**: DH-W1 (Asymm+Hysteresis、ETF 制約下で唯一 DH 改善 +4.10pp)
+  - **棄却**: vz=0.65+l7+F10ε-AH/AT/HL (v4.4 採用→v4.5 棄却、3 軸全敗 + WFE>1.5 regime luck)
+  - STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md を v4.4→v4.5 (§0 主要変更点、§0' 5 行に戻す、§6-4 AH 棄却判定、§7-2 新設、§10 履歴)
+  - STRATEGY_REGISTRY.md: §2 に vz065_l7_F10eps015 / DH_W1_AsymmHyst を v4.5 推奨追加、§3 に AH/AT/HL を v4.5 棄却追加、DH_Z2 を Superseded マーク
+  - CURRENT_BEST_STRATEGY.md: 冒頭に v4.5 環境別 Active 候補 + 命名規則 + min ルールセクション新設
+  - CLAUDE.md §2: v4.5 保守的採用基準 3 軸 + WFE 補助判定 + 環境別 Active + 命名規則を追記
+- 2026-06-03 (v4.4): **vz=0.65+l7+F10ε に DH-W1 の非対称機構を移植 (g26)** — 3 候補 (AH/AT/HL) を実装、AH が CAGR_OOS +5.04pp/Trades 半減 で v4.4 採用と判定 (v4.5 で min ルールにより棄却)。「NEW」呼称全廃。
+- 2026-06-03 (v4.3): **DH-Z2 → DH-W1 置換** (Asymm+Hysteresis on lev_mod_065, Enter 0.7/Exit 0.3) + g24 5 戦略 canonical 再検証 + DH gap +10.46pp 整合修正。WFA W1 WFE=0.997 完全汎化、Bootstrap median +3.65pp、threshold sweep 24 組合せ全 OOS +12〜16.7% でロバスト。
+- 2026-06-03 (v4.2): §0' 表に「累積 CAGR ⓽ OOS/IS」列追加 (IS 値を gap 経由でなく直接読める)。
+- 2026-06-03 (v4.1): §4 8戦略総合比較表削除、§5/§6/§6-2 を §0' 5 戦略に絞込み。
 - **2026-06-03 (v4)**: **DH 改善 v4 — 配分 × タイミング 2 軸変動 DH-Z シリーズ完了**。v3 (DH-T4) は `lev_mod` で TQQQ position 連続スケールしたため ETF 「保有/非保有」制約に違反し**全面破棄**。仕切り直しで `src/g22a〜g22f` 7 本実装、5 変種 (Z1〜Z5) で配分パターン (DH base / F10 ε tilt / 固定 bull / regime preset) × timing (binary vz / 保守 composite / 常時 IN) を網羅検証。**peak leverage ≤ 3.0x を assert で機械検証**。最良 **DH-Z2 (F10 ε tilt + binary vz_gate)** は IS-OOS gap +10.46→+2.17pp (-8.29pp ✅) / **WFE 0.662→1.058 (完全汎化)** / **OOS CAGR +12.26% (REF +9.56% を +2.70pp 上回る) / OOS 累積 ×2.00 (REF ×1.73)**。Worst10Y/P10_5Y は防御性能低下 (trade-off)。`STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md` を v3→v4、§0'/§5/§6/§6-2 の 4 箇所で DH-T4→DH-Z2 完全置換。STRATEGY_REGISTRY: DH_T4_Improved を §3 Rejected 降格、DH_Z2_AllocTiming を §2 Shortlisted 新規追加。
 - 2026-06-03 (v3, 取消): DH-T4 (vz=0.65+lmax=5.5+F10ε) を 4 箇所追加 → **v4 で破棄** (lev_mod による TQQQ position 連続スケール = ETF レバ操作違反)。
 - 2026-05-26: **Trades/yr バグ特定（F10+lmax5）** — `p10_f10lmax5_fullmetrics.py` が lev_raw 変化のみカウント（27/yr）で wn/wb 変化を未計上。正しくは lev_raw+wn/wb で 52/yr（G8 WFA per-window 平均 52.09 で確認）。INTEGRATION_DEBATE §2 表を修正済み。CSV は未再生成。

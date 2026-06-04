@@ -4,13 +4,48 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-05-24
+最終更新日: 2026-06-05 (v4.5 環境別 Active 候補 + min(IS, OOS) ルール導入)
 
 ---
 
-## 現行ベスト戦略
+## 🆕 v4.5 (2026-06-05) ─ 環境別 Active 候補 + 保守的採用基準導入
+
+### 保守的採用基準 min(IS, OOS) CAGR (Active 昇格判断の新ルール)
+v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保守的尺度** を導入。OOS 単独評価は採用判断には使わず、3 軸すべてで baseline を上回ることが Active 候補昇格の必須条件。詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)。
+
+### v4.5 推奨 Active 候補 (環境別)
+
+| 環境 | 戦略 | min CAGR | Status |
+|---|---|---:|---|
+| **CFD 利用可** (主軸) | **vz=0.65+l7+F10ε** ([S2_VZGated+LT2_N750+E4(vz_thr=0.65)+F10ε=0.015, l_max=7.0]) | **+20.23%** | 🟢 **CFD 環境 Active 候補** (要 §1 昇格判断) |
+| **ETF only** (NISA 等、CFD 不可) | **DH-W1** (DH Dyn 2x3x [A] + Asymm Hysteresis on lev_mod_065) | +13.66% | 🟡 **ETF 環境 Active 候補** |
+
+両戦略とも v4.5 STRATEGY_REGISTRY §2 Shortlisted に登録済 (`vz065_l7_F10eps015`、`DH_W1_AsymmHyst`)。**§1 Active への正式昇格 (本ファイル下記「現行ベスト戦略」更新)** は実運用変更を伴うため、ユーザー判断を要する。
+
+### 棄却された v4.x 改善案 (min ルール下で REF を下回る)
+- **vz=0.65+l7+F10ε-AH/AT/HL** (v4.4 採用→v4.5 棄却) — OOS 単独では魅力的だが min(IS, OOS) で REF 劣後、WFE>1.5 で regime luck 疑い (STRATEGY_REGISTRY §3 Rejected)
+- **DH-T4** (v3 で push→v4 で破棄) — ETF レバ操作違反 (lev_mod 連続 scaling)
+- **DH-Z2** (v4 採用→v4.3 で W1 に置換) — Trades 152→18 で W1 が優位
+
+### v4.5 整理対象ファイル
+- [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md) v4.5 (§7-2 min ルール明文化、§0' 5 戦略 + min 表記、§6-4 AH 棄却根拠)
+- [STRATEGY_DH_REFINEMENT_20260603.md](STRATEGY_DH_REFINEMENT_20260603.md) v1.1 (DH-W1 詳細検証)
+- [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) (§2 に v4.5 推奨 2 件、§3 に AH/AT/HL 棄却 3 件)
+
+---
+
+## ⚠ 命名規則 (重要・全 Claude 必読)
+**vz=0.65+l7+F10ε を「NEW」「NEW CANDIDATE」と呼ぶことは廃止** (2026-06-03 v4.4 以降)。
+- ✅ 正: `vz=0.65+l7+F10ε` / `S2_VZGated+LT2_N750+E4(vz=0.65)+F10ε=0.015` / Registry ID `vz065_l7_F10eps015`
+- ❌ 廃: `NEW`, `NEW 🟢`, `NEW CANDIDATE`
+
+---
+
+## 現行ベスト戦略 (§1 Active、2026-05-24 確定、v4.5 では未更新)
 
 **戦略名: `S2_VZGated + LT2-N750 + E4 Regime k_lt`（Vol-Zone ゲート CFD + 長期逆張り + ボラレジーム動的 k_lt）**
+
+> **⚠ v4.5 注**: 本 §1 Active は 2026-05-24 確定の E4 RegimeKLT (vz_thr=0.70, F10 なし) で変更なし。**v4.5 で vz=0.65+l7+F10ε を CFD 環境 Active 候補と明確化** したが、§1 正式 Active 昇格は本ファイル下部の「v4.5 環境別 Active 候補」セクションを別途参照、実運用変更を伴うためユーザー承認後に更新。
 
 ### 主要指標 (Scenario D コスト補正済み基盤, 1974-01-02 〜 2026-03-26, 52.26年)
 
@@ -160,6 +195,13 @@
 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- **2026-06-05 (v4.5: 保守的採用基準 + 環境別 Active 候補導入)**: 本ファイル冒頭に **「v4.5 環境別 Active 候補」セクション** + **「命名規則」セクション** を新設。要点:
+  - **min(IS, OOS) CAGR + Worst10Y + P10_5Y の 3 軸保守的尺度** を Active 昇格判断の必須条件として導入 (詳細: STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2)
+  - **CFD 環境 Active 候補**: vz=0.65+l7+F10ε (min CAGR=+20.23%、5 戦略中 1 位)
+  - **ETF 環境 Active 候補**: DH-W1 (DH Asymm+Hysteresis、ETF 制約下で DH 基線を +4.10pp 上回る唯一の改善)
+  - 棄却: vz=0.65+l7+F10ε-AH/AT/HL (OOS のみ評価では魅力的だが min ルールで全敗、WFE>1.5 で regime luck 疑い)
+  - 「vz=0.65+l7+F10ε」を「NEW/NEW CANDIDATE」と呼ぶ表記を廃止
+  - §1 正式 Active は **未変更** (E4 RegimeKLT を維持)。CFD Active への昇格判断はユーザー承認後
 - 2026-05-24 (tilt系棄却・E4 復帰): F7v3+E4 および F8-R5 を Trades/yr 過多（182〜183回/年、E4比7倍）・OOS偶然性疑い・IS-OOS gap拡大（−4.26〜4.28pp）を理由に Shortlisted 降格。E4 Regime k_lt (27回/年) を正式 Active に復帰。棄却判断: コスト加味の実質 CAGR は E4 と同等以下と判断。
 - 2026-05-24 (G5 WFA + F8-R5 昇格→即降格): F8-R5 WFA PASS (CI95_lo=+27.92%) を確認するも上記理由で採用見送り。
 - 2026-05-24 (G4 WFA + F7v3+E4 昇格→即降格): F7v3+E4 WFA PASS (CI95_lo=+27.15%) を確認するも上記理由で採用見送り。

@@ -348,6 +348,51 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 - [ ] WFA 未計算戦略は `CI95_lo` / `WFE` を `—` 表示している
 - [ ] CSV 側は `CAGR_IS` / `CAGR_FULL` を保持しており参照可能（§3.12 CSV 列順序）
 
+### §3.13 Active 候補昇格の保守的採用基準 (v4.5 確定 2026-06-05)
+
+新戦略を **Active 候補に昇格判断する際** には以下 3 軸すべてで baseline (現行 §1 Active または比較対象 REF) を上回るか同等であることを必須条件とする。**OOS 単独評価 (CAGR_OOS のみ) は Active 昇格判断に使用禁止** ─ regime fit / selection bias / sample size 非対称によるバイアスを防ぐため。
+
+#### 3 軸保守的尺度
+
+1. **min(IS, OOS) CAGR**
+   - 計算式: `min(cum_CAGR_IS, cum_CAGR_OOS)`
+     - `cum_CAGR_IS` = §0' 「累積 CAGR ⓽ OOS/IS」列の IS 値 (1977-2020 暦年複利)
+     - `cum_CAGR_OOS` = 同列の OOS 値 (2021-2026 暦年複利)
+   - 論拠:
+     - **サンプルサイズ非対称**: IS=44 年 vs OOS=6 年。統計的信頼性は IS が圧倒的に高い
+     - **戦略選択バイアス補正**: 多変種を比較して「OOS 最良」を選ぶと selection bias 発生。min ルールは penalize
+     - **regime drift リスク**: OOS 期間 (例: 2021-2026 の COVID/AI rally + 2022 bear) の固有 macro が将来も続く保証なし
+
+2. **Worst10Y★ CAGR** (既存指標、§3.5)
+   - rolling 10 年複利 CAGR の最悪値、税後
+
+3. **P10_5Y▷ CAGR** (既存指標、§3.6)
+   - rolling 5 年複利 CAGR の 10th percentile、税後
+
+#### WFE 補助判定 (regime luck 警告)
+
+| WFE 値 | 判定 |
+|---|---|
+| ≤ 1.2 | ✅ OK (構造的優位または fair generalization) |
+| 1.2 < WFE ≤ 1.5 | ⚠ 注意 (OOS やや有利、追加検証推奨) |
+| **> 1.5** | ❌ **regime luck 強疑い (採用判断に min ルール厳格適用必要)** |
+
+#### 適用例 (v4.5 2026-06-05)
+
+`vz=0.65+l7+F10ε-AH` (CAGR_OOS=+26.53% で REF+21.49 を +5.04pp 上回る) を v4.4 で採用と判定したが、v4.5 で:
+- min CAGR=+18.90% < REF +20.23% (-1.33pp)
+- Worst10Y +8.45% < REF +9.96% (-1.51pp)
+- P10_5Y +1.73% < REF +4.05% (-2.32pp)
+- WFE 1.554 > 1.5 (regime luck 疑い)
+→ **3 軸全敗で棄却**。STRATEGY_REGISTRY §3 Rejected に登録。詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)
+
+#### 環境別 Active 候補 (v4.5)
+
+| 環境 | 戦略 | min CAGR | Worst10Y | P10_5Y | WFE |
+|---|---|---:|---:|---:|---:|
+| **CFD 利用可** | vz=0.65+l7+F10ε (REF) | **+20.23%** | **+9.96%** | **+4.05%** | 1.369 |
+| **ETF only** | DH-W1 (Asymm+Hyst) | +13.66% | +9.84% | +5.94% | 0.997 |
+
 ---
 
 ## §4 頑健性チェック
@@ -502,6 +547,7 @@ START
 | v1.2 | 2026-05-27 | §3.12 統一指標セットに #8 `OvFit`（過学習リスクスコア）を追加し 9指標→10指標 / 11列ヘッダに拡張。`MD_HEADER_1P/2P/STRAT` / `fmt_row_1p/2p/strat` を全て更新し、`_ovfit()` ヘルパーを新規追加。OvFit は `\|IS_OOS_gap\|` から自動算出（✅ LOW: ≤2pp / ⚠ MED: ≤5pp / ❌ HIGH: >5pp）のため CSV 列追加は不要。 |
 | v1.3 | 2026-05-28 | §3.12 Overfit(WFE) を WFA_WFE ベース判定に変更し OvFit列とWFE列を1列に統合（10列 = 9指標標準）。 |
 | **v1.4** | **2026-06-02** | **§3.12 列順変更: IS-OOS gap CAGR を CAGR_OOS の右隣（第2列）へ移動・列名に CAGR 単位を明示。列ヘッダを4行折り返しに変更（状態凡例マーカ ⓽/ⓒ/ⓞ/ⓡ を独立行へ）。取引コスト評価を日次レベル必須化（年率近似は禁止）。yr_cost 列の表内表示禁止。`MD_HEADER_1P/2P/STRAT` 更新。** |
+| **v1.5** | **2026-06-05** | **§3.13 新設: Active 候補昇格の保守的採用基準** ─ min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保守的尺度を Active 昇格の必須条件として確定。**OOS 単独評価 (CAGR_OOS のみ) は Active 昇格判断に使用禁止** (regime fit / selection bias / sample size 非対称の補正)。WFE 補助判定 (>1.5 で regime luck 警告) も明文化。適用例 (vz=0.65+l7+F10ε-AH v4.4 採用→v4.5 棄却) と環境別 Active 候補 (CFD: vz=0.65+l7+F10ε, ETF: DH-W1) 表を §3.13 末尾に記載。STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2 と整合。 |
 
 ### 今後の改訂方針
 
