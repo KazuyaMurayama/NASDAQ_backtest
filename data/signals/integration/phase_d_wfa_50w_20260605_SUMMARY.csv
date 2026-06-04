@@ -1,0 +1,2 @@
+n_windows,n_oos_windows,baseline_full_sharpe,candidate_full_sharpe,baseline_wfe_all,candidate_wfe_all,baseline_mean_oos_sharpe,candidate_mean_oos_sharpe,baseline_mean_window_cagr,candidate_mean_window_cagr,diff_mean_window_cagr,diff_ci95_lo,diff_ci95_hi,candidate_ci95_lo_cagr,candidate_ci95_hi_cagr,baseline_ci95_lo_cagr,baseline_ci95_hi_cagr,peak_lev_baseline,peak_lev_candidate
+49,5,0.938382,0.947073,0.975690,0.972983,1.045878,1.127272,0.213839,0.220162,0.006323,-0.012295,0.024940,0.140683,0.299640,0.139487,0.288192,2.400000,3.120000

@@ -1,0 +1,10 @@
+metric,baseline,candidate,diff_pp,interpretation
+CAGR_OOS_pct,18.9610,18.5175,-0.4435,positive diff = improvement
+IS_OOS_gap_pp,-0.8820,0.0885,0.9705,negative diff = gap shrunk = improvement
+Sharpe_OOS,0.8445,0.9626,0.1181,positive diff = improvement
+MaxDD_full_pct,-34.5727,-39.3003,-4.7276,positive diff = less-negative DD = improvement
+Worst10Y_pct,9.8385,11.6380,1.7995,positive diff = improvement
+P10_5Y_pct,5.9362,6.1929,0.2567,positive diff = improvement
+Trades_per_yr,17.6345,21.3682,3.7337,hard cap 200/yr (lower / equal preferred)
+WFE_full,0.9757,0.9730,-0.0027,≥ 1.0 strong; 0.95–1.05 OK; <0.95 weak
+CI95_lo_window_CAGR_pct,13.9487,14.0683,0.1196,>0 PASS
