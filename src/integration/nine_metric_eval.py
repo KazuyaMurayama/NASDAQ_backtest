@@ -195,3 +195,95 @@ def judge_improvement(metrics: dict) -> dict:
         'n_degraded': n_deg,
         'judgment': judgment,
     }
+
+
+# ------------------------------------------------------------------
+# Relaxed judgment (Tier 1 re-judge, 2026-06-05)
+# ------------------------------------------------------------------
+
+def judge_improvement_relaxed(metrics: dict) -> dict:
+    """Like judge_improvement but with 2x looser severe-degradation thresholds.
+
+    Improvement thresholds unchanged (preserve honesty about "what counts as
+    positive"). Useful for re-judging Tier 1 results where strict thresholds
+    yielded 0 PASS.
+
+    Severe-degradation thresholds (2x looser):
+      cagr_oos:    < -0.02   (was -0.01)
+      sharpe:      < -0.05   (was -0.03)
+      maxdd:       < -0.10   (was -0.05)
+      worst10y:    < -0.02   (was -0.01)
+      p10_5y:      < -0.02   (was -0.01)
+      is_oos_gap:  > +0.03   (was +0.015)
+    """
+    improvements: list = []
+    degradations: list = []
+
+    # CAGR_OOS
+    v = metrics.get('cagr_oos_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('cagr_oos')
+        elif v < -0.02:
+            degradations.append('cagr_oos')
+
+    # Sharpe
+    v = metrics.get('sharpe_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.03:
+            improvements.append('sharpe')
+        elif v < -0.05:
+            degradations.append('sharpe')
+
+    # MaxDD
+    v = metrics.get('maxdd_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.02:
+            improvements.append('maxdd')
+        elif v < -0.10:
+            degradations.append('maxdd')
+
+    # Worst10Y
+    v = metrics.get('worst10y_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('worst10y')
+        elif v < -0.02:
+            degradations.append('worst10y')
+
+    # P10_5Y
+    v = metrics.get('p10_5y_diff', 0.0)
+    if not pd.isna(v):
+        if v >= 0.005:
+            improvements.append('p10_5y')
+        elif v < -0.02:
+            degradations.append('p10_5y')
+
+    # IS-OOS gap (negative diff = improvement)
+    v = metrics.get('is_oos_gap_diff', 0.0)
+    if not pd.isna(v):
+        if v <= -0.005:
+            improvements.append('is_oos_gap')
+        elif v > 0.03:
+            degradations.append('is_oos_gap')
+
+    n_imp = len(improvements)
+    n_deg = len(degradations)
+    has_severe = n_deg > 0
+
+    if n_imp >= 4 and not has_severe:
+        judgment = 'STRONG_PASS_RELAXED'
+    elif n_imp >= 2 and not has_severe:
+        judgment = 'STANDARD_PASS_RELAXED'
+    elif n_imp >= 1:
+        judgment = 'MARGINAL_RELAXED'
+    else:
+        judgment = 'FAIL_RELAXED'
+
+    return {
+        'improved_axes_relaxed': '|'.join(improvements),
+        'degraded_axes_relaxed': '|'.join(degradations),
+        'n_improved_relaxed': n_imp,
+        'n_degraded_relaxed': n_deg,
+        'judgment_relaxed': judgment,
+    }
