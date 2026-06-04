@@ -39,3 +39,7 @@ NASDAQ_extended_to_2026.csv
 NASDAQ_extended.csv
 data/*.csv
 research_all_corrected.csv
+
+# Signal discovery (Phase A〜C)
+data/signals/_cache/
+data/signals/manual/_drafts/
