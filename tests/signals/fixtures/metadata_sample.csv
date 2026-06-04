@@ -1,0 +1,6 @@
+signal_id,name,category,view,target_assets,quantize_scheme,q_levels,priority,source_module,publication_lag,earliest_date,cost_tier
+1,NDX 200DMA breadth,A_Breadth,Trader,N,quantile_cut,4,A,yahoo,daily,2003-01-01,free
+6,VIX level,B_Vol,Trader,N,quantile_cut,4,A,yahoo,daily,1990-01-01,free
+12,CBOE PutCall Equity,C_Sentiment,Trader,N,binary_threshold,2,A,cboe,daily,2003-10-01,free
+21,ICE BofA HY OAS,D_Credit,Actuary,N,zscore_band,2,A,fred,daily,1996-12-31,free
+50,Fed minutes hawkish-dovish,J_NLP,HF,B|N,quantile_cut,4,A,manual,event,2010-01-01,low_paid
