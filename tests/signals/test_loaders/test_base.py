@@ -37,3 +37,25 @@ def test_force_refresh_bypasses_cache(tmp_path):
     ldr.get(signal_id=99)
     ldr.get(signal_id=99, force=True)
     assert FakeLoader.call_count == 2
+
+
+def test_corrupt_cache_falls_through_to_fetch(tmp_path):
+    FakeLoader.call_count = 0
+    ldr = FakeLoader(cache_dir=tmp_path)
+    ldr.get(signal_id=99)  # first fetch + cache write
+    # corrupt the cache file
+    cache_file = ldr._cache_path(99)
+    cache_file.write_bytes(b'\x00\x01CORRUPT')
+    # next get should detect corruption, delete, re-fetch
+    s = ldr.get(signal_id=99)
+    assert len(s) == 5
+    assert FakeLoader.call_count == 2
+
+
+def test_atomic_write_no_partial_files(tmp_path):
+    """No .tmp file remains after successful write."""
+    FakeLoader.call_count = 0
+    ldr = FakeLoader(cache_dir=tmp_path)
+    ldr.get(signal_id=99)
+    tmp_files = list(ldr.cache_dir.glob('*.tmp'))
+    assert tmp_files == [], f"unexpected tmp files: {tmp_files}"

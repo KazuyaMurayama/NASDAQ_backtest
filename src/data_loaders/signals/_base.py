@@ -1,5 +1,6 @@
 """SignalLoader abstract base + disk cache (parquet)."""
 from __future__ import annotations
+import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Union
@@ -16,13 +17,29 @@ class SignalLoader(ABC):
     def _cache_path(self, signal_id: int) -> Path:
         return self.cache_dir / f"signal_{signal_id}.parquet"
 
+    def _read_cache(self, p: Path) -> pd.Series | None:
+        """Read cached parquet; on corruption delete and return None."""
+        try:
+            df = pd.read_parquet(p)
+            return df.iloc[:, 0]
+        except Exception:
+            p.unlink(missing_ok=True)
+            return None
+
+    def _write_cache(self, s: pd.Series, p: Path, signal_id: int) -> None:
+        """Atomic parquet write via .tmp + os.replace."""
+        tmp = p.with_suffix(p.suffix + '.tmp')
+        s.to_frame(name=s.name or f"sig_{signal_id}").to_parquet(tmp)
+        os.replace(tmp, p)
+
     def get(self, signal_id: int, force: bool = False) -> pd.Series:
         p = self._cache_path(signal_id)
         if p.exists() and not force:
-            df = pd.read_parquet(p)
-            return df.iloc[:, 0]
+            cached = self._read_cache(p)
+            if cached is not None:
+                return cached
         s = self._fetch(signal_id)
-        s.to_frame(name=s.name or f"sig_{signal_id}").to_parquet(p)
+        self._write_cache(s, p, signal_id)
         return s
 
     @abstractmethod
