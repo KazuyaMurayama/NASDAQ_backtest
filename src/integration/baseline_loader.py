@@ -53,7 +53,11 @@ def load_s3_nav() -> pd.Series:
         if p.exists():
             with open(p, 'rb') as f:
                 obj = pickle.load(f)
-            return _coerce_nav(obj, 'S3', preferred_key='nav_w1')
+            # Try preferred keys in order: nav_dh_w1 (current schema), nav_w1 (legacy)
+            for key in ('nav_dh_w1', 'nav_w1'):
+                if isinstance(obj, dict) and key in obj:
+                    return _coerce_nav(obj, 'S3', preferred_key=key)
+            return _coerce_nav(obj, 'S3', preferred_key='nav_dh_w1')
     raise FileNotFoundError(
         "S3 (DH-W1) NAV cache not found. Checked: "
         + ", ".join(str(p) for p in candidates)

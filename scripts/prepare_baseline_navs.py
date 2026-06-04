@@ -20,7 +20,7 @@ import pandas as pd  # noqa: E402
 from integration.baseline_loader import load_all_baselines  # noqa: E402
 
 
-OUT = ROOT / 'data' / 'signals' / 'integration' / 'baseline_navs_20260604.parquet'
+OUT = ROOT / 'data' / 'signals' / 'integration' / 'baseline_navs_20260605.parquet'
 
 
 def main() -> int:
