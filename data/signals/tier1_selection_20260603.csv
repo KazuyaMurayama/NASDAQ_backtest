@@ -1,0 +1,53 @@
+signal_id,name,category,view,target_assets,quantize_scheme,q_levels,priority,source_module,publication_lag,earliest_date,cost_tier
+1,NDX 200DMA breadth,A_Breadth,Trader,N,quantile_cut,4,A,yahoo,daily,2003-01-01,free
+2,McClellan Oscillator NDX,A_Breadth,Trader,N,binary_threshold,2,A,yahoo,daily,2003-01-01,free
+3,NDX New Highs minus Lows 52W,A_Breadth,Trader,N,binary_threshold,2,A,yahoo,daily,2003-01-01,free
+4,AD Line price divergence,A_Breadth,Trader,N,binary_threshold,2,B,yahoo,daily,2003-01-01,free
+5,NYSE TICK terminal,A_Breadth,Trader,N,quantile_cut,4,C,yahoo,daily,2000-01-01,free
+6,VIX level,B_Vol,Trader,N,quantile_cut,4,A,yahoo,daily,1990-01-01,free
+7,VIX9D over VIX ratio,B_Vol,Trader,N,binary_threshold,2,A,yahoo,daily,2011-01-01,free
+8,VIX term structure VIX1 VIX2 VIX3,B_Vol,Trader,N,binary_threshold,2,A,cboe,daily,2008-01-01,free
+9,VVIX,B_Vol,Trader,N,quantile_cut,4,A,yahoo,daily,2007-03-01,free
+10,MOVE index bond vol,B_Vol,Actuary,B|N,quantile_cut,4,A,yahoo,daily,2002-04-01,free
+11,GVZ gold vol,B_Vol,Actuary,G,binary_threshold,2,B,yahoo,daily,2008-06-01,free
+12,CBOE PutCall equity,C_Sentiment,Trader,N,binary_threshold,2,A,cboe,daily,2003-10-01,free
+13,AAII Bull Bear spread,C_Sentiment,Trader,N,quantile_cut,4,A,manual,weekly,1987-07-31,free
+14,NAAIM Exposure Index,C_Sentiment,Trader,N,quantile_cut,4,B,manual,weekly,2006-07-19,free
+15,CFTC CoT NQ noncommercial net,C_Sentiment,HF,N,quantile_cut,4,A,cftc,weekly,2010-01-01,free
+16,CFTC CoT GC net gold,C_Sentiment,HF,G,quantile_cut,4,A,cftc,weekly,1995-01-01,free
+17,CFTC CoT ZB ZN net bond,C_Sentiment,HF,B,quantile_cut,4,A,cftc,weekly,2000-01-01,free
+18,QQQ daily net creation redemption,C_Sentiment,HF,N,binary_threshold,2,B,yahoo,daily,2005-01-01,low_paid
+19,GLD TLT net flows,C_Sentiment,HF,G|B,binary_threshold,2,B,yahoo,daily,2005-01-01,low_paid
+20,Margin Debt YoY FINRA monthly,C_Sentiment,HF,N,quantile_cut,4,C,manual,monthly,1997-01-01,free
+21,ICE BofA HY OAS,D_Credit,Actuary,N,quantile_cut,4,A,fred,daily,1996-12-31,free
+22,ICE BofA IG OAS,D_Credit,Actuary,N,binary_threshold,2,B,fred,daily,1996-12-31,free
+23,HY minus IG spread,D_Credit,Actuary,N,binary_threshold,2,A,fred,daily,1996-12-31,free
+24,SOFR minus IORB spread,D_Credit,Actuary,B,binary_threshold,2,B,fred,daily,2018-04-02,free
+25,3M Treasury minus SOFR,D_Credit,Actuary,B|N,binary_threshold,2,C,fred,daily,2018-04-02,free
+26,2s10s spread,E_YieldCurve,Actuary,B|N,quantile_cut,4,A,fred,daily,1976-06-01,free
+27,3M10Y spread,E_YieldCurve,Actuary,B|N,quantile_cut,4,A,fred,daily,1982-01-04,free
+28,10Y TIPS real yield,E_YieldCurve,Actuary,G|N,quantile_cut,4,A,fred,daily,2003-01-02,free
+29,5Y5Y forward inflation,E_YieldCurve,Actuary,G|B,quantile_cut,4,A,fred,daily,2003-01-02,free
+30,CME FedWatch 25bp cut prob 3M,E_YieldCurve,HF,B|N,quantile_cut,4,A,fedwatch,daily,2015-01-01,low_paid
+31,10Y minus 2Y real yield,E_YieldCurve,HF,G,binary_threshold,2,B,fred,daily,2004-01-01,free
+32,Atlanta Fed GDPNow,F_MacroNowcast,HF,N|B,quantile_cut,4,A,manual,weekly,2011-07-15,free
+33,NY Fed Nowcast,F_MacroNowcast,HF,N|B,quantile_cut,4,B,manual,weekly,2016-04-15,free
+34,Citi Economic Surprise USMI,F_MacroNowcast,HF,N|B|G,quantile_cut,4,A,manual,weekly,2003-01-01,low_paid
+35,Cleveland Fed Inflation Nowcast,F_MacroNowcast,HF,G|B,quantile_cut,4,B,manual,monthly,2001-01-01,free
+36,Chicago Fed NFCI,F_MacroNowcast,Actuary,N,quantile_cut,4,A,fred,weekly,1973-01-08,free
+37,NDX Forward EPS Revision 4wk,G_Earnings,HF,N,quantile_cut,4,A,manual,weekly,2010-01-01,low_paid
+38,Equity Risk Premium fwd yld minus 10Y real,G_Earnings,HF,N,quantile_cut,4,A,manual,daily,2003-01-02,low_paid
+39,NDX Forward PE zscore,G_Earnings,HF,N,quantile_cut,4,B,manual,weekly,2003-01-01,low_paid
+40,Mag7 EPS Revision composite,G_Earnings,HF,N,quantile_cut,4,A,manual,weekly,2014-01-01,low_paid
+41,DXY weekly change,H_CrossAsset,Trader,G|N,binary_threshold,2,A,yahoo,daily,1971-01-04,free
+42,Copper over Gold ratio,H_CrossAsset,HF,N|B,quantile_cut,4,A,yahoo,daily,1989-04-01,free
+43,Silver over Gold ratio,H_CrossAsset,HF,G,binary_threshold,2,B,yahoo,daily,1989-04-01,free
+44,Oil WTI 5d change,H_CrossAsset,Trader,N|B,binary_threshold,2,B,yahoo,daily,1986-01-02,free
+45,BTC over QQQ correlation,H_CrossAsset,Trader,N,binary_threshold,2,C,yahoo,daily,2014-09-17,free
+46,FOMC blackout window,I_Calendar,Trader,N|B,binary_threshold,2,A,manual,event,1980-01-01,free
+47,NDX earnings season Mag7,I_Calendar,Trader,N,binary_threshold,2,B,manual,event,2014-01-01,free
+48,Triple Witching Friday,I_Calendar,Trader,N,binary_threshold,2,C,manual,event,1980-01-01,free
+49,Google Trends recession 90d Z,J_NLP,HF,N|B|G,quantile_cut,4,A,google_trends,daily,2004-01-04,free
+50,Fed minutes hawkish dovish NLP,J_NLP,HF,B|N,quantile_cut,4,A,manual,event,2010-01-01,low_paid
+51,Headline News risk off composite NLP,J_NLP,HF,N|B|G,quantile_cut,4,B,manual,daily,2015-01-01,low_paid
+52,Google Trends TQQQ QQQ search,J_NLP,HF,N,binary_threshold,2,B,google_trends,daily,2010-01-01,free
