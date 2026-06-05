@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-05 (v4.7 CFD Active 候補を vz=0.65+l5+F10ε に置換、防御指標優位)
+最終更新日: 2026-06-05 (v4.8 Session 4+5: nasdaq_mom63 × S3 × M6 defensive overlay 追記、S3 限定 ADOPT 確定)
 
 ---
 
@@ -86,6 +86,66 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 > 全期間（IS+OOS）での Sharpe 改善幅は軽微で、コストを加味すると実質同等以下と判断。
 > IS-OOS gap が E4（−1.81pp）に対し tilt 系（−4.26〜4.28pp）と 2〜2.5 倍拡大している点も汎化性の観点でリスク。
 > **G3 WFA (2026-05-24) PASS**: CI95_lo = +26.51%（>0 α PASS, t_p=0.0000）/ WFE = +1.131（0.5–2.0 β PASS）→ **正式 Active 確定**。
+
+---
+
+## Risk-Reduction Overlay Candidate (2026-06-05 Session 4 ADOPT)
+
+> **位置付け**: 本オーバーレイは Session 4 (Phase D) で **DH-W1 (S3 = ETF only) ベース** に対し ADOPT 判定された。**§1 本番 Active (CFD: E4 Regime k_lt) の置換ではない**。
+> Session 5 で同オーバーレイの **S2 (D5) / E4 (現行 Active) への転用可否** を audit-grade で検証中。
+> 詳細: [data/signals/expansion/phase_d_audit_nasdaq_mom63_S3_M6_def_20260605.md](data/signals/expansion/phase_d_audit_nasdaq_mom63_S3_M6_def_20260605.md)
+
+### Adopted Overlay
+- **Signal**: `nasdaq_mom63` (macro_features.csv: NASDAQ 63-day momentum, daily lag)
+- **Base Strategy**: S3 (DH-W1, Asymm+Hyst, TQQQ/TMF/GLDM ETF only)
+- **Injection Method**: M6 (threshold-proxy continuous tilt)
+- **Direction**: defensive (high momentum → reduce leverage)
+- **Multiplier mapping** (defensive variant): signal_q ∈ {0,1,2,3} → {1.1, 1.0, 0.9, 0.8}
+- **Pipeline**: quantile_cut(levels=4) → apply_publication_lag('daily', +1 BD) → lev_raw_mod = lev_raw × mask_W1 × mult
+
+### Audit-Grade Results (Phase D, Session 4)
+
+| metric | DH-W1 baseline | + nasdaq_mom63 overlay | diff | judgment |
+|---|---:|---:|---:|---|
+| CAGR_OOS | +18.96% | +18.10% | −0.86pp | minor degrade |
+| Sharpe_OOS | +0.8445 | **+0.8914** | **+0.047** | ✓ improved |
+| MaxDD_full | −34.57% | **−28.74%** | **+5.83pp** | ⭐ major improve |
+| Worst10Y CAGR | +9.84% | +10.38% | +0.54pp | ✓ improved |
+| P10_5Y CAGR | +5.94% | +5.92% | −0.01pp | ≈ neutral |
+| IS-OOS gap | −0.88pp | −1.43pp | −0.55pp | ≈ wider abs(gap) |
+| Trades/yr | 17.6 | 17.6 | 0.0 | = unchanged |
+| WFE | 0.976 | **1.005** | +0.030 | ✓ ≥ 1.0 |
+| CI95_lo (CAGR%) | +13.95% | +13.00% | −0.95pp | △ slight retreat |
+| **+1 composite** | — | **6 imp / 3 deg** | — | STANDARD_PASS_FULL |
+
+### Phase D Hard Gate (Multi-Metric Block Bootstrap 10,000 + WFA 50-window)
+
+| Gate | Required | Actual | Result |
+|---|---|---|---|
+| WFE ≥ 1.0 | yes | 1.005 | **PASS** |
+| CI95_lo CAGR > 0 | yes | +13.00% | **PASS** |
+| Bootstrap P(Sharpe > base) > 0.90 | yes | 0.930 | **PASS** |
+| Bootstrap P(MaxDD better) > 0.90 | yes | **0.988** | **PASS (best)** |
+| Bootstrap P(CAGR > base) | (info) | 0.295 | (CAGR は trade-off) |
+
+### Status
+- **採用判定**: **ADOPT (S3 限定 / strategy-specific)** — DH-W1 (ETF only) ベースの "Risk-Reduction Overlay" として正式記録
+- **§1 本番 Active 置換**: **NO** (現行 S2_VZGated + LT2-N750 + E4 Regime k_lt を維持)
+- **採用ロジック**: CAGR を −0.86pp 譲って MaxDD を **+5.83pp 改善** + Sharpe +0.047 という、**「収益性を僅かに犠牲にして防御を強く取る」defensive-by-design tilt**。Phase D 4 gate 全 PASS、Bootstrap P(MaxDD better)=0.988 で MaxDD 改善の偶然性はほぼ排除。
+- **適用範囲**: **S3 (DH-W1, ETF only) 限定**。S2 (D5) / E4 (Active) への転用は Session 5 で audit-grade で検証済、両方とも **NEEDS_FURTHER_WORK** (WFE<1.0 でハードゲート不通過、ただし P(MaxDD better)>0.94 で MaxDD 改善の方向性は保持)。
+- 詳細 audit レポート: [phase_d_audit_nasdaq_mom63_S3_M6_def_20260605.md](data/signals/expansion/phase_d_audit_nasdaq_mom63_S3_M6_def_20260605.md)
+
+### Session 5 転用 audit 結果 (2026-06-05)
+
+| baseline | WFE | CI95_lo CAGR | P(CAGR>base) | P(Sharpe>base) | P(MaxDD better) | Verdict |
+|---|---:|---:|---:|---:|---:|---|
+| **S3 (DH-W1)** | **1.005** | **+13.00%** | 0.295 | **0.930** | **0.988** | **ADOPT** ✓ |
+| S2 (D5) | 0.963 △ | +22.72% | 0.201 | 0.758 | 0.944 | NEEDS_FURTHER_WORK |
+| E4 (現行 Active) | 0.958 △ | +24.41% | 0.355 | 0.858 | 0.964 | NEEDS_FURTHER_WORK |
+
+**結論**: 本 overlay は **S3 (DH-W1, ETF only) 特異**。CFD ベース戦略 (S2, E4) では VZ ゲート + LT2-modeB / Regime k_lt が既に類似の防御機能を担っているため、追加 overlay の限界効用が小さい (MaxDD 改善 +1.2〜1.5pp に減衰)。MaxDD 防御の方向性は全 baseline で一貫 (P>0.94)。
+
+詳細: [session5_transfer_report_20260605.md](data/signals/expansion/session5_transfer_report_20260605.md)
 
 ---
 
@@ -196,6 +256,7 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- **2026-06-05 (v4.8: Session 4 + 5)**: `nasdaq_mom63 × S3 × M6 defensive` overlay を **Risk-Reduction Overlay Candidate** として §Shortlisted 直前に新設。Session 4 で S3 (DH-W1, ETF only) に対し Phase D 4 gate 全 PASS → ADOPT。Session 5 で S2 (D5) / E4 (現行 Active) への転用を audit-grade で検証 → 両方 NEEDS_FURTHER_WORK (WFE<1.0、ハードゲート不通過。P(MaxDD better)>0.94 で方向性は一貫)。結論: overlay は **S3 限定 (strategy-specific)**。§1 本番 Active (CFD: E4 Regime k_lt) は変更なし。
 - **2026-06-05 (v4.7: CFD Active 候補を l7 → l5 に置換)**: ユーザー判断により vz=0.65+l5+F10ε を CFD 環境 Active 候補に確定。l7 (旧 REF) は副候補に降格。理由: l5 は min CAGR -1.30pp の trade-off と引換に **Worst10Y +12.67% (vs l7 +9.96%、+2.71pp)、P10_5Y +8.75% (vs l7 +4.05%、+4.70pp 大幅改善)、MaxDD -56.72% (vs l7 -65.95%、9.23pp 浅化)、Sharpe +0.841 (vs l7 +0.829)、Trades 86 (vs l7 105、18% 低コスト)** で防御指標が圧倒的優位。
 - **2026-06-05 (v4.6: lmax sweep)**: vz=0.65+F10ε の lmax を l5/l5.5/l7 で比較、l5.5/l5 を Shortlisted 追加。
 - **2026-06-05 (v4.5: 保守的採用基準 + 環境別 Active 候補導入)**: 本ファイル冒頭に **「v4.5 環境別 Active 候補」セクション** + **「命名規則」セクション** を新設。要点:

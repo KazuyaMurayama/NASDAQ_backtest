@@ -1,0 +1,3 @@
+baseline,signal,method,direction,cagr_oos_diff_pp,sharpe_diff,maxdd_diff_pp,worst10y_diff_pp,p10_5y_diff_pp,trades_yr_diff,wfe_candidate,wfe_baseline,ci95_lo_candidate_cagr_pct,ci95_lo_baseline_cagr_pct,p_cagr_better,p_sharpe_better,p_maxdd_better,verdict
+S2_D5,nasdaq_mom63,M6,defensive,-2.362362,0.018372,1.187284,-3.364552,-2.535672,14.915588,0.962625,0.934349,22.718108,24.818677,0.201000,0.758000,0.943800,NEEDS_FURTHER_WORK
+E4_Active,nasdaq_mom63,M6,defensive,-1.370505,0.034872,1.513140,-2.249850,-2.800495,14.992176,0.958120,0.928148,24.409426,26.509334,0.354800,0.857700,0.964300,NEEDS_FURTHER_WORK

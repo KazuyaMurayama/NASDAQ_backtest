@@ -1,0 +1,4 @@
+metric,actual_baseline,actual_candidate,actual_diff,boot_median_diff,boot_ci95_lo_diff,boot_ci95_hi_diff,P_cand_better
+CAGR_pp,32.864449,30.513106,-2.351343,-2.250373,-10.571436,2.384163,0.201000
+Sharpe,0.936816,0.955188,0.018372,0.027283,-0.048823,0.107804,0.758000
+MaxDD_pp(better=less_neg),-39.681966,-38.258343,1.423623,3.203891,-0.660141,6.965452,0.943800
