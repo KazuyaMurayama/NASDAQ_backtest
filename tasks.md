@@ -42,6 +42,8 @@
 - ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- **2026-06-05 (v4.7)**: **CFD 環境 Active 候補を vz=0.65+l7+F10ε → vz=0.65+l5+F10ε に置換** (ユーザー判断)。理由: l5 は min CAGR -1.30pp と引換に Worst10Y +2.71pp / P10_5Y +4.70pp 大幅改善 / MaxDD -9.23pp 浅化 / Sharpe +0.012 / Trades -18% 低コスト。STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md (v4.6→v4.7)、CURRENT_BEST_STRATEGY.md、CLAUDE.md §2、EVALUATION_STANDARD.md §3.13、STRATEGY_REGISTRY.md §2 を同期更新。
+- **2026-06-05 (v4.6)**: §6-5 新設 vz=0.65+F10ε lmax sweep (l5/l5.5/l7) — l5/l5.5 を初実装。l5.5 をバランス候補、l5 を防御候補として §2 Shortlisted 追加。
 - **2026-06-05 (v4.5)**: **保守的採用基準 min(IS, OOS) CAGR + Worst10Y + P10_5Y 3 軸導入** + **AH 棄却** + **環境別 Active 候補確定**
   - 論拠: サンプルサイズ非対称 (IS=44y vs OOS=6y)、戦略選択バイアス補正、regime drift リスク、WFE>1.5 で regime luck 警告
   - **CFD 環境 Active 候補**: vz=0.65+l7+F10ε (min CAGR=+20.23%、5 戦略中 1 位)

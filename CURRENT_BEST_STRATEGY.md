@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-05 (v4.5 環境別 Active 候補 + min(IS, OOS) ルール導入)
+最終更新日: 2026-06-05 (v4.7 CFD Active 候補を vz=0.65+l5+F10ε に置換、防御指標優位)
 
 ---
 
@@ -17,7 +17,8 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 
 | 環境 | 戦略 | min CAGR | Status |
 |---|---|---:|---|
-| **CFD 利用可** (主軸) | **vz=0.65+l7+F10ε** ([S2_VZGated+LT2_N750+E4(vz_thr=0.65)+F10ε=0.015, l_max=7.0]) | **+20.23%** | 🟢 **CFD 環境 Active 候補** (要 §1 昇格判断) |
+| **CFD 利用可** (主軸、v4.7 確定) | **vz=0.65+l5+F10ε** ([S2_VZGated+LT2_N750+E4(vz_thr=0.65)+F10ε=0.015, **l_max=5.0**]) | +18.93% | 🟢 **CFD 環境 Active 候補** (防御指標優位、要 §1 昇格判断) |
+| ↳ 副候補 (攻め型) | vz=0.65+l7+F10ε (旧 REF) | +20.23% | min CAGR は最高だが Worst10Y +9.96 / P10_5Y +4.05 で防御弱、l5 が優位と判断 |
 | **ETF only** (NISA 等、CFD 不可) | **DH-W1** (DH Dyn 2x3x [A] + Asymm Hysteresis on lev_mod_065) | +13.66% | 🟡 **ETF 環境 Active 候補** |
 
 両戦略とも v4.5 STRATEGY_REGISTRY §2 Shortlisted に登録済 (`vz065_l7_F10eps015`、`DH_W1_AsymmHyst`)。**§1 Active への正式昇格 (本ファイル下記「現行ベスト戦略」更新)** は実運用変更を伴うため、ユーザー判断を要する。
@@ -195,6 +196,8 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- **2026-06-05 (v4.7: CFD Active 候補を l7 → l5 に置換)**: ユーザー判断により vz=0.65+l5+F10ε を CFD 環境 Active 候補に確定。l7 (旧 REF) は副候補に降格。理由: l5 は min CAGR -1.30pp の trade-off と引換に **Worst10Y +12.67% (vs l7 +9.96%、+2.71pp)、P10_5Y +8.75% (vs l7 +4.05%、+4.70pp 大幅改善)、MaxDD -56.72% (vs l7 -65.95%、9.23pp 浅化)、Sharpe +0.841 (vs l7 +0.829)、Trades 86 (vs l7 105、18% 低コスト)** で防御指標が圧倒的優位。
+- **2026-06-05 (v4.6: lmax sweep)**: vz=0.65+F10ε の lmax を l5/l5.5/l7 で比較、l5.5/l5 を Shortlisted 追加。
 - **2026-06-05 (v4.5: 保守的採用基準 + 環境別 Active 候補導入)**: 本ファイル冒頭に **「v4.5 環境別 Active 候補」セクション** + **「命名規則」セクション** を新設。要点:
   - **min(IS, OOS) CAGR + Worst10Y + P10_5Y の 3 軸保守的尺度** を Active 昇格判断の必須条件として導入 (詳細: STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2)
   - **CFD 環境 Active 候補**: vz=0.65+l7+F10ε (min CAGR=+20.23%、5 戦略中 1 位)
