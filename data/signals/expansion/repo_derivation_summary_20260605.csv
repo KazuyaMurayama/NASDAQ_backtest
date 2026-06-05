@@ -1,0 +1,10 @@
+signal,status,n_obs,date_start,date_end,path
+repo_1,ok,1287,1919-01-01,2026-03-01,data\signals\expansion\raw\repo_1_repo_1_baa_minus_aaa_spread.parquet
+repo_2,ok,12302,1977-02-15,2026-05-07,data\signals\expansion\raw\repo_2_repo_2_30y_10y_termpremium.parquet
+repo_3,ok,26181,1954-07-22,2026-03-26,data\signals\expansion\raw\repo_3_repo_3_dff_change_1m.parquet
+repo_4,ok,16042,1962-01-02,2026-03-26,data\signals\expansion\raw\repo_4_repo_4_dff_minus_10y.parquet
+repo_5,ok,4322,2009-02-03,2026-04-09,data\signals\expansion\raw\repo_5_repo_5_dgp_2xgold_logret_21d.parquet
+repo_6,ok,4188,2009-08-14,2026-04-09,data\signals\expansion\raw\repo_6_repo_6_drn_3xreit_logret_21d.parquet
+repo_7,ok,927,1948-12-01,2026-03-01,data\signals\expansion\raw\repo_7_repo_7_cpi_yoy_surprise.parquet
+repo_8,ok,6576,2000-01-03,2026-02-25,data\signals\expansion\raw\repo_8_repo_8_ml_pred_sign.parquet
+repo_9,ok,4814,2007-01-03,2026-02-25,data\signals\expansion\raw\repo_9_repo_9_ml_pc1.parquet
