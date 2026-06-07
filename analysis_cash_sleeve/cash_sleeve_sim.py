@@ -43,7 +43,11 @@ PATTERNS = {
     'P4_NDX50_GOLD50':  (0.5, 0.5, 0.0),
     'P5_GOLD50_BOND50': (0.0, 0.5, 0.5),
     'P6_THIRDS':        (1/3, 1/3, 1/3),
+    'P7_GOLD75_BOND25': (0.0, 0.75, 0.25),
 }
+
+# レポート対象の4戦略 (年次表もこの4本)
+FOCUS = ['BASELINE_DH-W1', 'P2_GOLD100', 'P5_GOLD50_BOND50', 'P7_GOLD75_BOND25']
 
 
 def ann_ret_vol_on_mask(ret, mask_bool):
@@ -176,12 +180,14 @@ def main():
               f"DD={row['MaxDD_pct']:+6.1f} W10={row['Worst10Y_pct']:+5.2f} "
               f"P10={row['P10_5Y_pct']:+5.2f} Tr={row['Trades_yr']} "
               f"WFE={row['WFE']} CI={row['CI95_lo_pct']}")
-        return row, oos_mult
+        return row, oos_mult, yr_aft
 
     rows = []
+    yearly_focus = {}   # label -> after-tax yearly Series
     # Baseline DH-W1 (cash 0%)
-    base_row, base_mult = evaluate('BASELINE_DH-W1', r_w1, wn_base, wb_base, lev_base)
+    base_row, base_mult, base_yr = evaluate('BASELINE_DH-W1', r_w1, wn_base, wb_base, lev_base)
     rows.append(base_row)
+    yearly_focus['BASELINE_DH-W1'] = base_yr
 
     for name, (wnp, wgp, wbp) in PATTERNS.items():
         r_blend = wnp*ret_ndx + wgp*ret_gold + wbp*ret_bond
@@ -190,14 +196,33 @@ def main():
         wn_eff = np.where(fund_active, wnp, wn_base)
         wb_eff = np.where(fund_active, wbp, wb_base)
         lev_eff = np.where(fund_active, 1.0, lev_base)
-        row, oos_mult = evaluate(name, r_enh, wn_eff, wb_eff, lev_eff)
+        row, oos_mult, yr_aft = evaluate(name, r_enh, wn_eff, wb_eff, lev_eff)
         row['vs_base_OOSmult_pct'] = round((oos_mult/base_mult - 1)*100, 1)
         rows.append(row)
+        if name in FOCUS:
+            yearly_focus[name] = yr_aft
 
     df = pd.DataFrame(rows)
-    df.to_csv(os.path.join(OUT_DIR, 'cash_sleeve_6patterns_metrics.csv'),
+    df.to_csv(os.path.join(OUT_DIR, 'cash_sleeve_7patterns_metrics.csv'),
               index=False, float_format='%.4f')
-    print('\n[DONE] CSVs -> analysis_cash_sleeve/')
+
+    # 4戦略のみの指標表
+    df_focus = df[df['strategy'].isin(FOCUS)].copy()
+    df_focus.to_csv(os.path.join(OUT_DIR, 'cash_sleeve_4strategies_metrics.csv'),
+                    index=False, float_format='%.4f')
+
+    # 年次リターン表 (4戦略, 税後 %)
+    years = sorted(set(y for s in yearly_focus.values() for y in s.index))
+    ycols = {'year': years}
+    for label in FOCUS:
+        ser = yearly_focus[label]
+        ycols[label] = [round(float(ser.get(y, np.nan))*100, 2) if y in ser.index else np.nan
+                        for y in years]
+    pd.DataFrame(ycols).to_csv(
+        os.path.join(OUT_DIR, 'cash_sleeve_4strategies_yearly.csv'),
+        index=False, float_format='%.2f')
+
+    print('\n[DONE] CSVs -> analysis_cash_sleeve/ (7patterns, 4strategies, yearly)')
 
 
 if __name__ == '__main__':
