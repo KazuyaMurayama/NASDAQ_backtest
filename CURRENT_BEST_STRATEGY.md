@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-05 (v4.8 Session 4+5: nasdaq_mom63 × S3 × M6 defensive overlay 追記、S3 限定 ADOPT 確定)
+最終更新日: 2026-06-07 (DH-W1 キャッシュ・スリーブ 1倍投信置換 4戦略を「投信環境 Active 候補」として追記、P2/P5/P7 WFA 50窓 PASS)
 
 ---
 
@@ -149,6 +149,33 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 
 ---
 
+## 投信環境 Active 候補 (2026-06-07 追加) ─ DH-W1 キャッシュ・スリーブ 1倍投信置換
+
+> **位置付け**: ETF 環境 Active 候補 **DH-W1** は全営業日の **46.9%(6,171日)をキャッシュ 0% で待機**する。この待機資金を 1 倍投信(ゴールド/米国債20年超)で運用置換した派生系。1 倍投信は **SOFR/スワップなし・信託報酬<0.2%・5営業日ラグ**で実装可能（レバ脚は DELAY=2 / SOFR/スワップ込み、税 20.315%×0.8273）。§1 本番 Active (CFD: E4 Regime k_lt) の置換ではなく、**ETF/投信のみ環境(NISA 等)で DH-W1 を更に押し上げる候補**。
+
+### OUT(キャッシュ)期 6,171日の各1倍資産の素の挙動
+| 資産 | 年率リターン | 年率Vol | R/R | 含意 |
+|---|---:|---:|---:|---|
+| NASDAQ 1x | **−7.63%** ⚠ | 26.3% | −0.29 | キャッシュ期＝risk-off、NASDAQ は大損 → スリーブ不適 |
+| Gold 1x | +4.07% | 21.5% | +0.19 | 堅実 |
+| Bond 1x (米国債22yr) | **+6.51%** ✅ | **11.9%** | **+0.55** | 低ボラ＋プラスで最良 |
+
+### 4戦略 標準指標（全コスト後・税20.315%後・WFA 50窓）
+| 戦略 | CAGR_OOS | Sharpe_OOS | MaxDD | Worst10Y★ | P10_5Y | IS-OOS gap | Trades/yr | WFE | CI95_lo | 性格 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| DH-W1 (baseline) | +13.66% | +0.844 | **−34.57%** | +8.40% | +5.11% | +1.62 | 17.8 | 0.997 | +13.95% | 現状(キャッシュ) |
+| 🟢 P2 GOLD100 | **+16.44%** | **+0.875** | −58.53% | +9.43% | +8.06% | **+0.97** | 18.8 | 1.229 | +16.04% | 攻め (OOS 最高) |
+| 🟢 **P7 GOLD75/BOND25** ⭐ | +14.90% | +0.827 | −48.23% | +9.92% | +8.05% | +3.28 | 18.8 | 1.043 | +16.74% | **中庸推奨** |
+| 🟢 P5 GOLD50/BOND50 | +13.28% | +0.758 | −35.97% | +10.08% | +8.09% | +5.50 | 18.8 | 0.875 | **+17.23%** | 守り (DD 最良) |
+
+- **P2 GOLD100**: ベース比 +2.78pp の OOS 最高・最汎化(gap +0.97)。代償は MaxDD −58.5%(Gold 単独の宿命)。攻め優先向け。
+- **P7 GOLD75/BOND25 ⭐(新規・推奨)**: P2 と P5 の中間最適。OOS +14.90% を確保しつつ Bond 混で MaxDD を −48.23% に緩和。総合バランス最良。
+- **P5 GOLD50/BOND50**: MaxDD をベース同等(−36.0%)維持・CI95_lo/P10/Worst10Y 最高。守り最優先向け。gap +5.50pp(汎化やや弱)。
+
+> **昇格保留の理由**: WFA 50窓は CI95_lo>0 (α) ∩ 0.5≤WFE≤2.0 (β) を全 PASS だが、**t_p(permutation 検定)・block bootstrap は未実施**。正式 Active 昇格にはこれらの統計検証が必要（[tasks.md](tasks.md) Pending）。全コスト表・執行ラグ検証は [CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md) §4-§6 参照。STRATEGY_REGISTRY §2 に 3 件登録済。
+
+---
+
 ## Shortlisted（次善候補 / WFA 完了）
 
 | 戦略 | Sharpe | CAGR_OOS★ (raw) | CAGR⓽_OOS (手取り) | MaxDD★ (raw) | Trades/yr | WFA CI95_lo | 採用留保理由 |
@@ -256,6 +283,7 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- **2026-06-07 (DH-W1 Cash-Sleeve 4戦略)**: ETF 環境 Active 候補 DH-W1 の OUT(キャッシュ 46.9%)期を 1 倍投信で運用置換する 4 戦略を **「投信環境 Active 候補」セクション** として §Shortlisted 直前に新設。**P2 GOLD100**(攻め, OOS +16.44% 最高)/**P7 GOLD75/BOND25 ⭐**(中庸推奨, MaxDD −48.23%)/**P5 GOLD50/BOND50**(守り, MaxDD −35.97% 最良)。全 WFA 50窓 α∩β PASS。検証済み: OUT 期資産挙動、全商品コスト表(SOFR/TER/スワップ/売買/税 20.315%)、執行ラグ(レバ脚 DELAY=2 / 投信スリーブ 5BD)。t_p/bootstrap 未実施で正式昇格保留。§1 本番 Active(E4 Regime k_lt)は変更なし。STRATEGY_REGISTRY §2 に 3 件登録。一次根拠: [CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md)。
 - **2026-06-05 (v4.8: Session 4 + 5)**: `nasdaq_mom63 × S3 × M6 defensive` overlay を **Risk-Reduction Overlay Candidate** として §Shortlisted 直前に新設。Session 4 で S3 (DH-W1, ETF only) に対し Phase D 4 gate 全 PASS → ADOPT。Session 5 で S2 (D5) / E4 (現行 Active) への転用を audit-grade で検証 → 両方 NEEDS_FURTHER_WORK (WFE<1.0、ハードゲート不通過。P(MaxDD better)>0.94 で方向性は一貫)。結論: overlay は **S3 限定 (strategy-specific)**。§1 本番 Active (CFD: E4 Regime k_lt) は変更なし。
 - **2026-06-05 (v4.7: CFD Active 候補を l7 → l5 に置換)**: ユーザー判断により vz=0.65+l5+F10ε を CFD 環境 Active 候補に確定。l7 (旧 REF) は副候補に降格。理由: l5 は min CAGR -1.30pp の trade-off と引換に **Worst10Y +12.67% (vs l7 +9.96%、+2.71pp)、P10_5Y +8.75% (vs l7 +4.05%、+4.70pp 大幅改善)、MaxDD -56.72% (vs l7 -65.95%、9.23pp 浅化)、Sharpe +0.841 (vs l7 +0.829)、Trades 86 (vs l7 105、18% 低コスト)** で防御指標が圧倒的優位。
 - **2026-06-05 (v4.6: lmax sweep)**: vz=0.65+F10ε の lmax を l5/l5.5/l7 で比較、l5.5/l5 を Shortlisted 追加。

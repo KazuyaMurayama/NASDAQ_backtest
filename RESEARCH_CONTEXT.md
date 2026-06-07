@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」だけなら [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読む。実験の連鎖・系統・棄却理由まで把握したい場合は本ファイル。**
 
 作成日: 2026-05-24
-最終更新日: 2026-05-26
+最終更新日: 2026-06-07 (DH-W1 キャッシュ・スリーブ 1倍投信置換系 = 投信環境 Active 候補 4戦略を追記)
 管理者: 男座員也（Kazuya Oza）
 
 ---
@@ -58,6 +58,7 @@
 | **H系** | 外部シグナル（Gold / Real Yield 等）オーバーレイ | 主に棄却 | H1 S4_sweep, H4 wgwb, H5 gold_dyn いずれも S2_VZGated 超えず |
 | **P系** | 外部マクロシグナル (HY / CPI 等)・モデル系 | 一部 Shortlisted (非標準コスト) | P01/P02/P05 が Shortlisted（[非標準コスト] フラグ）。P1 SOFR/P3 Momentum/P4 Composite/P5 Kelly は全棄却 |
 | **S系** | A2 ConvictionScore 直接レバ変換 | 棄却 | S1〜S4 で全て S2_VZGated に劣後 (S3 は IS-OOS gap +22pp で致命的) |
+| **Cash-Sleeve系** | DH-W1 の OUT(キャッシュ 46.9%)期を 1倍投信で運用置換 | **Shortlisted (投信環境 Active 候補, 2026-06-07)** | P2 GOLD100(OOS +16.44%) / P7 GOLD75BOND25 ⭐(MaxDD −48.23%) / P5 GOLD50BOND50(MaxDD −35.97% 最良) 全 WFA 50窓 PASS。t_p/bootstrap 未実施で正式昇格保留 |
 
 ### 2.2 採用に至るチェーン（時系列）
 
@@ -148,6 +149,19 @@
 - **B3 LT4 / B4 LT6 / B5 LT7 / B7 LT1 / B8 LT3**: 各種 LT 変種試行
 - **B6 LT2 N-sweep**: N=750 が安定 (Active)、N=1500 が Sharpe 最高 (Shortlisted)
 - **B9 GoldFrac, B11 DualN**: 派生検証、いずれも N=750 単体を超えず
+
+---
+
+### 3.3 DH-W1 キャッシュ・スリーブ（2026-06-07・投信環境 Active 候補）
+
+> DH-W1 (ETF only Active 候補) は全営業日の **46.9%(6,171日)をキャッシュ 0% で待機**する。その待機資金を 1 倍投信で運用置換した派生系。CFD/レバ操作を伴わず、1 倍投信は **SOFR/スワップなし・信託報酬<0.2%・5営業日ラグ**で実装可能。
+
+- **検証済みの事実（再実験不要）**:
+  - OUT(キャッシュ)期 6,171日の素の資産挙動: **NASDAQ 1x −7.63%/Vol26.3%(risk-off で大損)・Gold +4.07%/Vol21.5%・Bond(米国債22yr) +6.51%/Vol11.9%(最良)**。→ OUT を埋めるのは Gold/Bond が正解、NASDAQ スリーブ(P1)は不適。
+  - 4戦略指標(全コスト後・税20.315%×0.8273・WFA 50窓): **P2 GOLD100** OOS +16.44%(最高)/Sharpe +0.875/gap +0.97/MaxDD −58.53%/WFE 1.229、**P7 GOLD75BOND25** ⭐ OOS +14.90%/MaxDD −48.23%/WFE 1.043(中庸推奨)、**P5 GOLD50BOND50** OOS +13.28%/MaxDD −35.97%(最良)/CI95_lo +17.23%(最高)/gap +5.50。
+  - 執行ラグ: **レバ脚(TQQQ/TMF/2036)は DELAY=2(T+2)で `.shift(2)`、投信スリーブは 5営業日ラグ**で実装。コスト前提: SBI NASDAQ100 0.1958%/サクっと純金 0.1838%/iシェアーズ米国債20年超(2255) 0.154%。レバ脚 TER は TQQQ 0.86%/2036 0.50%/TMF 0.91%、スワップ 50bps、NASDAQ 脚はコストエンジン上 SBI 店頭 CFD(スプレッド3.0%/年)モデル。
+- **次段階（未実施）**: P2/P7 の **block bootstrap + permutation(t_p) 統計検証** → 正式 Active 昇格判定。
+- 一次根拠: [analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md), [cash_sleeve_sim.py](analysis_cash_sleeve/cash_sleeve_sim.py), 全7パターンは [cash_sleeve_7patterns_metrics.csv](analysis_cash_sleeve/cash_sleeve_7patterns_metrics.csv)。
 
 ---
 
@@ -296,6 +310,7 @@ WFA で α∩β PASS が「正式 Active 昇格」の必要条件:
 
 | 日付 | 変更 |
 |---|---|
+| 2026-06-07 | §2.1 系列一覧に **Cash-Sleeve系**（DH-W1 の OUT 期 1倍投信置換）を追加。§3.3 に検証済み事実（OUT 期資産挙動・4戦略指標・執行ラグ・コスト前提）を新設。投信環境 Active 候補 P2/P5/P7 を STRATEGY_REGISTRY §2 に登録。|
 | 2026-05-26 | §2 系列一覧 F系・G系を更新（F10 ε=0.015, G7/G8/G9 WFA PASS 追記）。§2.2 採用チェーンに vz065+lmax5 / F10+lmax5 / F10 ε=0.015 PASS 結果を追加。§4.1 に採用変更決定・COMPARISON v1.7・Trades/yr バグ修正を Pending 追記。|
 | 2026-05-24 | 初版作成。F8 R5_CALM_BOOST 昇格直後の研究文脈・系統図・棄却サマリを集約。新セッション 5分オリエンテーション用 |
 

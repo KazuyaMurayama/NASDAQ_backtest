@@ -1,6 +1,6 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-06-05
+最終更新: 2026-06-07
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
@@ -10,6 +10,7 @@
 ## 🟡 Pending
 
 ### 短期（実装フェーズ）
+- [ ] **DH-W1 Cash-Sleeve P2/P7 の正式 Active 昇格判定**: P2 GOLD100 / P7 GOLD75BOND25(⭐推奨) の **block bootstrap + permutation(t_p) 統計検証**を実施（WFA 50窓 α∩β は PASS 済み、t_p/bootstrap が未実施）。PASS なら投信環境 Active として CURRENT_BEST_STRATEGY.md §1 相当へ昇格。`g23e_dh_w1_bootstrap.py` 相当を流用。
 - [ ] **CURRENT_BEST_STRATEGY.md §1 Active 昇格判断 (v4.5 以降)**: vz=0.65+l7+F10ε を CFD 環境 Active として §1 正式昇格させるか、E4 RegimeKLT を維持するか。実運用変更 (Googleスプレッドシート同期等) を伴うためユーザー承認必須
 - [ ] **DH-W1 を ETF only 環境向け副 Active として CURRENT_BEST_STRATEGY.md に正式登録**: 環境別 Active 制度の運用ルール確立
 - [ ] **CURRENT_BEST_STRATEGY.md 更新判断 (v4 以前)**: vz065+lmax5 vs F10+lmax5 vs E4 の採用変更を最終決定（INTEGRATION_DEBATE_2026-05-26.md 参照、v4.5 で部分的に整理済）
@@ -42,6 +43,7 @@
 - ❌ Scenario A 単独評価 — コスト過少推計、Scenario D 必須
 
 ## ✅ Completed
+- **2026-06-07 (DH-W1 Cash-Sleeve 4戦略)**: DH-W1 (ETF only) の OUT(キャッシュ 46.9%/6,171日)期を 1 倍投信で運用置換するシミュレーションを実装・評価 (`analysis_cash_sleeve/cash_sleeve_sim.py`)。**投信環境 Active 候補 4 戦略**を確定: DH-W1 baseline / **P2 GOLD100**(攻め, OOS +16.44% 最高/Sharpe +0.875/gap +0.97/WFE 1.229) / **P7 GOLD75BOND25** ⭐(中庸推奨, OOS +14.90%/MaxDD −48.23%/WFE 1.043) / **P5 GOLD50BOND50**(守り, MaxDD −35.97% 最良/CI95_lo +17.23%/gap +5.50)。全 WFA 50窓 α∩β PASS。検証済み: OUT 期資産挙動(NASDAQ −7.63%/Gold +4.07%/Bond +6.51%)、全商品コスト表(SOFR/TER/スワップ/売買/税 20.315%×0.8273)、執行ラグ(レバ脚 TQQQ/TMF/2036 は DELAY=2/T+2、投信スリーブ 5BD)、年次リターン表(1974-2026 税後)。STRATEGY_REGISTRY §2 / CURRENT_BEST_STRATEGY §投信環境 / RESEARCH_CONTEXT §3.3 を同期更新。**t_p/bootstrap は未実施**(上記 Pending)。一次根拠: [CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md)。
 - **2026-06-05 (v4.7)**: **CFD 環境 Active 候補を vz=0.65+l7+F10ε → vz=0.65+l5+F10ε に置換** (ユーザー判断)。理由: l5 は min CAGR -1.30pp と引換に Worst10Y +2.71pp / P10_5Y +4.70pp 大幅改善 / MaxDD -9.23pp 浅化 / Sharpe +0.012 / Trades -18% 低コスト。STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md (v4.6→v4.7)、CURRENT_BEST_STRATEGY.md、CLAUDE.md §2、EVALUATION_STANDARD.md §3.13、STRATEGY_REGISTRY.md §2 を同期更新。
 - **2026-06-05 (v4.6)**: §6-5 新設 vz=0.65+F10ε lmax sweep (l5/l5.5/l7) — l5/l5.5 を初実装。l5.5 をバランス候補、l5 を防御候補として §2 Shortlisted 追加。
 - **2026-06-05 (v4.5)**: **保守的採用基準 min(IS, OOS) CAGR + Worst10Y + P10_5Y 3 軸導入** + **AH 棄却** + **環境別 Active 候補確定**
