@@ -33,7 +33,7 @@ from multi_asset.strategy_layers import (
 )
 from multi_asset.leverage_eval import strategy_net_returns, after_tax_cagr
 from multi_asset.walkforward import wfa_stats
-from multi_asset.report_format import fmt_metric_table
+from multi_asset.report_format import fmt_metric_table, validate_markdown_tables
 from multi_asset.run_bond_sweep import _load_bond_and_cash, _load_macro_daily
 from multi_asset.run_gold_sweep import _load as _load_gold
 
@@ -130,7 +130,7 @@ def _run_asset(asset, ret, pos, cash, k_grid):
         {'key': 'sharpe', 'label': 'Sharpe', 'fmt': lambda v: f'{v:+.3f}', 'better': 'max'},
         {'key': 'maxdd', 'label': 'MaxDD', 'fmt': lambda v: f'{v*100:.1f}%', 'better': 'max'},
         {'key': 'worst10y', 'label': 'Worst10Y', 'fmt': lambda v: f'{v*100:+.2f}%', 'better': 'max'},
-        {'key': 'calmar', 'label': 'Calmar(税後/|DD|)', 'fmt': lambda v: f'{v:.3f}', 'better': 'max'},
+        {'key': 'calmar', 'label': 'Calmar(税後CAGR÷MaxDD)', 'fmt': lambda v: f'{v:.3f}', 'better': 'max'},
         {'key': 'wfe', 'label': 'WFE', 'fmt': lambda v: f'{v:.2f}'},
     ]
     md = [f'### {asset}', '',
@@ -175,8 +175,10 @@ def main():
                '| 資産 | 推奨商品・倍率 |', '|---|---|']
     for a in ['NASDAQ', 'Gold', 'Bond']:
         summary.append(f'| **{a}** | **{recs[a]}** |')
+    doc = '\n'.join(header + sections + summary) + '\n'
+    validate_markdown_tables(doc)   # fail loudly if any table is malformed
     with open(os.path.join(ROOT, 'LEVERAGE_DECISION_20260608.md'), 'w', encoding='utf-8') as f:
-        f.write('\n'.join(header + sections + summary) + '\n')
+        f.write(doc)
 
     for asset, (ret, pos, cash, kg) in assets.items():
         print(f'--- {asset} --- recommended={recs[asset]}')
