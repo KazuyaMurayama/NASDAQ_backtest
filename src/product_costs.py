@@ -93,6 +93,56 @@ GOLD2X = ProductCost(
 )
 
 # ---------------------------------------------------------------------------
+# Gold 2x -- WisdomTree 2036 (LSE ETP) -- USER-CHOSEN gold 2x product
+# Cost basis: analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md §5-1
+# ---------------------------------------------------------------------------
+GOLD2X_2036 = ProductCost(
+    ticker="2036",
+    name="WisdomTree Gold 2x Daily Leveraged (LSE 2036)",
+    leverage=2.0,
+    ter=0.0050,                 # 0.50%/yr (disclosed ~0.49%)
+    sofr_multiplier=1.0,        # 2x leverage -> 1x notional financing
+    swap_spread=0.0050,         # 0.50%/yr
+    dividend_yield=0.0,
+    div_tax_rate=0.20315,
+    nisa_eligible=False,
+    notes="User-chosen gold 2x. LSE-listed ETP; verify JP-broker availability "
+          "(product_costs previously flagged it as not at SBI/Rakuten retail).",
+)
+
+# ---------------------------------------------------------------------------
+# 1x mutual funds / ETFs (no leverage, no SOFR) -- researched SBI products
+# Cost basis: analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md §5-2
+# Execution lag T+5 business days (vs T+2 for leveraged ETFs).
+# ---------------------------------------------------------------------------
+NASDAQ1X = ProductCost(
+    ticker="SBI-NASDAQ100",
+    name="SBI NASDAQ100 Index Fund (1x)",
+    leverage=1.0, ter=0.001958, sofr_multiplier=0.0, swap_spread=0.0,
+    dividend_yield=0.0, div_tax_rate=0.20315, nisa_eligible=True,
+    notes="Researched 信託報酬 0.1958% (alt: Nissay NASDAQ100 0.2035%). Lag T+5.",
+)
+GOLD1X = ProductCost(
+    ticker="SBI-GOLD",
+    name="SBI iShares Gold Fund (sakutto-jun-kin, 1x, unhedged)",
+    leverage=1.0, ter=0.001838, sofr_multiplier=0.0, swap_spread=0.0,
+    dividend_yield=0.0, div_tax_rate=0.20315, nisa_eligible=True,
+    notes="Researched 信託報酬 0.1838%. LBMA gold. Lag T+5.",
+)
+BOND1X = ProductCost(
+    ticker="2255",
+    name="iShares 20+ Year US Treasury ETF (2255, 1x, unhedged)",
+    leverage=1.0, ter=0.00154, sofr_multiplier=0.0, swap_spread=0.0,
+    dividend_yield=0.0, div_tax_rate=0.20315, nisa_eligible=True,
+    notes="Researched 信託報酬 0.154%. Lag T+5.",
+)
+
+# Execution-lag constants (business days): leveraged ETF vs 1x fund.
+EXEC_LAG_ETF = 2     # T+2
+EXEC_LAG_FUND_1X = 5  # T+5
+PER_TRADE_COST = 0.0010  # 0.10% one-way (moderate), applied x turnover
+
+# ---------------------------------------------------------------------------
 # Japan tax constants
 # ---------------------------------------------------------------------------
 JP_CAPITAL_GAINS_TAX = 0.20315   # 所得税15% + 復興税0.315% + 住民税5%
@@ -108,6 +158,10 @@ REBALANCING_TAX_DRAG_HIGH = 0.052   # worst-case (all gains realized each rebala
 # Registry
 # ---------------------------------------------------------------------------
 PRODUCTS = {"TQQQ": TQQQ, "TMF": TMF, "GOLD2X": GOLD2X}
+
+# User-chosen leverage set (no CFD; NASDAQ/Bond max 3x, Gold max 2x) + 1x funds.
+LEVERAGED_SET = {"NASDAQ": TQQQ, "Gold": GOLD2X_2036, "Bond": TMF}
+FUND_1X_SET = {"NASDAQ": NASDAQ1X, "Gold": GOLD1X, "Bond": BOND1X}
 
 
 def daily_financing_cost(product: ProductCost, sofr_annual: float) -> float:
