@@ -35,7 +35,7 @@ from multi_asset.single_asset_sweep import run_single_asset_sweep, CANONICAL_SPL
 from multi_asset.bond_signals import (
     ma_cross_position, momentum_position, zscore_position,
 )
-from _sweep_format import MD_HEADER_STRAT, fmt_row_strat, MD_WFA_NOTE
+from multi_asset.sweep_report import render_sweep_md
 
 ROOT = os.path.dirname(_SRC)
 DATA = os.path.join(ROOT, 'data')
@@ -112,60 +112,17 @@ def main():
     csv_path = os.path.join(ROOT, 'bond_single_asset_sweep_results.csv')
     df.to_csv(csv_path, index=False)
 
-    # ---- Markdown report (house 9-metric STRAT table) ----
-    lines = [
-        '# Bond 単独タイミングシグナル スイープ（保有 vs キャッシュ）',
-        '', f'作成日: {DATE}', f'最終更新日: {DATE}', '',
-        '> `MULTIASSET_GOLD_BOND_SIGNAL_PLAN_20260608.md` Phase 2.2 の成果物。',
-        '> Bondリターン: `base_dataset.csv`（synth duration 1974-2009 + IEF 2009+）、'
-        'キャッシュ: DTB3（3M T-bill）。OOS分割: ' + CANONICAL_SPLIT + '。',
-        '> **Trades/WFE/CI95 は NAV代理の screening 値**（正式は Phase 2.4 WFA）。',
-        '', '## 9指標スイープ結果（CAGR_OOS降順）', '',
-        MD_HEADER_STRAT[0], MD_HEADER_STRAT[1],
-    ]
-    for _, r in df.iterrows():
-        row = {
-            'CAGR_OOS': r['cand_cagr_oos'], 'IS_OOS_gap': r['cand_is_oos_gap'],
-            'Sharpe_OOS': r['cand_sharpe_oos'], 'MaxDD_FULL': r['cand_maxdd'],
-            'Worst10Y_star': r['cand_worst10y'], 'P10_5Y': r['cand_p10_5y'],
-            'Trades_yr': r['cand_trades_yr'], 'WFA_WFE': r['cand_wfe'],
-            'WFA_CI95_lo': r['cand_ci95_lo'],
-        }
-        lines.append(fmt_row_strat(r['signal'], row))
-    lines += ['', MD_WFA_NOTE, '',
-              '*Sharpe ◎/★ マーカは NASDAQ ベースライン基準（参考）。*', '',
-              '## シグナル仮説', '']
-    for _, r in df.iterrows():
-        lines.append(f"- **{r['signal']}** — {r['hypothesis']}  "
-                     f"(判定: {r['judgment']})")
-
-    # ---- Key findings (vs CASH, the relevant benchmark for hold/cash) ----
-    cash_cagr = float(df.loc[df['signal'] == 'ALL_CASH', 'cand_cagr_oos'].iloc[0])
-    bh_cagr = float(df.loc[df['signal'] == 'BUY_AND_HOLD', 'cand_cagr_oos'].iloc[0])
-    act = df[~df['signal'].isin(['ALL_CASH', 'BUY_AND_HOLD'])]
-    best = act.loc[act['cand_cagr_oos'].idxmax()]
-    beat_cash = act[act['cand_cagr_oos'] > cash_cagr]['signal'].tolist()
-    lines += [
-        '', '## 所見（暫定・要 Phase 2.4 WFA 確認）', '',
-        f'- OOS({CANONICAL_SPLIT}〜)はBond弱気相場。**常時保有(B&H) CAGR_OOS={bh_cagr*100:+.2f}%・'
-        f'MaxDD≈-50%** と劣悪 → 「vs B&H」の判定は楽観的に出る点に注意。',
-        f'- **本質的ベンチマークはキャッシュ**: ALL_CASH CAGR_OOS=**{cash_cagr*100:+.2f}%**。',
-        f'- アクティブ最良は **{best["signal"]}**（CAGR_OOS={best["cand_cagr_oos"]*100:+.2f}%, '
-        f'MaxDD={best["cand_maxdd"]*100:.1f}%）。',
-        ('- **キャッシュを上回ったシグナルは: ' + ', '.join(beat_cash) + '**。')
-        if beat_cash else
-        '- ⚠ **どのBondシグナルもOOSでキャッシュを上回れなかった**（この局面はキャッシュ保有が正解。'
-        'タイミングはDD圧縮には寄与: 例 bond_mom252 MaxDD≈-15% vs B&H -50%）。',
-        '- ALL_CASH の Sharpe は無リスク近似による退化値のため参考外。',
-    ]
+    data_note = ('Bondリターン: `base_dataset.csv`（synth duration 1974-2009 + '
+                 'IEF 2009+）、キャッシュ: DTB3（3M T-bill）。')
+    md = render_sweep_md('Bond', df, CANONICAL_SPLIT, DATE, data_note, _HYPOTHESIS)
     md_path = os.path.join(ROOT, f'BOND_SINGLE_ASSET_SWEEP_{DATESTAMP}.md')
     with open(md_path, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines) + '\n')
+        f.write(md)
 
     print('wrote', csv_path)
     print('wrote', md_path)
-    print(df[['signal', 'cand_cagr_oos', 'cand_sharpe_oos', 'cand_maxdd',
-              'cand_worst10y', 'cand_trades_yr', 'judgment']].to_string(index=False))
+    print(df[['signal', 'cand_cagr_full', 'cand_sharpe_full', 'cand_cagr_oos',
+              'cand_maxdd', 'cand_worst10y', 'judgment']].to_string(index=False))
 
 
 if __name__ == '__main__':

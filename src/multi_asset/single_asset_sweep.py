@@ -17,13 +17,19 @@ from typing import Mapping
 
 import pandas as pd
 
-from integration.nine_metric_eval import evaluate, judge_improvement
+from integration.nine_metric_eval import evaluate, judge_improvement, _cagr, _sharpe
 
 # House canonical OOS split (matches phase_d_wfa / phase_d_bootstrap).
 CANONICAL_SPLIT = '2021-05-08'
 
 # 9-metric candidate columns surfaced by the sweep (docs/rules/08).
+# Note: cand_maxdd / cand_worst10y / cand_p10_5y / cand_wfe / cand_ci95_lo are
+# ALL full-period (1974+) already; only CAGR/Sharpe have an OOS-vs-full split.
+# Full-period CAGR/Sharpe align with integrated-report §6 (1974-2026 stats);
+# WFE/CI95 align with WFA. The single-split *_oos columns are kept as a
+# secondary cross-reference to other methods.
 _METRIC_COLS = [
+    'cand_cagr_full', 'cand_sharpe_full',
     'cand_cagr_oos', 'cand_is_oos_gap', 'cand_sharpe_oos', 'cand_maxdd',
     'cand_worst10y', 'cand_p10_5y', 'cand_trades_yr', 'cand_wfe',
     'cand_ci95_lo',
@@ -64,19 +70,23 @@ def run_single_asset_sweep(asset_ret: pd.Series,
                            cash_ret: pd.Series,
                            signals: Mapping[str, pd.Series],
                            split_date: str = CANONICAL_SPLIT,
-                           baseline: str = 'bh') -> pd.DataFrame:
+                           baseline: str = 'bh',
+                           sort_by: str = 'cand_cagr_full') -> pd.DataFrame:
     """Evaluate each signal's hold-vs-cash NAV vs a baseline.
 
     Args:
         asset_ret: daily simple returns of the asset.
         cash_ret: daily simple returns of the cash/risk-free leg.
         signals: name -> position series (0..1), pre-lagged by caller.
-        split_date: IS/OOS boundary (default: house canonical 2021-05-08).
+        split_date: IS/OOS boundary for the secondary *_oos columns
+            (default: house canonical 2021-05-08).
         baseline: 'bh' (buy & hold) or 'cash' (all-cash) comparison.
+        sort_by: column to sort descending (default full-period CAGR).
 
     Returns:
-        DataFrame, one row per signal, with the 9 candidate metrics plus the
-        judge_improvement verdict, sorted by cand_cagr_oos descending.
+        DataFrame, one row per signal, with full-period CAGR/Sharpe (primary),
+        the single-split *_oos metrics (secondary), full-period MaxDD/Worst10Y/
+        P10/WFE/CI95, and the judge_improvement verdict.
     """
     if baseline == 'bh':
         base_nav = buy_and_hold_nav(asset_ret)
@@ -89,6 +99,9 @@ def run_single_asset_sweep(asset_ret: pd.Series,
     for name, position in signals.items():
         nav = build_holdcash_nav(asset_ret, cash_ret, position)
         m = evaluate(nav, base_nav, split_date=split_date)
+        # full-period (1974+) CAGR/Sharpe — the regime-neutral view (§6).
+        m['cand_cagr_full'] = _cagr(nav)
+        m['cand_sharpe_full'] = _sharpe(nav)
         verdict = judge_improvement(m)
         row = {'signal': name}
         row.update({k: m.get(k) for k in _METRIC_COLS})
@@ -98,5 +111,5 @@ def run_single_asset_sweep(asset_ret: pd.Series,
         rows.append(row)
 
     df = pd.DataFrame(rows)
-    return df.sort_values('cand_cagr_oos', ascending=False,
+    return df.sort_values(sort_by, ascending=False,
                           na_position='last').reset_index(drop=True)

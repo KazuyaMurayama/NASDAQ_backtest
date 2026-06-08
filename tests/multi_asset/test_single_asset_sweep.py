@@ -81,14 +81,15 @@ def test_sweep_returns_one_row_per_signal_with_metric_columns():
     }
     df = run_single_asset_sweep(asset, cash, signals, split_date='2018-01-01')
     assert len(df) == 2
-    for col in ['signal', 'cand_cagr_oos', 'cand_sharpe_oos', 'cand_maxdd',
+    for col in ['signal', 'cand_cagr_full', 'cand_sharpe_full',
+                'cand_cagr_oos', 'cand_sharpe_oos', 'cand_maxdd',
                 'cand_worst10y', 'cand_p10_5y', 'cand_trades_yr',
                 'cand_wfe', 'cand_ci95_lo', 'judgment']:
         assert col in df.columns
     assert set(df['signal']) == {'always_in', 'always_out'}
 
 
-def test_sweep_sorted_by_cagr_oos_desc():
+def test_sweep_sorted_by_full_cagr_desc_by_default():
     asset = _long_series(2)
     cash = pd.Series(0.0, index=asset.index)
     signals = {
@@ -96,5 +97,17 @@ def test_sweep_sorted_by_cagr_oos_desc():
         'always_out': pd.Series(0.0, index=asset.index),
     }
     df = run_single_asset_sweep(asset, cash, signals, split_date='2018-01-01')
-    vals = df['cand_cagr_oos'].dropna().tolist()
+    vals = df['cand_cagr_full'].dropna().tolist()
     assert vals == sorted(vals, reverse=True)
+
+
+def test_full_period_cagr_matches_buy_and_hold_for_always_in():
+    # always-in signal's full-period CAGR equals B&H full-period CAGR
+    asset = _long_series(7)
+    cash = pd.Series(0.0, index=asset.index)
+    signals = {'always_in': pd.Series(1.0, index=asset.index)}
+    df = run_single_asset_sweep(asset, cash, signals, split_date='2018-01-01')
+    bh = buy_and_hold_nav(asset)
+    bh_cagr = (bh.iloc[-1] / bh.iloc[0]) ** (
+        365.25 / (bh.index[-1] - bh.index[0]).days) - 1
+    assert abs(df['cand_cagr_full'].iloc[0] - bh_cagr) < 1e-6
