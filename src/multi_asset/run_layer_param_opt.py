@@ -1,10 +1,10 @@
-"""Phase 2.6 — Layer parameter optimization for the Gold/Bond layered stacks.
+"""Phase 2.6 — Layer parameter optimization (realistic execution) for Gold/Bond.
 
-Sweeps the key layer parameters (momentum lookback, vol-target level, VZ
-z-threshold, macro-gate threshold, deadband eps) over the winning
-base+VT+VZ+MACRO(+DB) structure, evaluates full-period 9-metrics, watches
-IS-OOS gap for overfitting, and validates the top stacks with WFA + paired
-block bootstrap vs cash. Mirrors NASDAQ's A1-A6/B6 parameter sweeps.
+Structure: base(momentum) x VT(vol-target) x VZ(vol-regime) x MACRO, then
+REBALANCE periodically (weekly/monthly) and apply a ~5-business-day execution
+lag, so trade frequency is realistic. Reports the REAL trades/yr (actual
+position changes, not the NAV proxy). Tables bold the recommended row and the
+best value per column. Top stacks validated with WFA + paired bootstrap vs cash.
 
 Outputs (repo root):
   - BOND_LAYER_PARAM_OPT_20260608.md / bond_layer_param_opt_results.csv
@@ -27,8 +27,11 @@ from multi_asset.single_asset_sweep import (
     run_single_asset_sweep, build_holdcash_nav, buy_and_hold_nav, CANONICAL_SPLIT,
 )
 from multi_asset.bond_signals import momentum_position, zscore_position
-from multi_asset.strategy_layers import vol_target_scale, vol_regime_gate, deadband, compose
+from multi_asset.strategy_layers import (
+    vol_target_scale, vol_regime_gate, compose, rebalance_periodic, apply_exec_lag,
+)
 from multi_asset.walkforward import wfa_stats, paired_block_bootstrap
+from multi_asset.report_format import fmt_metric_table
 from multi_asset.run_bond_sweep import _load_bond_and_cash, _load_macro_daily
 from multi_asset.run_gold_sweep import _load as _load_gold
 
@@ -37,9 +40,11 @@ DATE = '2026-06-08'
 N_BOOT = 5000
 
 MOMS = [126, 252]
-ZTHRESH = [0.75, 1.0, 1.5]
-MACRO_ENTER = [0.0, 0.5]
-DEADBANDS = [0.0, 0.10]
+ZTHRESH = [0.75, 1.0]
+MACRO_ENTER = [0.0]
+REBAL = [5, 21]        # weekly / monthly rebalance
+EXEC_LAG = 4           # + signal's internal 1-day shift ≈ 5 business days
+REBAL_LABEL = {5: 'wk', 21: 'mo'}
 
 
 def _build_grid(price, asset_ret, macro_raw, macro_invert, target_vols):
@@ -53,23 +58,22 @@ def _build_grid(price, asset_ret, macro_raw, macro_invert, target_vols):
                                      z_thresh=zt, gate_min=0.0)
                 for me in MACRO_ENTER:
                     MA = zscore_position(macro_raw, 252, enter=me, invert=macro_invert)
-                    for eps in DEADBANDS:
+                    for rb in REBAL:
                         stack = compose(base, VT, VZ, MA)
-                        if eps > 0:
-                            stack = deadband(stack, eps)
-                        name = f"m{m}_tv{tv}_z{zt}_me{me}_db{eps}"
+                        stack = rebalance_periodic(stack, every=rb)
+                        stack = apply_exec_lag(stack, EXEC_LAG)
+                        name = f"m{m}_tv{tv}_z{zt}_{REBAL_LABEL[rb]}"
                         strat[name] = stack
     return strat
 
 
 def _validate(df, asset_ret, cash_ret, lookup, top_n=6):
-    """WFA + paired bootstrap vs cash/B&H for top stacks by Sharpe_full,
-    preferring low IS-OOS gap on ties."""
     cand = df[~df['signal'].isin(['BUY_AND_HOLD', 'ALL_CASH'])].copy()
     cand = cand.sort_values('cand_sharpe_full', ascending=False).head(top_n)
     bh_ret = buy_and_hold_nav(asset_ret).pct_change().dropna()
     rows = []
-    for name in cand['signal']:
+    for _, c in cand.iterrows():
+        name = c['signal']
         nav = build_holdcash_nav(asset_ret, cash_ret, lookup[name])
         cret = nav.pct_change().dropna()
         cash_al = cash_ret.reindex(cret.index).fillna(0.0)
@@ -77,13 +81,20 @@ def _validate(df, asset_ret, cash_ret, lookup, top_n=6):
         vc = paired_block_bootstrap(cret, cash_al, n_boot=N_BOOT)
         vb = paired_block_bootstrap(cret, bh_ret, n_boot=N_BOOT)
         rows.append({
-            'signal': name, 'wfe': round(wfa['wfe'], 3),
-            'ci95_lo': round(wfa['ci95_lo_cagr'], 4),
-            'p_beat_cash': round(vc['p_a_gt_b'], 3),
-            'p_beat_bh': round(vb['p_a_gt_b'], 3),
+            'name': name, 'wfe': round(wfa['wfe'], 3),
+            'ci95_lo': wfa['ci95_lo_cagr'], 'p_cash': vc['p_a_gt_b'],
+            'p_bh': vb['p_a_gt_b'], 'trades': c['cand_trades_yr_real'],
             'PASS': bool(wfa['passed'] and vc['p_a_gt_b'] > 0.90),
         })
-    return pd.DataFrame(rows)
+    return rows
+
+
+def _recommend(val_rows):
+    passed = [r for r in val_rows if r['PASS']]
+    pool = passed if passed else val_rows
+    # prefer fewest trades, then highest P(>cash)
+    key = (lambda r: (r['trades'], -r['p_cash'])) if passed else (lambda r: -r['p_cash'])
+    return sorted(pool, key=key)[0]['name']
 
 
 def _run(asset, price, asset_ret, cash_ret, macro_raw, macro_invert, target_vols):
@@ -94,58 +105,65 @@ def _run(asset, price, asset_ret, cash_ret, macro_raw, macro_invert, target_vols
                                 split_date=CANONICAL_SPLIT, baseline='bh',
                                 sort_by='cand_sharpe_full')
     df.to_csv(os.path.join(ROOT, f'{asset.lower()}_layer_param_opt_results.csv'), index=False)
-    val = _validate(df, asset_ret, cash_ret, strat, top_n=6)
+    val_rows = _validate(df, asset_ret, cash_ret, strat, top_n=6)
+    rec = _recommend(val_rows)
 
-    top = df[~df['signal'].isin(['BUY_AND_HOLD', 'ALL_CASH'])].head(12)
-    lines = [
-        f'# {asset} レイヤー・パラメータ最適化（Phase 2.6）',
-        '', f'作成日: {DATE}', f'最終更新日: {DATE}', '',
-        f'> base=momentum×VT(vol-target)×VZ(vol-regime)×MACRO×DB(deadband) の'
-        f'パラメータ総当たり（{len(strat)-2} 構成）。Sharpe_full 降順。',
-        f'> グリッド: mom={MOMS}, tv={target_vols}, z_thresh={ZTHRESH}, '
-        f'macro_enter={MACRO_ENTER}, deadband={DEADBANDS}。', '',
-        '## 上位12構成（全期間）', '',
-        '| 構成 | CAGR_full | Sharpe_full | MaxDD | Worst10Y | IS-OOSgap | Trades/yr |',
-        '|---|---:|---:|---:|---:|---:|---:|',
+    top = df[~df['signal'].isin(['BUY_AND_HOLD', 'ALL_CASH'])].head(10)
+    top_rows = top.to_dict('records')
+    top_cols = [
+        {'key': 'signal', 'label': '構成'},
+        {'key': 'cand_cagr_full', 'label': 'CAGR_full', 'fmt': lambda v: f'{v*100:+.2f}%', 'better': 'max'},
+        {'key': 'cand_sharpe_full', 'label': 'Sharpe_full', 'fmt': lambda v: f'{v:+.3f}', 'better': 'max'},
+        {'key': 'cand_maxdd', 'label': 'MaxDD', 'fmt': lambda v: f'{v*100:.1f}%', 'better': 'max'},
+        {'key': 'cand_worst10y', 'label': 'Worst10Y', 'fmt': lambda v: f'{v*100:+.2f}%', 'better': 'max'},
+        {'key': 'cand_is_oos_gap', 'label': 'IS-OOSgap', 'fmt': lambda v: f'{v*100:+.2f}pp', 'better': 'min'},
+        {'key': 'cand_trades_yr_real', 'label': 'Trades/yr', 'fmt': lambda v: f'{v:.0f}', 'better': 'min'},
     ]
-    for _, r in top.iterrows():
-        lines.append(
-            f"| {r['signal']} | {r['cand_cagr_full']*100:+.2f}% | "
-            f"{r['cand_sharpe_full']:+.3f} | {r['cand_maxdd']*100:.1f}% | "
-            f"{r['cand_worst10y']*100:+.2f}% | {r['cand_is_oos_gap']*100:+.2f}pp | "
-            f"{r['cand_trades_yr']:.0f} |")
-    lines += ['', '## 上位構成の正式検証（WFA + bootstrap vs cash, n=%d）' % N_BOOT, '',
-              '| 構成 | WFE | CI95_lo | P(>cash) | P(>B&H) | PASS |',
-              '|---|---:|---:|---:|---:|:--:|']
-    for _, r in val.iterrows():
-        lines.append(
-            f"| {r['signal']} | {r['wfe']} | {r['ci95_lo']:+.4f} | "
-            f"{r['p_beat_cash']} | {r['p_beat_bh']} | {'✅' if r['PASS'] else '❌'} |")
-    # recommended = best PASS by Sharpe_full; else best by P(>cash)
-    passed = val[val['PASS']]
-    rec = passed.iloc[0]['signal'] if len(passed) else (
-        val.sort_values('p_beat_cash', ascending=False).iloc[0]['signal'])
-    lines += ['', f'## 推奨構成: **{rec}**',
-              '- 上表で PASS かつ Sharpe_full 上位の構成。PASS無しの場合は P(>cash) 最大を暫定推奨。']
+    val_cols = [
+        {'key': 'name', 'label': '構成'},
+        {'key': 'wfe', 'label': 'WFE', 'fmt': lambda v: f'{v:.3f}'},
+        {'key': 'ci95_lo', 'label': 'CI95_lo', 'fmt': lambda v: f'{v*100:+.2f}%', 'better': 'max'},
+        {'key': 'p_cash', 'label': 'P(>cash)', 'fmt': lambda v: f'{v:.3f}', 'better': 'max'},
+        {'key': 'p_bh', 'label': 'P(>B&H)', 'fmt': lambda v: f'{v:.3f}', 'better': 'max'},
+        {'key': 'trades', 'label': 'Trades/yr', 'fmt': lambda v: f'{v:.0f}', 'better': 'min'},
+        {'key': 'PASS', 'label': 'PASS', 'fmt': lambda v: '✅' if v else '❌'},
+    ]
+    lines = [
+        f'# {asset} レイヤー・パラメータ最適化（Phase 2.6, 現実的実行）',
+        '', f'作成日: {DATE}', f'最終更新日: {DATE}', '',
+        f'> base=momentum×VT(vol-target)×VZ(vol-regime)×MACRO、'
+        f'**定期リバランス(週次wk/月次mo)＋実行ラグ≈5営業日**を適用。',
+        f'> グリッド: mom={MOMS}, tv={target_vols}, z_thresh={ZTHRESH}, '
+        f'rebalance={list(REBAL_LABEL.values())}（{len(strat)-2}構成）。',
+        '> **Trades/yr は実建玉変更回数**（NAV代理ではない）。**太字=推奨行／各列の最良値**。', '',
+        '## 上位構成（全期間, Sharpe_full降順）', '',
+        fmt_metric_table(top_rows, top_cols, name_key='signal', recommended=rec),
+        '', f'## 上位構成の正式検証（WFA + bootstrap vs cash, n={N_BOOT}）', '',
+        fmt_metric_table(val_rows, val_cols, name_key='name', recommended=rec),
+        '', f'## 推奨構成: **{rec}**',
+        '- 検証 PASS の中で **Trades/yr 最小**（次点 P(>cash) 最大）を推奨。PASS無しなら P(>cash) 最大。',
+    ]
     with open(os.path.join(ROOT, f'{asset.upper()}_LAYER_PARAM_OPT_20260608.md'),
               'w', encoding='utf-8') as f:
         f.write('\n'.join(lines) + '\n')
-    print(f'=== {asset} top6 ===')
-    print(top.head(6)[['signal', 'cand_cagr_full', 'cand_sharpe_full',
-                       'cand_maxdd', 'cand_is_oos_gap']].to_string(index=False))
-    print(f'--- {asset} validation ---'); print(val.to_string(index=False))
-    print(f'>>> {asset} recommended: {rec}')
-    return df, val, rec
+    print(f'=== {asset} top (sharpe) ===')
+    print(top[['signal', 'cand_cagr_full', 'cand_sharpe_full', 'cand_maxdd',
+               'cand_trades_yr_real', 'cand_is_oos_gap']].head(6).to_string(index=False))
+    print(f'--- {asset} validation --- recommended={rec}')
+    for r in val_rows:
+        print(f"  {r['name']}: trades={r['trades']:.0f} P(>cash)={r['p_cash']:.2f} "
+              f"WFE={r['wfe']:.2f} PASS={r['PASS']}")
+    return df, val_rows, rec
 
 
 def main():
     bond_ret, bond_price, bond_cash = _load_bond_and_cash()
     fed10 = _load_macro_daily('repo_4_repo_4_dff_minus_10y.parquet',
                               'repo_4_dff_minus_10y', bond_ret.index)
-    _run('Bond', bond_price, bond_ret, bond_cash, fed10, True, [0.05, 0.07, 0.10])
+    _run('Bond', bond_price, bond_ret, bond_cash, fed10, True, [0.05, 0.07])
 
     gold_ret, gold_price, gold_cash, real_yield, _cpi, _dxy = _load_gold()
-    _run('Gold', gold_price, gold_ret, gold_cash, real_yield, True, [0.10, 0.13, 0.16])
+    _run('Gold', gold_price, gold_ret, gold_cash, real_yield, True, [0.10, 0.13])
 
 
 if __name__ == '__main__':

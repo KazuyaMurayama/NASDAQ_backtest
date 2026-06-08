@@ -18,6 +18,7 @@ from typing import Mapping
 import pandas as pd
 
 from integration.nine_metric_eval import evaluate, judge_improvement, _cagr, _sharpe
+from multi_asset.strategy_layers import trades_per_year
 
 # House canonical OOS split (matches phase_d_wfa / phase_d_bootstrap).
 CANONICAL_SPLIT = '2021-05-08'
@@ -102,9 +103,13 @@ def run_single_asset_sweep(asset_ret: pd.Series,
         # full-period (1974+) CAGR/Sharpe — the regime-neutral view (§6).
         m['cand_cagr_full'] = _cagr(nav)
         m['cand_sharpe_full'] = _sharpe(nav)
+        # REAL trades/yr from actual position changes (not the NAV proxy).
+        m['cand_trades_yr_real'] = trades_per_year(
+            position.reindex(asset_ret.dropna().index).fillna(0.0).clip(0.0, 1.0))
         verdict = judge_improvement(m)
         row = {'signal': name}
         row.update({k: m.get(k) for k in _METRIC_COLS})
+        row['cand_trades_yr_real'] = m['cand_trades_yr_real']
         row['base_cagr_oos'] = m.get('base_cagr_oos')
         row['judgment'] = verdict.get('judgment')
         row['n_improved'] = verdict.get('n_improved')

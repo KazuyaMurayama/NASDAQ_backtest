@@ -125,6 +125,39 @@ def compose(*layers: pd.Series) -> pd.Series:
     return out
 
 
+def rebalance_periodic(position: pd.Series, every: int) -> pd.Series:
+    """Hold the position constant between rebalance days (every N rows).
+
+    Reduces turnover: the position can only change on rebalance days
+    (indices 0, every, 2*every, ...), holding the prior value in between.
+    """
+    out = position.copy().astype(float)
+    keep = pd.Series(False, index=position.index)
+    keep.iloc[::every] = True
+    out[~keep.values] = np.nan
+    return out.ffill()
+
+
+def apply_exec_lag(position: pd.Series, lag: int) -> pd.Series:
+    """Delay execution by `lag` bars (realistic signal-to-fill latency)."""
+    return position.shift(lag)
+
+
+def trades_per_year(position: pd.Series, min_delta: float = 0.05,
+                    periods_per_year: int = TRADING_DAYS) -> float:
+    """Annualized count of *actual* position changes (|Δposition| > min_delta).
+
+    Replaces the NAV-proxy trade count (sign-flips of return diffs), which
+    massively overcounts for continuously-varying positions.
+    """
+    p = position.dropna()
+    if len(p) < 2:
+        return float('nan')
+    n_trades = int((p.diff().abs() > min_delta).sum())
+    years = len(p) / periods_per_year
+    return n_trades / max(years, 1e-9)
+
+
 def ensemble_vote(positions: list, threshold: float = 0.5) -> pd.Series:
     """Majority/average vote across position series (E1_ensemble). Returns the
     mean position; callers may threshold it for a binary gate."""

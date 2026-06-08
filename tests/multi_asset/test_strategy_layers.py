@@ -11,6 +11,9 @@ from multi_asset.strategy_layers import (
     hysteresis,
     deadband,
     compose,
+    rebalance_periodic,
+    apply_exec_lag,
+    trades_per_year,
 )
 
 
@@ -110,3 +113,37 @@ def test_compose_multiplies_aligned_layers():
     b = _price([0.5, 1.0, 1.0, 0.0])
     out = compose(a, b)
     assert list(out.values) == [0.5, 1.0, 0.0, 0.0]
+
+
+# ---- realistic execution helpers ----
+def test_rebalance_periodic_holds_between_rebalance_days():
+    p = _price([0.0, 1.0, 0.2, 0.9, 0.3, 0.7])
+    out = rebalance_periodic(p, every=2)
+    # update at idx 0,2,4; hold in between
+    assert list(out.values) == [0.0, 0.0, 0.2, 0.2, 0.3, 0.3]
+
+
+def test_rebalance_periodic_cuts_trades():
+    daily = _price(list(np.random.RandomState(5).uniform(0, 1, 252)))
+    monthly = rebalance_periodic(daily, every=21)
+    assert trades_per_year(monthly) < trades_per_year(daily)
+
+
+def test_apply_exec_lag_shifts_and_is_causal():
+    p = _price([0.0, 1.0, 1.0, 0.0, 1.0])
+    out = apply_exec_lag(p, lag=2)
+    assert out.iloc[2] == p.iloc[0] and out.iloc[4] == p.iloc[2]
+    assert out.iloc[:2].isna().all()
+
+
+def test_trades_per_year_counts_meaningful_changes():
+    # binary position flipping 4 times across exactly one trading year
+    vals = [0.0] * 63 + [1.0] * 63 + [0.0] * 63 + [1.0] * 63  # 252 days, 3 flips
+    p = _price(vals)
+    tpy = trades_per_year(p, min_delta=0.05)
+    assert abs(tpy - 3.0) < 1e-6
+
+
+def test_trades_per_year_ignores_tiny_drift():
+    p = _price(list(np.linspace(0.0, 0.05, 252)))   # drifts < min_delta daily
+    assert trades_per_year(p, min_delta=0.05) == 0.0
