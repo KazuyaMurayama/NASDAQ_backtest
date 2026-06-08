@@ -135,8 +135,12 @@ def _run_asset(asset, ret, pos, cash, k_grid):
     ]
     md = [f'### {asset}', '',
           fmt_metric_table(rows, cols, name_key='candidate', recommended=rec),
-          '', f'**推奨(リスク調整): {rec}**（Calmar=税後CAGR/|MaxDD| 最大）{rec_wfe_flag}',
-          f'- リターン重視なら **{aggressive}**（税後CAGR最大・ただしMaxDD深化、上表参照）。', '']
+          '', f'**推奨(リスク調整): {rec}**（Calmar最大）{rec_wfe_flag}']
+    if aggressive != rec:
+        md.append(f'- リターン重視なら **{aggressive}**（税後CAGR最大／MaxDDは深化、上表参照）。')
+    else:
+        md.append('- ※ 本資産は**低レバが税後CAGRも最良**（レバはコストで減益）→ リターン重視でも増レバ非推奨。')
+    md.append('')
     for r in rows:
         r['asset'] = asset
     return rows, rec, '\n'.join(md)
@@ -154,9 +158,17 @@ def main():
         '# Phase 4 — 商品・レバレッジ判定（CFD無し / NASDAQ・Bond最大3x / Gold最大2x）',
         '', f'作成日: {DATE}', f'最終更新日: {DATE}', '',
         '> 確定シグナルを、**1倍投信(T+5)** か **レバETF各倍率(T+2)** で保有した場合の'
-        '純コスト後(SOFR financing・スワップ・TER・売買0.10%)・**税20.315%後**を全期間比較。',
+        '純コスト後(SOFR financing・スワップ・TER・売買0.10%)・**税20.315%後**を全期間(1974-2026)比較。',
         '> 商品: NASDAQ=TQQQ(3x上限) / Gold=2036(2x上限) / Bond=TMF(3x上限) / 1倍投信=SBI実商品。',
-        '> **太字=推奨行／各列の最良値**。推奨は WFE 健全域(0.5–2.0)で **Calmar(税後CAGR/|MaxDD|)** 最大。', '',
+        '',
+        '## 読み方・注記（重要）',
+        '- **太字 = 推奨行（候補名）／各列の最良値**。',
+        '- **推奨 = Calmar（税後CAGR ÷ |MaxDD|）最大**（リスク調整の既定）。WFEは健全性の参考表示（フィルタには使わない）。',
+        '- **「@kx」は実効レバk**。レバETFで k<上限 を作る場合、**資本の k/L だけをETFに置き、残りはキャッシュ(T-bill)で運用**する想定。'
+        'このため低レバ(@1x等)は**余剰キャッシュの金利収入がfinancingを相殺**し、1倍投信と近い結果になる（資本効率効果・1980年代の高SOFR期に特に効く）。',
+        '- レバを上げるほど **税後CAGRは増えるが MaxDD は急速に悪化**（トレードオフ）。攻守は選好で選ぶ。',
+        '- Bond はレバを上げると **financing が低リターンを食って税後CAGRが減少**（＝1xが最良＝分散役）。',
+        '',
         '## 資産別 判定', '',
     ]
     summary = ['', '## 推奨サマリ', '',
