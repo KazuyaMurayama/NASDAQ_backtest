@@ -1,0 +1,62 @@
+================================================================================
+G3 Native Integration — Top 5 signals × 3 strategies × 10 method-dirs
+================================================================================
+
+[Load] Signals...
+  nasdaq_mom21: 13,148 obs, 1974-01-31..2026-03-26
+  nfci_z52w: 13,102 obs, 1974-03-15..2026-03-26
+  nas_gold_rel63: 13,106 obs, 1974-04-02..2026-03-26
+  nasdaq_mom63: 13,106 obs, 1974-04-02..2026-03-26
+  vix_mom21: 13,127 obs, 1974-03-04..2026-03-26
+
+[Load] Baselines...
+  S1: 13,169 obs, final=2,814,747.73
+  S2: 13,169 obs, final=857,338.43
+  S3: 13,169 obs, final=6,127.93
+
+[G3] Total patterns to run: 150
+  [ 10/150] G3_nasdaq_mom21_S1_M6_procyclical judge=MARGINAL_FULL (2s elapsed, ETA 27s)
+  [ 20/150] G3_nasdaq_mom21_S2_M6_procyclical judge=MARGINAL_FULL (3s elapsed, ETA 19s)
+[S3] Loading DH shared assets (one-time, ~2-5 min)...
+  Data: 1974-01-02 to 2026-03-26 (13,169 days, 52.26 yr)
+  Scenario D assets done.
+  DH Dyn A: 1417 trades (27.1/yr)
+  LT2 signal done.
+  S2 leverage done (l_max=5.0, 5.5, 6.0, 7.0).
+  F10/F8-R5 tilt done.
+[S3] DH assets loaded.
+  [ 30/150] G3_nasdaq_mom21_S3_M6_procyclical judge=MARGINAL_FULL (5s elapsed, ETA 18s)
+  [ 40/150] G3_nfci_z52w_S1_M6_procyclical judge=FAIL_FULL (6s elapsed, ETA 15s)
+  [ 50/150] G3_nfci_z52w_S2_M6_procyclical judge=FAIL_FULL (7s elapsed, ETA 13s)
+  [ 60/150] G3_nfci_z52w_S3_M6_procyclical judge=FAIL_FULL (7s elapsed, ETA 11s)
+  [ 70/150] G3_nas_gold_rel63_S1_M6_procyclical judge=MARGINAL_FULL (8s elapsed, ETA 10s)
+  [ 80/150] G3_nas_gold_rel63_S2_M6_procyclical judge=MARGINAL_FULL (9s elapsed, ETA 8s)
+  [ 90/150] G3_nas_gold_rel63_S3_M6_procyclical judge=MARGINAL_FULL (10s elapsed, ETA 7s)
+  [100/150] G3_nasdaq_mom63_S1_M6_procyclical judge=MARGINAL_FULL (11s elapsed, ETA 6s)
+  [110/150] G3_nasdaq_mom63_S2_M6_procyclical judge=MARGINAL_FULL (12s elapsed, ETA 4s)
+  [120/150] G3_nasdaq_mom63_S3_M6_procyclical judge=MARGINAL_FULL (13s elapsed, ETA 3s)
+  [130/150] G3_vix_mom21_S1_M6_procyclical judge=MARGINAL_FULL (14s elapsed, ETA 2s)
+  [140/150] G3_vix_mom21_S2_M6_procyclical judge=FAIL_FULL (15s elapsed, ETA 1s)
+  [150/150] G3_vix_mom21_S3_M6_procyclical judge=MARGINAL_FULL (16s elapsed, ETA 0s)
+
+[G3] Wrote C:\Users\user\Desktop\投資・不動産\nasdaq_backtest\data\signals\expansion\g3_native_top5_results_20260605.csv  (150 rows)
+
+[G3] Judgment counts (overall):
+judgment_full
+MARGINAL_FULL         118
+FAIL_FULL              27
+STANDARD_PASS_FULL      5
+
+[G3] Judgment counts per strategy:
+  S1: MARGINAL_FULL=41, FAIL_FULL=9
+  S2: MARGINAL_FULL=40, FAIL_FULL=10
+  S3: MARGINAL_FULL=37, FAIL_FULL=8, STANDARD_PASS_FULL=5
+
+[G3] PASS patterns (5):
+  G3_nfci_z52w_S3_M2_defensive: imp=maxdd|p10_5y|is_oos_gap|ci95_lo deg=
+  G3_nfci_z52w_S3_M6_defensive: imp=worst10y|p10_5y|is_oos_gap deg=
+  G3_nasdaq_mom63_S3_M6_defensive: imp=sharpe|maxdd|ci95_lo deg=
+  G3_vix_mom21_S3_M2_defensive: imp=sharpe|maxdd|p10_5y deg=
+  G3_vix_mom21_S3_M6_defensive: imp=sharpe|maxdd|p10_5y deg=
+
+[G3] DONE.

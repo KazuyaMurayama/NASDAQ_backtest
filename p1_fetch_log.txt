@@ -1,0 +1,44 @@
+=== Fetching FRED series ===
+fetching T10Y2Y from 1976-06-01
+fetching DFF from 1954-07-01
+fetching CPIAUCSL from 1947-01-01
+fetching BAMLH0A0HYM2 from 1996-12-31
+fetching BAA10Y from 1986-01-02
+fetching BAA from 1919-01-01
+fetching AAA from 1919-01-01
+=== Loading NASDAQ business-day index ===
+  1974-01-02 -> 2026-03-26  rows=13169
+=== Building combined frame ===
+  splice: anchor1=2023-05-22 (HY OAS start) offset1=2.350
+          anchor2=1986-01-02 (BAA10Y start) offset2=3.300
+          pre-anchor2: BAA-AAA monthly proxy
+  wrote C:\Users\user\Desktop\投資・不動産\nasdaq_backtest\data\timing_signals_raw.csv  shape=(13169, 5)
+
+=== Raw series ===
+  T10Y2Y         1976-06-01 -> 2026-03-26  rows=12450
+  DFF            1954-07-01 -> 2026-03-26  rows=26202
+  CPIAUCSL       1947-01-01 -> 2026-03-01  rows=950
+  BAMLH0A0HYM2   2023-05-22 -> 2026-03-26  rows=747
+  BAA10Y         1986-01-02 -> 2026-03-26  rows=10058
+  BAA            1919-01-01 -> 2026-03-01  rows=1287
+  AAA            1919-01-01 -> 2026-03-01  rows=1287
+
+=== Combined NaN % ===
+  hy_spread    NaN= 0.00%  min=2.590  max=8.510  mean=4.606
+  t10y2y       NaN= 4.63%  min=-2.410  max=2.910  mean=0.849
+  dff          NaN= 0.00%  min=0.040  max=22.360  mean=4.802
+  cpi_yoy      NaN= 0.00%  min=-1.959  max=14.592  mean=3.931
+  cpi_accel    NaN= 0.48%  min=-5.067  max=4.192  mean=-0.033
+
+=== Key-date samples (iloc) ===
+  date          hy_spread     t10y2y        dff    cpi_yoy  cpi_accel
+  1974-01-02        3.950        NaN      9.720      8.941        NaN
+  1981-06-01        5.350     -1.010     19.010      9.792     -1.600
+  1994-03-01        4.070      1.470      3.310      2.516     -0.229
+  2000-03-01        4.310     -0.130      5.780      3.218      0.598
+  2008-09-15        6.010      1.690      2.640      5.308      1.220
+  2022-01-03        4.170      0.850      0.080      7.174      1.823
+  2026-03-26        3.210      0.460      3.640      3.320      0.318
+
+=== Cross-check: hy_spread peak in 2022-06 ===
+  max hy_spread in 2022-06 = 4.660  (expected ~5-6 for true HY OAS; BAA10Y proxy ~4.8)
