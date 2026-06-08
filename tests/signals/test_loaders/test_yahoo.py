@@ -46,6 +46,28 @@ def test_ratio_signal(tmp_path):
     assert s.name == 'yahoo_HG=F_over_GC=F'
 
 
+def test_gbpjpy_ticker_mapping(tmp_path):
+    df = _mock_history_df([180.0, 181.5, 182.2])
+    mock_t = MagicMock()
+    mock_t.history.return_value = df
+    with patch('data_loaders.signals.yahoo.yf.Ticker', return_value=mock_t):
+        ldr = YahooLoader(cache_dir=tmp_path)
+        s = ldr.get(signal_id=60, force=True)  # GBP/JPY (primary)
+    assert list(s.values) == [180.0, 181.5, 182.2]
+    assert s.name == 'yahoo_GBPJPY=X'
+    assert s.index.tz is None
+
+
+def test_gbpusd_ticker_mapping(tmp_path):
+    df = _mock_history_df([1.27, 1.28, 1.26])
+    mock_t = MagicMock()
+    mock_t.history.return_value = df
+    with patch('data_loaders.signals.yahoo.yf.Ticker', return_value=mock_t):
+        ldr = YahooLoader(cache_dir=tmp_path)
+        s = ldr.get(signal_id=61, force=True)  # GBP/USD (secondary)
+    assert s.name == 'yahoo_GBPUSD=X'
+
+
 def test_unmapped_signal_raises(tmp_path):
     ldr = YahooLoader(cache_dir=tmp_path)
     with pytest.raises(NotImplementedError):

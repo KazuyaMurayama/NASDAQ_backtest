@@ -14,6 +14,12 @@ Signal ID mappings (subset; spec §4.2):
   43 → SI=F / GC=F (Silver/Gold)
   44 → CL=F (Oil WTI)
 
+Asset price series (multi-asset signal research; see
+MULTIASSET_GOLD_GBP_SIGNAL_PLAN_20260607.md):
+  60 → GBPJPY=X (GBP/JPY, primary)
+  61 → GBPUSD=X (GBP/USD, secondary)
+  62 → GC=F     (Gold XAU/USD futures, explicit)
+
 Not yet supported (require special handling):
   #1,2,3   NDX breadth (needs constituent data, not in yfinance)
   #18,19   ETF flows (requires creation/redemption, not in yfinance)
@@ -37,6 +43,9 @@ _SIGNAL_TO_TICKER: dict[int, Union[str, Tuple[str, str]]] = {
     42: ('HG=F', 'GC=F'),
     43: ('SI=F', 'GC=F'),
     44: 'CL=F',
+    60: 'GBPJPY=X',
+    61: 'GBPUSD=X',
+    62: 'GC=F',
 }
 
 
