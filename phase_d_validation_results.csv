@@ -1,0 +1,4 @@
+candidate,wfa_n_windows,wfa_wfe,wfa_ci95_lo_cagr,wfa_pct_pos_windows,wfa_pass,boot_cagr_median,boot_cagr_ci,boot_p_cagr_pos,p_beat_cash,p_beat_bh,PASS
+bond_mom252,52,0.956,0.0318,0.769,True,0.0507,"[0.0325, 0.0698]",1.0,0.743,1.0,False
+gold_realyield_lo,52,0.861,0.0439,0.731,True,0.0896,"[0.0507, 0.1328]",1.0,0.99,0.966,True
+gold_mom126,52,0.798,0.0457,0.712,True,0.0886,"[0.0476, 0.1330]",1.0,0.982,0.99,True
