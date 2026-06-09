@@ -1,4 +1,17 @@
-"""Compute after-tax CAGR for all reporting strategies (2026-06-07).
+"""[SUPERSEDED by compute_aftertax_cagr_v2_20260607.py — 2026-06-07]
+
+Bug: this v1 script normalizes by `years = len(annual_returns)`, which treats
+2026 YTD (Jan-Mar, ~60 business days) as a full year and drags after-tax CAGR
+down by 3-9pp across all strategies.  V2 normalizes by *actual elapsed days /
+365.25* (NAV-endpoint formula), correctly handling the 2026 partial year.
+
+All reports (SIGNAL_EXPANSION_FINAL_DECISION_20260607.md §3.6,
+STRATEGY_REGISTRY.md, CURRENT_BEST_STRATEGY.md, S3_OVERLAY_TUNING_REPORT_20260607.md §11,
+LESSONS_LEARNED_20260607.md §6) use the V2 numbers.  Kept for reproducibility
+of the original (incorrect) figures referenced in commit 93a763a / c76e244.
+
+------ original docstring below ------
+Compute after-tax CAGR for all reporting strategies (2026-06-07).
 
 Convention (per CURRENT_BEST_STRATEGY.md and existing
 g21f_dh_t4_yearly_returns_aftertax.csv):

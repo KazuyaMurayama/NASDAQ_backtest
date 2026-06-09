@@ -1,7 +1,7 @@
 # S3 + nasdaq_mom63 Overlay Tuning Report
 
 作成日: 2026-06-07
-最終更新日: 2026-06-07 (v1.1: V7 を Shortlisted 正式登録 + 税後 CAGR 列追加)
+最終更新日: 2026-06-07 (v1.1: V7 を Shortlisted 正式登録 + 税後 CAGR 列追加) / **2026-06-07 末 (v1.2: §11 を V2 に修正。V1 は 2026 YTD partial year を完全1年扱いで OOS aftertax を 1.87〜2.01pp 過小評価していた)**
 
 > **目的**: ADOPT 候補 `nasdaq_mom63 × S3 (DH-W1) × M6 defensive` の CAGR trade-off を緩和し、
 > ユーザー要件 **min(CAGR_IS, CAGR_OOS) > 18%** を達成しつつ
@@ -251,25 +251,37 @@ Split: canonical (IS_END=2021-05-07 / OOS_START=2021-05-08).
 
 ---
 
-## 11. After-tax CAGR 補論 (税後評価, ×0.8273 規約)
+## 11. After-tax CAGR 補論 (税後評価, ×0.8273 規約, **V2 corrected**)
 
-**規約** (既存 `g21f_dh_t4_yearly_returns_aftertax.csv` 等で確立):
-- `aftertax_annual_return = annual_return × 0.8273` (正負一律)
-- `aftertax_CAGR = compound(after-tax annual returns) ^ (1/years) - 1`
-- NISA 内 ETF は非課税 (税前=税後)、CFD は NISA 非適用 (常に税後 ×0.8273)
+> **🔧 V2 修正 (2026-06-07 末)**: V1 (`compute_aftertax_cagr_20260607.py`) は `years = len(annual_returns)` で 2026 YTD (Jan-Mar, ~60 営業日) を完全1年として扱うバグを含み、OOS aftertax を 1.9〜2.0pp 過小評価していた (S3 系で +1.87〜+2.01pp 補正)。V2 (`compute_aftertax_cagr_v2_20260607.py`) は **actual elapsed days / 365.25** で正規化、partial year を正確に処理。
 
-> **計算源**: カレンダー年集計 (1975-2026, IS=1975-2020, OOS=2021-2026)、源 [decision_annual_returns_20260607.csv](data/signals/expansion/decision_annual_returns_20260607.csv)。
-> **本表の OOS 値 < §4 表の CAGR_OOS**: §4 は canonical daily split (2021-05-08 起点) で計算、本表は calendar 集計 (Jan-Dec)、OOS 期間長と起点が異なる (canonical 5.0年 vs calendar 6年で 2022/2026 弱年比重が大きい)。**両者は別目的の指標として併存**。
+**規約 (V2)**:
+1. 日次 NAV → カレンダー年末 NAV (各年の最終取引日; 2026 は 2026-03-26)
+2. 年次リターン r_y = NAV_y / NAV_{y-1} − 1
+3. 各年 r_y に tax_mult = 0.8273 適用 (NISA 非課税環境はスキップ)
+4. 税後累積 NAV を構築 (実際の年末日でインデックス)
+5. CAGR = (NAV_end / NAV_start) ^ (1 / **実経過日数 / 365.25**) − 1
 
-| variant (S3 base) | CAGR_OOS pretax (calendar) | NISA非課税 | 課税口座 ×0.8273 |
-|---|---:|---:|---:|
-| S3 DH-W1 baseline | +15.04% | +15.04% | +12.57% |
-| V0 M6 def (現行 ADOPT) | +14.33% | +14.33% | +11.97% |
-| **V7 M6 def pure_boost** ⭐ NEW | **+15.26%** | **+15.26%** | **+12.76%** |
+> NISA 内 ETF は非課税 (税前=税後)、CFD は NISA 非適用 (常に税後 ×0.8273)。
+> **計算源 (V2)**: 日次 NAV 直接 (baseline_navs_20260605.parquet, build_candidate_nav)。OOS 実年数 = **5.232 年** (2020-12-31 → 2026-03-26)、FULL = 52.227 年, IS = 46.995 年。
+> **本表 OOS < §4 表 CAGR_OOS の理由**: §4 は canonical daily split (2021-05-08 起点)、本表は calendar split (2020-12-31 起点) で **4ヶ月の起点差**。V7 では §4 OOS pretax +19.18% vs 本表 +17.69% (差約 1.5pp)。**両者は別目的指標として併存**。
 
-**観察**:
-- V7 (NISA 非課税) +15.26% > baseline +15.04% > V0 +14.33% — V7 のみ baseline 比 CAGR 上昇
-- 課税口座でも同順位を保持: V7 +12.76% > baseline +12.57% > V0 +11.97%
-- 全 6 戦略 × 3 期間 × 2 税制の集計表は [SIGNAL_EXPANSION_FINAL_DECISION_20260607.md §3.6](SIGNAL_EXPANSION_FINAL_DECISION_20260607.md#36-after-tax-cagr-税後評価既存-08273-規約) を参照
-- 数値源: [aftertax_cagr_20260607.csv](data/signals/expansion/aftertax_cagr_20260607.csv)
-- 計算スクリプト: [scripts/compute_aftertax_cagr_20260607.py](scripts/compute_aftertax_cagr_20260607.py)
+| variant (S3 base) | CAGR_OOS pretax (calendar, v2) | NISA非課税 (v2) | 課税口座 ×0.8273 (v2) | (参考) v1 課税口座 | v1→v2 Δpp |
+|---|---:|---:|---:|---:|---:|
+| S3 DH-W1 baseline | +17.43% | +17.43% | **+14.54%** | +12.57% | **+1.97** |
+| V0 M6 def (現行 ADOPT) | +16.60% | +16.60% | **+13.84%** | +11.97% | **+1.87** |
+| **V7 M6 def pure_boost** ⭐ NEW | **+17.69%** | **+17.69%** | **+14.77%** | +12.76% | **+2.01** |
+
+**観察 (V2 数値ベース)**:
+- V7 (NISA 非課税) **+17.69%** > baseline **+17.43%** > V0 **+16.60%** — V7 のみ baseline 比 CAGR 上昇 (相対順位は v1 と不変)
+- 課税口座でも同順位を保持: V7 **+14.77%** > baseline **+14.54%** > V0 **+13.84%**
+- **18% target との比較 (calendar split)**: V7 NISA OOS +17.69% は target 18% を僅か (-0.31pp) 未達。一方 canonical daily split (§4) では V7 OOS pretax +19.18% で達成。この 1.5pp の差は OOS 起点定義 (calendar 2020-12-31 vs canonical 2021-05-08) の 4 ヶ月差によるもので、戦略性能の差ではない
+- 課税口座でも V7 +14.77% で V0 +13.84%・baseline +14.54% に対し +0.23pp 〜 +0.93pp の優位を v2 でも維持
+
+**V1→V2 補正方向**: 全戦略で OOS aftertax は上方修正 (v1 は 2026 YTD を完全1年扱いで分母 6.0 を用いていたが、v2 は実年数 5.232 を用いるため CAGR が上昇)。IS は補正≈0pp (2020-12-31 で完結、partial year なし)、FULL は +0.25pp 程度の微修正。
+
+- 全 6 戦略 × 3 期間 × 2 税制の集計表は [SIGNAL_EXPANSION_FINAL_DECISION_20260607.md §3.6 (v2 corrected)](SIGNAL_EXPANSION_FINAL_DECISION_20260607.md#36-after-tax-cagr-税後評価-08273-規約-v2-corrected) を参照
+- 数値源 (V2): [aftertax_cagr_v2_20260607.csv](data/signals/expansion/aftertax_cagr_v2_20260607.csv)
+- V1→V2 差分: [aftertax_cagr_v1_v2_diff_20260607.csv](data/signals/expansion/aftertax_cagr_v1_v2_diff_20260607.csv)
+- 計算スクリプト (V2): [scripts/compute_aftertax_cagr_v2_20260607.py](scripts/compute_aftertax_cagr_v2_20260607.py)
+- (superseded) V1: [scripts/compute_aftertax_cagr_20260607.py](scripts/compute_aftertax_cagr_20260607.py), [aftertax_cagr_20260607.csv](data/signals/expansion/aftertax_cagr_20260607.csv)
