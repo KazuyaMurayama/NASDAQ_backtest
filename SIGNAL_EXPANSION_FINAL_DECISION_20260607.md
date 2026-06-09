@@ -6,13 +6,12 @@
 > **本書の役割**: Phase A〜D + Sessions 1〜5 (2026-06-03〜06-05) に渡る信号探索・統合検証プロジェクトの **全結論を1ファイルに集約** し、ユーザーが運用判断を下すために必要な情報を提供する。
 > 一次根拠ファイルへのリンクを各セクションに記載。詳細を確認したい場合のみリンク先を参照。
 >
-> **本版 (v2, 2026-06-07) 更新内容**: `docs/rules/08_evaluation-metrics.md` v1.0 標準 9 指標フレームワークに完全準拠するため、§3 全テーブルを **canonical split (IS_END=2021-05-07 / OOS_START=2021-05-08)** で再計算 → 新規 §3.4 (1974-2026 年次リターン表)、§3.5 (ファクトチェック注記) を追加。詳細は §3.5 を参照。
-> **v2.1 追補 (2026-06-07 後半)**: S3 overlay tuning sweep から **V7 pure_boost ({1.20,1.10,1.00,1.00})** を Shortlisted 候補追加。新規 §3.6 (After-tax CAGR 全 6 戦略 × 3 期間 × 2 税制 集計表) を追加。
-> **v2.2 修正 (2026-06-07 末)**: §3.6 の税後 CAGR を **V2 に修正**。V1 (`compute_aftertax_cagr_20260607.py`) は `years = len(annual_returns)` で 2026 YTD を完全1年として扱うバグを含み、OOS 税後 CAGR を 1.9〜3.8pp 過小評価していた。V2 (`compute_aftertax_cagr_v2_20260607.py`) は実経過日数 / 365.25 で正規化。本書 §3.6, STRATEGY_REGISTRY, CURRENT_BEST_STRATEGY, S3_OVERLAY_TUNING_REPORT §11, LESSONS_LEARNED §6 を全て V2 値で書き換え。
+> **本版 (v3, 2026-06-07)**: 全期間・全テーブルを **canonical split (IS_END=2021-05-07 / OOS_START=2021-05-08)** で統一。税後 CAGR (§3.6) も同じ canonical split で再計算 (`scripts/compute_aftertax_cagr_v3_20260607.py`)。calendar/canonical split duality を廃止し、単一の真実に統一。
 >
 > - Evaluation Standard: v1.1 / Cost Scenario: D (`src/product_costs.py` 2026-05-12 基準)
 > - IS: 1974-01-02〜2021-05-07 / OOS: 2021-05-08〜2026-03-26
 > - Metrics: 標準 7 + WFA 補助 2 (`docs/rules/08_evaluation-metrics.md`)
+> - After-tax: yearly ×0.8273 applied to periodized returns, canonical IS/OOS split (2021-05-07)
 
 ---
 
@@ -246,56 +245,33 @@
 
 ---
 
-### 3.6 After-tax CAGR (税後評価, ×0.8273 規約, **V2 corrected**)
+### 3.6 After-tax CAGR (税後評価, ×0.8273 規約, canonical split)
 
-> **🔧 V2 修正 (2026-06-07 後半)**: V1 (`compute_aftertax_cagr_20260607.py`) は `years = len(annual_returns)` で年数を集計し、**2026 YTD (Jan-Mar, ~60 営業日) を完全1年として扱うバグ**を含んでいた → OOS 税後 CAGR が真値より 1.9〜3.8pp 下振れ。V2 (`compute_aftertax_cagr_v2_20260607.py`) は **actual elapsed days / 365.25** で正規化、partial year を正確に処理。
-> **V1→V2 OOS 補正幅**: S1/S2/E4 (CFD) +3.3〜+3.8pp 上方修正、S3/V0/V7 (ETF) +1.9〜+2.0pp 上方修正。IS は補正≈0pp (2020-12-31 で完結のため partial year なし)。
+> Tax: yearly ×0.8273 applied to periodized returns, canonical IS/OOS split per §3.1 (IS_END=2021-05-07 / OOS_START=2021-05-08)。NISA 利用 ETF は非課税 (税前=税後)。CFD は NISA 非適用。
+> 源データ: [aftertax_cagr_canonical_20260607.csv](data/signals/expansion/aftertax_cagr_canonical_20260607.csv)。計算: [scripts/compute_aftertax_cagr_v3_20260607.py](scripts/compute_aftertax_cagr_v3_20260607.py)。
+> 集計期間 (実測): 1974-01-02 → 2026-03-26 = **52.227 年** (FULL)、IS = **47.343 年** (1974-01-02 → 2021-05-07)、OOS = **4.884 年** (2021-05-07 → 2026-03-26)。
 
-**計算規約 (V2)**:
-1. 日次 NAV → カレンダー年末 NAV (各年の最終取引日の値; 2026 は 2026-03-26)
-2. 年次リターン r_y = NAV_y / NAV_{y-1} − 1
-3. 各年 r_y に tax_mult (0.8273) を適用 (NISA 環境は適用なし)
-4. 税後累積 NAV を構築 (実際の年末日でインデックス)
-5. CAGR = (NAV_end / NAV_start) ^ (1 / **actual_elapsed_days/365.25**) − 1
-
-> **規約根拠**: `g21f_dh_t4_yearly_returns_aftertax.csv` / `f8r5_yearly_returns.csv` 等で確立済の ×0.8273 規約 (20.315% CFD/特定口座課税率、損益通算・繰越控除を簡略化、保守的: 正年は税控除過小、負年は損失過小)。**NISA 利用 ETF は非課税** (税前=税後)。CFD は NISA 非適用。
-
-**集計期間 (実測)**: 1974-01-02 → 2026-03-26 = **52.227 年** (FULL)、IS 1974-01-02 → 2020-12-31 = **46.995 年**, OOS 2020-12-31 → 2026-03-26 = **5.232 年** (= 6 暦年だが実日数で 5.23 年に過ぎない)。源データ: [aftertax_cagr_v2_20260607.csv](data/signals/expansion/aftertax_cagr_v2_20260607.csv)。
-
-> **⚠ canonical daily split との数値差 (~1.5pp)**: 本表 OOS は calendar split (2020-12-31 起点)、§3.1 等の CAGR_OOS は canonical 日次 split (2021-05-08 起点)。**4 ヶ月の起点差** (2021-01〜04) は V7 で相対的に弱いリターン区間に当たるため、本表 V7 OOS pretax +17.69% < §3.1 V7 OOS pretax +19.18% (約 1.5pp 差)。同様の差が他戦略にも生じる。**V7/V0 の相対比較、税前/税後比較には本表 (calendar) が一意の比較基準**。canonical daily 値は §3.1 / `s3_overlay_tuning_20260607.csv` を参照。
-
-**全 6 戦略 × 3 期間 × 2 税制 集計表 (V2)** (源: [aftertax_cagr_v2_20260607.csv](data/signals/expansion/aftertax_cagr_v2_20260607.csv)):
+**全 6 戦略 × 3 期間 × 2 税制 集計表**:
 
 | Strategy | 環境 | CAGR_IS pretax / aftertax | CAGR_OOS pretax / aftertax | CAGR_FULL pretax / aftertax |
 |---|---|---|---|---|
-| **S1 F10** | CFD (課税) | +33.07% / **+28.89%** | +31.23% / **+26.85%** | +32.89% / **+28.68%** |
-| **S2 D5** | CFD (課税) | +30.15% / **+25.94%** | +27.64% / **+23.82%** | +29.90% / **+25.72%** |
-| **E4 Active** ⭐§1 | CFD (課税) | +32.23% / **+28.08%** | +28.41% / **+24.42%** | +31.84% / **+27.70%** |
-| **S3 DH-W1** | ETF NISA非課税 | +18.26% / **+18.26%** | +17.43% / **+17.43%** | +18.17% / **+18.17%** |
-| **S3 DH-W1** | ETF 課税口座 | +18.26% / **+15.79%** | +17.43% / **+14.54%** | +18.17% / **+15.67%** |
-| **S3 + V0 defensive** | ETF NISA非課税 | +16.84% / **+16.84%** | +16.60% / **+16.60%** | +16.81% / **+16.81%** |
-| **S3 + V0 defensive** | ETF 課税口座 | +16.84% / **+14.52%** | +16.60% / **+13.84%** | +16.81% / **+14.45%** |
-| **S3 + V7 pure_boost** ⭐ NEW | ETF NISA非課税 | +18.77% / **+18.77%** | +17.69% / **+17.69%** | +18.66% / **+18.66%** |
-| **S3 + V7 pure_boost** ⭐ NEW | ETF 課税口座 | +18.77% / **+16.24%** | +17.69% / **+14.77%** | +18.66% / **+16.09%** |
+| **S1 F10** | CFD (課税) | +32.58% / **+28.18%** | +35.95% / **+30.80%** | +32.89% / **+28.43%** |
+| **S2 D5** | CFD (課税) | +29.61% / **+25.28%** | +32.72% / **+28.06%** | +29.90% / **+25.53%** |
+| **E4 Active** ⭐§1 | CFD (課税) | +31.76% / **+27.41%** | +32.70% / **+28.01%** | +31.84% / **+27.47%** |
+| **S3 DH-W1** | ETF NISA非課税 | +18.10% / **+18.10%** | +18.88% / **+18.88%** | +18.17% / **+18.17%** |
+| **S3 DH-W1** | ETF 課税口座 | +18.10% / **+15.31%** | +18.88% / **+15.74%** | +18.17% / **+15.35%** |
+| **S3 + V0 defensive** | ETF NISA非課税 | +16.69% / **+16.69%** | +18.03% / **+18.03%** | +16.81% / **+16.81%** |
+| **S3 + V0 defensive** | ETF 課税口座 | +16.69% / **+14.07%** | +18.03% / **+15.02%** | +16.81% / **+14.16%** |
+| **S3 + V7 pure_boost** ⭐ NEW | ETF NISA非課税 | +18.61% / **+18.61%** | +19.14% / **+19.14%** | +18.66% / **+18.66%** |
+| **S3 + V7 pure_boost** ⭐ NEW | ETF 課税口座 | +18.61% / **+15.74%** | +19.14% / **+15.96%** | +18.66% / **+15.76%** |
 
-**V1 → V2 差分サマリー** (OOS 税後; 源: [aftertax_cagr_v1_v2_diff_20260607.csv](data/signals/expansion/aftertax_cagr_v1_v2_diff_20260607.csv)):
+**主要観察**:
+1. **NISA 非課税効果は依然劇的**: S3 系 (NISA 適用) で税後 CAGR_OOS = +18.03〜19.14%、CFD 課税後 +28.01〜30.80% に対し ETF NISA との差は約 9〜13pp。CFD 系は税後でも CAGR 上は ETF 系を圧倒。
+2. **V7 vs V0 比較 (税後・NISA 非課税)**: V7 CAGR_OOS +19.14% > V0 +18.03% (+1.11pp 攻撃力)。MaxDD は V0 −28.74% < V7 −34.57% (V0 が +5.83pp 防御強)。**「攻め V7 / 守り V0」の純粋トレードオフ構造を税後でも維持**。
+3. **CFD vs ETF 投資環境の選択基準**: 税後 CAGR は CFD F10 +30.80% > NISA ETF V7 +19.14% (+11.66pp 差)。CFD 利用可能性が CAGR 上は圧倒的優位。ただし MaxDD は CFD 系 −60〜−63%、ETF 系 −28〜−35% で ETF が圧倒的に安全。
+4. **§1 Active (E4) vs ETF overlay (V0/V7) 直接比較不可の構造を再確認**: E4 (CFD) 税後 OOS +28.01% vs V7 (NISA) 税後 OOS +19.14% で **E4 が +8.87pp 高 CAGR**、ただし MaxDD は E4 −60% vs V7 −34.6% で **V7 が圧倒的に浅い**。リターン/リスク選好に応じ別々に最適。
 
-| Strategy | OOS V1 | OOS V2 | Δpp |
-|---|---:|---:|---:|
-| S1 F10 (CFD) | +23.04% | **+26.85%** | +3.80 |
-| S2 D5 (CFD) | +20.48% | **+23.82%** | +3.34 |
-| E4 Active (CFD) | +20.99% | **+24.42%** | +3.43 |
-| S3 DH-W1 (ETF taxed) | +12.57% | **+14.54%** | +1.97 |
-| S3 + V0 def (ETF taxed) | +11.97% | **+13.84%** | +1.87 |
-| S3 + V7 pure_boost (ETF taxed) | +12.76% | **+14.77%** | +2.01 |
-
-**主要観察 (V2 数値ベース)**:
-1. **NISA 非課税効果は依然劇的**: S3 系 (NISA 適用) で税後 CAGR_OOS = +16.60〜17.69%、CFD 課税後 +23.82〜26.85% に対し ETF NISA との差は約 6〜9pp。CFD 系は税後でも CAGR 上は ETF 系を圧倒 (絶対値、NISA 内 ETF V7 +17.69% との差 +6.1〜9.2pp)。
-2. **V7 vs V0 比較 (税後・NISA 非課税)**: V7 CAGR_OOS +17.69% > V0 +16.60% (+1.09pp 攻撃力)。MaxDD は V0 -28.74% < V7 -34.57% (V0 が +5.83pp 防御強)。**「攻め V7 / 守り V0」の純粋トレードオフ構造を税後でも維持**。
-3. **CFD vs ETF 投資環境の選択基準**: 税後 CAGR は CFD F10 +26.85% > NISA ETF V7 +17.69% (+9.16pp 差)。CFD 利用可能性が CAGR 上は圧倒的優位。ただし MaxDD は CFD 系 -60〜-63%、ETF 系 -28〜-35% で ETF が圧倒的に安全。
-4. **§1 Active (E4) vs ETF overlay (V0/V7) 直接比較不可の構造を再確認**: E4 (CFD) 税後 OOS +24.42% vs V7 (NISA) 税後 OOS +17.69% で **E4 が +6.73pp 高 CAGR**、ただし MaxDD は E4 -60% vs V7 -34.6% で **V7 が圧倒的に浅い**。リターン/リスク選好に応じ別々に最適。
-
-**V7 が ETF 環境で min CAGR > 18% 達成する唯一の overlay variant** (canonical daily split 基準): canonical daily basis の min(CAGR_IS=+18.61%, CAGR_OOS=+19.18%) = +18.61% > 18% target 達成 ([s3_overlay_tuning_20260607.csv](data/signals/expansion/s3_overlay_tuning_20260607.csv) V7 行)。一方、§3.6 表 (calendar split, NISA) では V7 min CAGR = OOS +17.69% (4 ヶ月の起点差で 18% 目標を僅かに下回るが、これは split 起点定義の差異であり戦略性能の差ではない)。
+**V7 の 18% target 達成判定**: V7 NISA min(CAGR_IS=+18.61%, CAGR_OOS=+19.14%) = **+18.61% > 18% target 達成** (gap +0.61pp)。V7 は ETF 環境で min CAGR > 18% を達成する唯一の overlay variant ([s3_overlay_tuning_20260607.csv](data/signals/expansion/s3_overlay_tuning_20260607.csv))。
 
 ---
 
