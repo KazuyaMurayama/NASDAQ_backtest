@@ -13,6 +13,34 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 3. **tasks.md** — 未完了タスク・進捗
 4. このCLAUDE.md — ルール入口
 
+### 🆕 直近セッション要約 (2026-06-07 時点 / v4.5〜v4.8)
+
+新セッション開始時、以下が既に検証・整理済であることを認識せよ:
+
+**v4.5 (2026-06-05)**: **min(IS, OOS) CAGR + Worst10Y + P10_5Y の 3 軸保守的採用基準** を Active 昇格判断の必須条件として導入 (詳細 §2 / [EVALUATION_STANDARD.md §3.13](EVALUATION_STANDARD.md))。OOS 単独評価は採用判断に使用禁止。WFE>1.5 は regime luck 警告。
+
+**v4.4-v4.5 (2026-06-03〜05)**: vz=0.65+l7+F10ε への非対称機構移植 3 候補 (AH/AT/HL) → **全て棄却** (min ルール下で 3 軸全敗、WFE>1.5 regime luck)。詳細 [STRATEGY_REGISTRY §3 Rejected](STRATEGY_REGISTRY.md)。
+
+**v4.6 (2026-06-05)**: vz=0.65+F10ε の lmax sweep (l5/l5.5/l7) 実装、l5.5 / l5 を §2 Shortlisted 追加。
+
+**v4.7 (2026-06-05)**: ユーザー判断で **CFD 環境 Active 候補を vz=0.65+l7+F10ε → vz=0.65+l5+F10ε に置換** (防御指標優位)。
+
+**v4.8 (2026-06-07)**: **投信環境 Active 候補 4 戦略** を §2 Shortlisted 新規追加 ([STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §6-6](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)):
+- DH_W1_CashSleeve_P2_GOLD100 (攻め)
+- DH_W1_CashSleeve_P7_GOLD75BOND25 ⭐ (中庸推奨)
+- DH_W1_CashSleeve_P5_GOLD50BOND50 (守り)
+
+詳細は [analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md) 参照。**t_p/bootstrap 未実施で正式 §1 Active 昇格は保留**。
+
+**環境別 Active 候補制度** (v4.5 以降確立、3 環境):
+| 環境 | 主候補 | 副候補 |
+|---|---|---|
+| CFD 利用可 | **vz=0.65+l5+F10ε** (v4.7) | vz=0.65+l7+F10ε (攻め) |
+| ETF only (NISA等) | **DH-W1** (Asymm+Hyst) (v4.3) | DH Dyn 2x3x [A] (baseline) |
+| 投信環境 | **DH_W1_CashSleeve_P7_GOLD75BOND25** ⭐ (v4.8) | P2 GOLD100 (攻め) / P5 GOLD50BOND50 (守り) |
+
+**命名規則**: vz=0.65+l7+F10ε を「NEW」「NEW CANDIDATE」と呼ぶことは廃止 (v4.4 以降)。パラメータ表記または Registry ID で参照。
+
 ---
 
 ## 1. 🎯 ベスト戦略参照プロトコル（最重要・再発防止）
@@ -64,7 +92,12 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 |---|---|---:|---|
 | **CFD 利用可** (v4.7 確定) | **vz=0.65+l5+F10ε** | +18.93% | 防御指標優位 (Worst10Y +12.67, P10_5Y +8.75) でユーザー判断、§1 昇格判断ユーザー待ち |
 | ↳ 副候補 (攻め型) | vz=0.65+l7+F10ε | +20.23% | min CAGR 最高だが防御弱、l5 が選択された |
-| **ETF only** | **DH-W1** | +13.66% | ETF 制約下で DH +9.56→+13.66 唯一改善 |
+| **ETF only** (NISA 等、CFD 不可) | **DH-W1** | +13.66% | ETF 制約下で DH +9.56→+13.66 唯一改善 |
+| **投信環境** (2026-06-07 新設) | **DH_W1_CashSleeve_P7_GOLD75BOND25** ⭐ | OOS +14.90% | DH-W1 の OUT(キャッシュ 46.9%)期を Gold75/Bond25 1倍投信で運用置換、中庸推奨 (MaxDD -48.23%, WFE 1.043) |
+| ↳ 投信攻め型 | P2_GOLD100 | OOS +16.44% | OOS 最高 / Sharpe +0.875、代償 MaxDD -58.5% |
+| ↳ 投信守り型 | P5_GOLD50BOND50 | OOS +13.28% | MaxDD -35.97% で baseline DH-W1 同等防御 |
+
+投信環境 4 戦略は **CashSleeve_REPORT_20260607.md** (analysis_cash_sleeve/) を一次根拠とし、WFA 50窓 α∩β 全 PASS。t_p/bootstrap 統計検証は未実施で正式 §1 Active 昇格は保留。
 
 #### ⚠ 命名規則 (v4.4 以降、必須遵守)
 

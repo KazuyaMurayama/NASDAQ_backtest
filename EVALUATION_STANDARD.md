@@ -393,6 +393,11 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 | **CFD 利用可** (v4.7 確定) | vz=0.65+l5+F10ε | +18.93% | **+12.67%** | **+8.75%** | 1.389 |
 | ↳ 副候補 (攻め型) | vz=0.65+l7+F10ε (旧 REF) | **+20.23%** | +9.96% | +4.05% | 1.369 |
 | **ETF only** | DH-W1 (Asymm+Hyst) | +13.66% | +9.84% | +5.94% | 0.997 |
+| **投信環境** (2026-06-07) | DH_W1_CashSleeve_P7_GOLD75BOND25 ⭐ | OOS +14.90% (中庸推奨) | +9.92% | +8.05% | 1.043 |
+| ↳ 投信攻め型 | DH_W1_CashSleeve_P2_GOLD100 | OOS +16.44% | +9.43% | +8.06% | 1.229 |
+| ↳ 投信守り型 | DH_W1_CashSleeve_P5_GOLD50BOND50 | OOS +13.28% | +10.08% | +8.09% | 0.875 |
+
+> **投信環境の位置付け** (2026-06-07): DH-W1 (ETF only) の OUT 期 (キャッシュ 46.9%/6,171日) を 1 倍投信 (Gold/Bond) で運用置換する派生系。NISA 等 ETF only 環境で更に最適化を狙う。全 4 戦略 WFA 50窓 α∩β PASS、ただし t_p/bootstrap 未実施で正式 §1 Active 昇格は保留。一次根拠: [analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md)
 
 ---
 
