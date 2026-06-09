@@ -80,6 +80,7 @@ def _get_method_multiplier(
     method: str,
     direction: str,
     vol_series: pd.Series | None = None,
+    custom_mapping: dict[int, float] | None = None,
 ) -> pd.Series:
     """Per-date multiplier series for (method, direction).
 
@@ -89,7 +90,17 @@ def _get_method_multiplier(
     Defensive direction: high-signal-quartile lowers exposure
                          (signal interpreted as risk-on warning).
     Procyclical: high-quartile increases exposure (signal as momentum).
+
+    custom_mapping (optional): dict {0,1,2,3 -> float multiplier} that overrides
+    the built-in per-method default. Used by tuning runs to explore mapping
+    sensitivity without changing the method name. Applies to M1/M2/M5/M6
+    (quartile-bucket methods). For M4 the mapping replaces the signal-modifier
+    portion only (vol-target still active).
     """
+    if custom_mapping is not None and method in {'M1', 'M2', 'M5', 'M6'}:
+        return signal_q.map(
+            lambda s: custom_mapping.get(int(s), 1.0) if pd.notna(s) else 1.0
+        )
     if method == 'M1':
         # Binary mask via top-half threshold
         binary = (signal_q >= 2).astype(float)
@@ -152,12 +163,15 @@ def _build_mult_array(
     direction: str,
     target_dates: pd.Series | pd.DatetimeIndex,
     ret_values: np.ndarray | None = None,
+    custom_mapping: dict[int, float] | None = None,
 ) -> np.ndarray:
     """Compute multiplier aligned to target_dates (positional ndarray, NaN→1.0).
 
     target_dates : Series-of-Timestamps or DatetimeIndex describing the
                    strategy's day-by-day calendar (positional length = NAV length)
     ret_values   : optional ndarray of daily returns for vol-target (M4)
+    custom_mapping : optional dict overriding the per-method quartile map
+                     (forwarded to _get_method_multiplier)
     """
     if isinstance(target_dates, pd.Series):
         date_index = pd.DatetimeIndex(pd.to_datetime(target_dates.values))
@@ -171,9 +185,11 @@ def _build_mult_array(
         else:
             ret_s = pd.Series(np.asarray(ret_values, dtype=float), index=date_index)
             vol = ret_s.rolling(60, min_periods=20).std()
-        mult = _get_method_multiplier(sig_aligned, method, direction, vol_series=vol)
+        mult = _get_method_multiplier(sig_aligned, method, direction, vol_series=vol,
+                                       custom_mapping=custom_mapping)
     else:
-        mult = _get_method_multiplier(sig_aligned, method, direction)
+        mult = _get_method_multiplier(sig_aligned, method, direction,
+                                       custom_mapping=custom_mapping)
     arr = np.asarray(mult.fillna(1.0).values, dtype=float)
     # Defensive: clip to [0, 3] to guard against runaway multipliers
     arr = np.clip(arr, 0.0, 3.0)
@@ -184,7 +200,8 @@ def _build_mult_array(
 # S1 (F10) native build
 # ------------------------------------------------------------------
 
-def _build_s1_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series:
+def _build_s1_native(sig_q: pd.Series, method: str, direction: str,
+                      custom_mapping: dict[int, float] | None = None) -> pd.Series:
     from g14_wfa_sbi_cfd import build_nav_strategy
 
     obj = pickle.load(open(CACHE_DIR / 'f10_nav_cache.pkl', 'rb'))
@@ -196,6 +213,7 @@ def _build_s1_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series
         sig_q, method, direction,
         target_dates=dates,
         ret_values=ret.values if method == 'M4' else None,
+        custom_mapping=custom_mapping,
     )
     lev_mod_base = np.asarray(obj['lev_mod_e4'], dtype=float)
     lev_mod_mod = lev_mod_base * mult_arr
@@ -215,7 +233,8 @@ def _build_s1_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series
 # S2 (vz065lmax5) native build
 # ------------------------------------------------------------------
 
-def _build_s2_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series:
+def _build_s2_native(sig_q: pd.Series, method: str, direction: str,
+                      custom_mapping: dict[int, float] | None = None) -> pd.Series:
     from g14_wfa_sbi_cfd import build_nav_strategy
 
     obj = pickle.load(open(CACHE_DIR / 'vz065lmax5_nav_cache.pkl', 'rb'))
@@ -227,6 +246,7 @@ def _build_s2_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series
         sig_q, method, direction,
         target_dates=dates,
         ret_values=ret.values if method == 'M4' else None,
+        custom_mapping=custom_mapping,
     )
     lev_mod_base = np.asarray(obj['lev_mod_065'], dtype=float)
     lev_mod_mod = lev_mod_base * mult_arr
@@ -246,7 +266,8 @@ def _build_s2_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series
 # S3 (DH-W1) native build
 # ------------------------------------------------------------------
 
-def _build_s3_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series:
+def _build_s3_native(sig_q: pd.Series, method: str, direction: str,
+                      custom_mapping: dict[int, float] | None = None) -> pd.Series:
     from g23a_dh_refinement_variants import hold_mask_W1, DH_PER_UNIT
     from g18_daily_trade_cost_wfa import build_dh_nav_with_cost
 
@@ -263,6 +284,7 @@ def _build_s3_native(sig_q: pd.Series, method: str, direction: str) -> pd.Series
         sig_q, method, direction,
         target_dates=a['dates'],
         ret_values=ret_vals,
+        custom_mapping=custom_mapping,
     )
     lev_raw_mod = lev_raw_base * mult_arr
 
@@ -282,6 +304,7 @@ def build_candidate_nav(
     signal_raw: pd.Series,
     method: str,
     direction: str,
+    mapping: dict[int, float] | None = None,
 ) -> pd.Series:
     """Build candidate NAV for (strategy, signal, method, direction).
 
@@ -291,6 +314,10 @@ def build_candidate_nav(
     signal_raw : raw float signal pd.Series with DatetimeIndex
     method     : 'M1' | 'M2' | 'M4' | 'M5' | 'M6'
     direction  : per-method (see _get_method_multiplier)
+    mapping    : optional dict {0,1,2,3 -> float} overriding the method's
+                 default quartile-bucket multiplier. Used for tuning sweeps.
+                 Applies to M1/M2/M5/M6; for M4 the signal-modifier portion
+                 is replaced while vol-target stays active.
 
     Pipeline
     --------
@@ -304,9 +331,9 @@ def build_candidate_nav(
     sig_lagged = sig_lagged[~sig_lagged.index.duplicated(keep='last')]
 
     if strategy == 'S1':
-        return _build_s1_native(sig_lagged, method, direction)
+        return _build_s1_native(sig_lagged, method, direction, custom_mapping=mapping)
     elif strategy == 'S2':
-        return _build_s2_native(sig_lagged, method, direction)
+        return _build_s2_native(sig_lagged, method, direction, custom_mapping=mapping)
     elif strategy == 'S3':
-        return _build_s3_native(sig_lagged, method, direction)
+        return _build_s3_native(sig_lagged, method, direction, custom_mapping=mapping)
     raise ValueError(f"Unknown strategy: {strategy!r}")
