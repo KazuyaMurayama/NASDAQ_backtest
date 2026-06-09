@@ -8,10 +8,14 @@
 
 ---
 
-## 🆕 v4.5 (2026-06-05) ─ 環境別 Active 候補 + 保守的採用基準導入
+## 🆕 v4.5 (2026-06-05) ─ 環境別 Active 候補 + 保守的採用基準導入 / v4.9 (2026-06-08) ─ ルール簡素化
 
-### 保守的採用基準 min(IS, OOS) CAGR (Active 昇格判断の新ルール)
-v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保守的尺度** を導入。OOS 単独評価は採用判断には使わず、3 軸すべてで baseline を上回ることが Active 候補昇格の必須条件。詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)。
+### 保守的採用基準 min(IS, OOS) CAGR (現行 v4.9 確定ルール)
+v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標として導入、**v4.9 (2026-06-08) で標準化確定**。
+- ✅ **min(IS, OOS) CAGR の標準化**: IS と OOS の低い方を保守的期待リターンとして使用、OOS 単独評価より優先
+- ✅ WFE 補助判定: > 1.5 で regime luck 警告
+- ❌ **削除 (v4.9)**: 当初の「3 軸 (min + Worst10Y + P10_5Y) すべて baseline 以上」必須条件は過度に restrictive と判断され撤回。Worst10Y / P10_5Y は §3.12 9 指標として参照するが強制条件ではない。総合判断はユーザー裁量
+- 詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md), [EVALUATION_STANDARD.md §3.13](EVALUATION_STANDARD.md)
 
 ### v4.5 推奨 Active 候補（環境別）— 標準10指標
 

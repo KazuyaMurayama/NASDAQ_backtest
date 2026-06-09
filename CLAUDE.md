@@ -17,7 +17,8 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
 
 新セッション開始時、以下が既に検証・整理済であることを認識せよ:
 
-**v4.5 (2026-06-05)**: **min(IS, OOS) CAGR + Worst10Y + P10_5Y の 3 軸保守的採用基準** を Active 昇格判断の必須条件として導入 (詳細 §2 / [EVALUATION_STANDARD.md §3.13](EVALUATION_STANDARD.md))。OOS 単独評価は採用判断に使用禁止。WFE>1.5 は regime luck 警告。
+**v4.5 (2026-06-05)**: **min(IS, OOS) CAGR を保守的期待リターン指標として標準化** (詳細 §2 / [EVALUATION_STANDARD.md §3.13](EVALUATION_STANDARD.md))。WFE>1.5 は regime luck 警告。
+- 当初は「3 軸必須」ルールだったが 2026-06-08 改訂で削除、min(IS, OOS) のみ標準化された保守的指標として残存。Worst10Y/P10_5Y は 9 指標の一部として参照するが強制条件ではない。
 
 **v4.4-v4.5 (2026-06-03〜05)**: vz=0.65+l7+F10ε への非対称機構移植 3 候補 (AH/AT/HL) → **全て棄却** (min ルール下で 3 軸全敗、WFE>1.5 regime luck)。詳細 [STRATEGY_REGISTRY §3 Rejected](STRATEGY_REGISTRY.md)。
 
@@ -70,21 +71,27 @@ NASDAQ 3倍レバレッジ戦略のバックテスト研究リポジトリ。**m
    Stable_Sharpe / WinRate_yr / WorstK5_mean_CAGR / IR_vs_BH
 3. **根拠**: [EVALUATION_STANDARD.md](EVALUATION_STANDARD.md) v1.1 §3
 
-### 🆕 v4.5 (2026-06-05) 追加: Active 候補昇格の保守的採用基準 3 軸
+### 🆕 v4.5 (2026-06-05) 追加: 標準化された保守的 CAGR 指標 — min(IS, OOS) CAGR
 
-新戦略を **Active 候補に昇格判断する際** には以下 3 軸すべてで baseline (現行 §1 Active または比較対象 REF) を上回るか同等であることを必須条件とする:
+戦略評価において **min(IS, OOS) CAGR** を保守的な期待リターン推定値として**標準化**する (2026-06-05 以降の確定ルール)。
 
-1. **min(IS, OOS) CAGR** = `min(cum_CAGR_IS, cum_CAGR_OOS)`
-   - 論拠: IS=44 年 vs OOS=6 年 のサンプルサイズ非対称 + 戦略選択バイアス補正 + regime drift リスク
-2. **Worst10Y★ CAGR** (rolling 10 年複利の最悪値、税後)
-3. **P10_5Y▷ CAGR** (rolling 5 年複利の 10th percentile、税後)
+**定義**: `min(cum_CAGR_IS, cum_CAGR_OOS)`
+- `cum_CAGR_IS` = §0' 「累積 CAGR ⓽ OOS/IS」列の IS 値 (1977-2020 暦年複利)
+- `cum_CAGR_OOS` = 同列の OOS 値 (2021-2026 暦年複利)
+
+**論拠**:
+- **サンプルサイズ非対称**: IS=44 年 vs OOS=6 年 → IS の方が統計的信頼性高
+- **戦略選択バイアス補正**: 多変種を「OOS 最良」で選ぶと selection bias → min ルールは penalize
+- **regime drift リスク**: OOS 期間固有 macro (例: 2021-2026 = COVID/AI rally + 2022 bear) が将来も続く保証なし
+
+**用途**: §0' 累積 CAGR 列に **min(IS, OOS) を明示**、戦略間比較の主要指標として使用 (OOS 単独評価より優先)。
 
 **WFE 補助判定** (regime luck 警告):
-- WFE ≤ 1.2: OK
-- 1.2 < WFE ≤ 1.5: ⚠ 注意 (追加検証推奨)
-- **WFE > 1.5: ❌ regime luck 強疑い、min ルール厳格適用必要**
+- WFE ≤ 1.2: OK / 1.2 < WFE ≤ 1.5: ⚠ 注意 / **> 1.5: ❌ regime luck 強疑い**
 
-詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md)
+> **注**: v4.5 当初は「3 軸 (min + Worst10Y + P10_5Y) すべて baseline 以上」を必須条件としていたが、2026-06-08 改訂で**この強制条件は削除**。Worst10Y / P10_5Y は標準 9 指標として参照するが、強制的な必須条件ではない。総合判断はユーザー裁量。
+
+詳細: [STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md §7-2](STRATEGY_PERFORMANCE_INTEGRATED_20260603-v2.md), [EVALUATION_STANDARD.md §3.13](EVALUATION_STANDARD.md)
 
 #### Active 候補 (v4.5 環境別、2026-06-05)
 
