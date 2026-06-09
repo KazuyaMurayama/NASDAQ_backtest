@@ -1,7 +1,7 @@
 # S3 + nasdaq_mom63 Overlay Tuning Report
 
 作成日: 2026-06-07
-最終更新日: 2026-06-07
+最終更新日: 2026-06-07 (v1.1: V7 を Shortlisted 正式登録 + 税後 CAGR 列追加)
 
 > **目的**: ADOPT 候補 `nasdaq_mom63 × S3 (DH-W1) × M6 defensive` の CAGR trade-off を緩和し、
 > ユーザー要件 **min(CAGR_IS, CAGR_OOS) > 18%** を達成しつつ
@@ -19,6 +19,8 @@
 2. **min CAGR > 18% のみなら 3 件**: V6 (boost_heavy), V7 (pure_boost), V9 (M2 proc).
    このうち MaxDD 悪化が最小なのは **V6_M6_def_boost_heavy** (MaxDD=-33.16%, V0 比 +1.41pp 改善は保持).
 3. **推奨**: V6 を Phase D 候補に追加検討 (CAGR 死守を優先する場合); 既存 V0 を守る場合は ADOPT 据置.
+
+> **2026-06-07 後半 ユーザー判断 (v1.1)**: **V7 pure_boost を Shortlisted 正式登録** ([STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) §2)。判断根拠は §6.2 末尾を参照。**MaxDD 据置 (=baseline) でも min CAGR > 18% を達成する唯一の overlay variant** という性質を「CAGR死守 (V7)」「MaxDD改善 (V0)」の二者選択肢として並行 Shortlisted。Phase D Bootstrap audit は両 variant ともユーザーが採用方針を決めてから実施 (V0 は Session 4 で既に PASS、V7 は Pending)。
 
 ---
 
@@ -142,6 +144,12 @@ Split: canonical (IS_END=2021-05-07 / OOS_START=2021-05-08, per `docs/rules/08` 
 **劣化**: MaxDD 改善ゼロ (baseline と同値). overlay の defensive 効果なし.
 **Phase D 推奨**: ⚠ 追加検討 — MaxDD 改善がない overlay は "leverage adder" にすぎず、 §1 (E4 Active) との重複度が高くなる. ETF only 環境での価値が薄れる.
 
+> **2026-06-07 v1.1 ユーザー判断**: V7 を **Shortlisted 正式登録** ([STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) §2 `DH-W1+mom63 V7` 行)。判断根拠:
+> - V0 (MaxDD改善) と相補的な "CAGR死守" 選択肢として価値あり (min CAGR > 18% 達成の唯一 "MaxDD据置" mapping)。
+> - IS-OOS gap -0.57pp は全 overlay 候補中最良 → 過学習リスク低・汎化性最良。
+> - WFA_CI95_lo +14.06% は V6 (+13.82%) より高く Bootstrap audit 価値あり。
+> - 「baseline 比 MaxDD 改善なし」は確かに defensive overlay としての本質的価値を失うが、**「CAGR を baseline 比 +1.0pp 押し上げる additive overlay」** として再定義可能。Phase D Bootstrap (P_CAGR / P_Sharpe / P_MaxDD) 未実施で正式 ADOPT 化保留、ユーザー判断で V0 (defensive) と V7 (CAGR boost) の二者選択。
+
 ### 6.3 サードベスト: **V4_M6_def_strong_asym** {1.25, 1.10, 0.95, 0.85}
 
 | 指標 | 値 | vs BMK1 baseline | vs BMK2 V0 ADOPT |
@@ -238,4 +246,30 @@ Split: canonical (IS_END=2021-05-07 / OOS_START=2021-05-08).
 
 ---
 
-> **次のステップ**: V6 の Phase D 厳格 audit を承認するか、それとも overlay を二信号化する方向に進むかをユーザー判断願います.
+> **次のステップ (v1.0)**: V6 の Phase D 厳格 audit を承認するか、それとも overlay を二信号化する方向に進むかをユーザー判断願います.
+> **v1.1 更新**: ユーザー判断により **V7 を Shortlisted 正式登録**、Phase D Bootstrap audit を Pending として保持。次は (a) V6 audit 承認 or (b) V7 audit 承認 or (c) 二信号化探索 のいずれかを選択。
+
+---
+
+## 11. After-tax CAGR 補論 (税後評価, ×0.8273 規約)
+
+**規約** (既存 `g21f_dh_t4_yearly_returns_aftertax.csv` 等で確立):
+- `aftertax_annual_return = annual_return × 0.8273` (正負一律)
+- `aftertax_CAGR = compound(after-tax annual returns) ^ (1/years) - 1`
+- NISA 内 ETF は非課税 (税前=税後)、CFD は NISA 非適用 (常に税後 ×0.8273)
+
+> **計算源**: カレンダー年集計 (1975-2026, IS=1975-2020, OOS=2021-2026)、源 [decision_annual_returns_20260607.csv](data/signals/expansion/decision_annual_returns_20260607.csv)。
+> **本表の OOS 値 < §4 表の CAGR_OOS**: §4 は canonical daily split (2021-05-08 起点) で計算、本表は calendar 集計 (Jan-Dec)、OOS 期間長と起点が異なる (canonical 5.0年 vs calendar 6年で 2022/2026 弱年比重が大きい)。**両者は別目的の指標として併存**。
+
+| variant (S3 base) | CAGR_OOS pretax (calendar) | NISA非課税 | 課税口座 ×0.8273 |
+|---|---:|---:|---:|
+| S3 DH-W1 baseline | +15.04% | +15.04% | +12.57% |
+| V0 M6 def (現行 ADOPT) | +14.33% | +14.33% | +11.97% |
+| **V7 M6 def pure_boost** ⭐ NEW | **+15.26%** | **+15.26%** | **+12.76%** |
+
+**観察**:
+- V7 (NISA 非課税) +15.26% > baseline +15.04% > V0 +14.33% — V7 のみ baseline 比 CAGR 上昇
+- 課税口座でも同順位を保持: V7 +12.76% > baseline +12.57% > V0 +11.97%
+- 全 6 戦略 × 3 期間 × 2 税制の集計表は [SIGNAL_EXPANSION_FINAL_DECISION_20260607.md §3.6](SIGNAL_EXPANSION_FINAL_DECISION_20260607.md#36-after-tax-cagr-税後評価既存-08273-規約) を参照
+- 数値源: [aftertax_cagr_20260607.csv](data/signals/expansion/aftertax_cagr_20260607.csv)
+- 計算スクリプト: [scripts/compute_aftertax_cagr_20260607.py](scripts/compute_aftertax_cagr_20260607.py)

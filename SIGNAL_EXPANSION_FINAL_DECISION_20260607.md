@@ -7,6 +7,7 @@
 > 一次根拠ファイルへのリンクを各セクションに記載。詳細を確認したい場合のみリンク先を参照。
 >
 > **本版 (v2, 2026-06-07) 更新内容**: `docs/rules/08_evaluation-metrics.md` v1.0 標準 9 指標フレームワークに完全準拠するため、§3 全テーブルを **canonical split (IS_END=2021-05-07 / OOS_START=2021-05-08)** で再計算 → 新規 §3.4 (1974-2026 年次リターン表)、§3.5 (ファクトチェック注記) を追加。詳細は §3.5 を参照。
+> **v2.1 追補 (2026-06-07 後半)**: S3 overlay tuning sweep から **V7 pure_boost ({1.20,1.10,1.00,1.00})** を Shortlisted 候補追加。新規 §3.6 (After-tax CAGR 全 6 戦略 × 3 期間 × 2 税制 集計表) を追加。
 >
 > - Evaluation Standard: v1.1 / Cost Scenario: D (`src/product_costs.py` 2026-05-12 基準)
 > - IS: 1974-01-02〜2021-05-07 / OOS: 2021-05-08〜2026-03-26
@@ -241,6 +242,41 @@
 4. **Split selection**: 本書の §1.1 数値 (g15b ens2 由来) は内部的に IS_END=2021-05-07 / OOS_START=2021-05-08 を採用。Session 4/5 の `nine_metric_eval.py` は default split=2018-01-01 を使用していた点が v1 で混在していた。v2 で canonical 2021-05-08 に統一済。
 
 **結論**: v1 → v2 で **MaxDD・Worst10Y★ は完全一致、CAGR/Sharpe/IS-OOS gap は ±0.5pp 以内**、最終判定 (S3 ADOPT / E4 維持) は変わらず。
+
+---
+
+### 3.6 After-tax CAGR (税後評価, 既存 ×0.8273 規約)
+
+**計算規約**: `aftertax_annual_return = annual_return × 0.8273` (正負問わず一律), `aftertax_CAGR = compound(after-tax annual returns) ^ (1/years) - 1`。
+
+> **既存規約の根拠**: `g21f_dh_t4_yearly_returns_aftertax.csv` / `f8r5_yearly_returns.csv` 等で確立済の単純化規約。20.315% (CFD/特定口座課税率) を反映するが、損益通算・繰越控除を簡略化するため正負一律 ×0.8273 を適用 (保守的: 正年は税控除過小、負年は損失過小)。
+> **NISA 利用 ETF は非課税** (税前=税後)。CFD は NISA 非適用。
+
+**集計期間**: カレンダーイヤー基準 (1975-2026)、IS = 1975-2020 (46年), OOS = 2021-2026 (6年)、源データ: [decision_annual_returns_20260607.csv](data/signals/expansion/decision_annual_returns_20260607.csv)。
+
+> **⚠ canonical daily split との数値差**: 本表の CAGR_OOS はカレンダー年集計 (Jan-Dec)、§3.1 等の CAGR_OOS は canonical 日次 split (2021-05-08 起点)。OOS 期間長と起点が異なるため、CAGR 値は本表 (calendar) < §3.1 (canonical daily) となる傾向 (短期 OOS 6年に 2022 NDX-33%/2026 YTD-7% の弱年が大きく寄与)。V7/V0 の相対比較・税前/税後比較には本表が一意の比較基準。
+
+**全 6 戦略 × 3 期間 × 2 税制 集計表** (源: [aftertax_cagr_20260607.csv](data/signals/expansion/aftertax_cagr_20260607.csv)):
+
+| Strategy | 環境 | CAGR_IS pretax / aftertax | CAGR_OOS pretax / aftertax | CAGR_FULL pretax / aftertax |
+|---|---|---|---|---|
+| **S1 F10** | CFD (課税) | +33.39% / **+28.89%** | +26.75% / **+23.04%** | +32.61% / **+28.20%** |
+| **S2 D5** | CFD (課税) | +30.40% / **+25.94%** | +23.72% / **+20.48%** | +29.61% / **+25.30%** |
+| **E4 Active** ⭐§1 | CFD (課税) | +32.53% / **+28.08%** | +24.37% / **+20.99%** | +31.56% / **+27.24%** |
+| **S3 DH-W1** | ETF NISA非課税 | +18.69% / **+18.69%** | +15.04% / **+15.04%** | +18.26% / **+18.26%** |
+| **S3 DH-W1** | ETF 課税口座 | +18.69% / **+15.80%** | +15.04% / **+12.57%** | +18.26% / **+15.42%** |
+| **S3 + V0 defensive** | ETF NISA非課税 | +17.23% / **+17.23%** | +14.33% / **+14.33%** | +16.89% / **+16.89%** |
+| **S3 + V0 defensive** | ETF 課税口座 | +17.23% / **+14.52%** | +14.33% / **+11.97%** | +16.89% / **+14.22%** |
+| **S3 + V7 pure_boost** ⭐ NEW | ETF NISA非課税 | +19.21% / **+19.21%** | +15.26% / **+15.26%** | +18.75% / **+18.75%** |
+| **S3 + V7 pure_boost** ⭐ NEW | ETF 課税口座 | +19.21% / **+16.24%** | +15.26% / **+12.76%** | +18.75% / **+15.83%** |
+
+**主要観察**:
+1. **NISA 非課税効果は劇的**: S3 系 (NISA 適用可) で税後 CAGR_OOS が +14.3〜15.3% を維持 (CFD 課税後 +21.0〜23.0% に対し約 7pp 差)。一方、CFD 系は税後でも +20.5〜23.0% で CAGR 上は ETF 系を圧倒 (絶対値ベース、NISA 内 ETF の +15.0% との差 +5.5〜8pp)。
+2. **V7 vs V0 比較 (税後・NISA 非課税)**: V7 CAGR_OOS +15.26% > V0 +14.33% (+0.93pp 攻撃力)。一方 V0 は MaxDD -28.74% < V7 -34.57% (V0 が +5.83pp 防御強)。**「攻め V7 / 守り V0」の純粋トレードオフ構造を税後でも維持**。
+3. **CFD vs ETF 投資環境の選択基準**: 同等 CAGR を税後で得るには、CFD 環境では F10 課税 +23.04% > NISA ETF 環境 V7 +15.26% (+7.78pp 差)。CFD 利用可能性が CAGR 上は圧倒的優位。ただし MaxDD は CFD 系 -60〜-63%、ETF 系 -28〜-35% で ETF が圧倒的に安全。
+4. **§1 Active (E4) vs ETF overlay (V0/V7) 直接比較不可の構造を再確認**: E4 (CFD) 税後 OOS +20.99% vs V7 (NISA) 税後 OOS +15.26% で **E4 が +5.73pp 高 CAGR**、ただし MaxDD は E4 -60% vs V7 -34.6% で **V7 が圧倒的に浅い**。リターン/リスク選好に応じ別々に最適。
+
+**V7 が ETF 環境で min CAGR > 18% 達成する唯一の overlay variant** (canonical daily split 基準, §3.6 表は calendar 集計): 計算式 daily basis の min(CAGR_IS=+18.61%, CAGR_OOS=+19.18%) = +18.61% > 18% target 達成 ([s3_overlay_tuning_20260607.csv](data/signals/expansion/s3_overlay_tuning_20260607.csv) V7 行)。
 
 ---
 

@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用)
+最終更新日: 2026-06-07 (v4.9: S3 overlay V7 pure_boost を Companion Variant として追加、全 Shortlisted エントリに税後 CAGR ×0.8273 規約適用) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用)
 
 ---
 
@@ -155,6 +155,36 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR + Worst10Y★ + P10_5Y▷ の 3 軸保
 **結論**: 本 overlay は **S3 (DH-W1, ETF only) 特異**。CFD ベース戦略 (S2, E4) では VZ ゲート + LT2-modeB / Regime k_lt が既に類似の防御機能を担っているため、追加 overlay の限界効用が小さい (MaxDD 改善 +1.2〜1.5pp に減衰)。MaxDD 防御の方向性は全 baseline で一貫 (P>0.94)。
 
 詳細: [session5_transfer_report_20260605.md](data/signals/expansion/session5_transfer_report_20260605.md)
+
+### Companion Variant: V7 pure_boost (2026-06-07 追加, v4.9)
+
+CAGR 死守シナリオの代替オプション。同一 signal (nasdaq_mom63)、同一 method (M6 defensive) ながら mapping を boost-heavy に振った variant。**V0 (defensive, MaxDD改善優先) と V7 (pure_boost, CAGR死守) を並行 Shortlisted 登録、ユーザーリスク選好で選択**。
+
+| 項目 | V0 defensive (既存) | V7 pure_boost (新規) |
+|---|---|---|
+| Mapping | {q0:1.10, q1:1.00, q2:0.90, q3:0.80} | {q0:1.20, q1:1.10, q2:1.00, q3:1.00} |
+| 哲学 | リスク削減 (MaxDD改善優先) | CAGR死守 (MaxDD baseline据置で boost) |
+| CAGR_IS (税前 ⓒ, canonical daily split) | +16.69% | **+18.61%** |
+| CAGR_OOS (税前 ⓒ, canonical) | +18.06% | **+19.18%** |
+| min(CAGR_IS, CAGR_OOS) | +16.69% | **+18.61%** (>18% target達成) |
+| MaxDD | **−28.74%** (−5.83pp 改善) | −34.57% (baseline同等) |
+| Sharpe_OOS | **+0.892** | +0.841 |
+| Worst10Y★ | +10.75% | +11.02% |
+| P10_5Y▷ | +5.21% | +5.22% |
+| IS-OOS gap | −1.37pp | **−0.57pp** (overlay候補中最良) |
+| WFA_CI95_lo (annual) | +12.65% | +14.06% |
+| Phase D Bootstrap | ✅ 4/4 PASS (P_MaxDD=0.988) | ⚠ 未実施 (Pending) |
+
+**選択ガイド**:
+- **MaxDD を baseline (−34.57%) より縮めたい** → V0 (defensive)
+- **CAGR 死守 (>18% target) を最優先、MaxDD は baseline 維持で良い** → V7 (pure_boost)
+- 両 variant とも S3 (DH-W1, ETF only) 限定運用、CFD 系には転用不可。
+
+**税後 CAGR (NISA 内なら非課税)**: §3.6 後段または [SIGNAL_EXPANSION_FINAL_DECISION_20260607.md](SIGNAL_EXPANSION_FINAL_DECISION_20260607.md) §3.6 参照。
+- NISA 内 (非課税): pretax 値そのまま使用 (V7 calendar-year CAGR_OOS=+15.26%)
+- 課税口座 (×0.8273): V7 calendar-year CAGR_OOS aftertax=+12.76%
+
+詳細データ: [S3_OVERLAY_TUNING_REPORT_20260607.md](S3_OVERLAY_TUNING_REPORT_20260607.md) §6.2 / [s3_overlay_tuning_20260607.csv](data/signals/expansion/s3_overlay_tuning_20260607.csv) / [aftertax_cagr_20260607.csv](data/signals/expansion/aftertax_cagr_20260607.csv)
 
 ---
 
