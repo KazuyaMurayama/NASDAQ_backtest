@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加)
+最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化)
 
 ---
 
@@ -23,7 +23,8 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 
 | 環境 | 戦略 | **CAGR⓽ IS / OOS（min）** | IS-OOS gap⓽ | Sharpeⓒ | MaxDDⓒ | Worst10Y★ⓒ | P10ⓒ 5Y | Tradeⓞ/yr | WFEⓞ | CI95ⓡ_lo | Status |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| **CFD (主軸, v4.7)** | **vz=0.65+l5+F10ε** | IS +20.16% / OOS +18.93%（**min +18.93%**） | +1.23pp | 0.841 | −56.72% | ~+12.67% | ~+8.75% | 86 | ✅ 1.389 | N/A | 🟢 CFD Active 候補（防御最優先） |
+| **§1 Active（比較基準）** | **E4 RegimeKLT**<br>S2+LT2, k_lo=0.1, k_hi=0.8<br>vz_thr=0.7, CFD | IS +27.41% / OOS +28.01%（**min +27.41%**） | **−0.60pp** | **0.891** | −60.01% | **+18.67%** | **+9.78%** | **27** | ✅ 1.131 | **+26.51%** | ◆ §1 Active（WFA G3 PASS・現行ベスト維持推奨） |
+| **CFD Active候補 (v4.7)** | **vz=0.65+l5+F10ε** | IS +20.16% / OOS +18.93%（**min +18.93%**） | +1.23pp | 0.841 | **−56.72%** | ~+12.67% | ~+8.75% | 86 | ✅ 1.389 | N/A | 🟢 CFD Active 候補（MaxDD E4比+3.3pp↑・CAGR⓽ −9pp↓・Trade 3.2倍↑） |
 | ↳ 副候補 (攻め型) | vz=0.65+l7+F10ε | IS +20.23% / OOS +21.49%（**min +20.23%**） | −1.26pp | 0.829 | −65.95% | +9.96% | +4.05% | ~105 | N/A | N/A | 防御弱（MaxDD/Worst10Y/P10 l5 に劣後） |
 | **ETF only (NISA等)** | **DH-W1** (Asymm Hyst) | IS +15.31% / OOS +15.74%（**min +15.31%**） | −0.43pp | 0.845 | −34.57% | +10.37% | +4.82% | 68.7 | ✅ 1.023 | +13.61% | 🟡 ETF 環境 Active 候補 |
 | ↳ overlay MaxDD優先 | **DH-W1 + mom63 V0 def**<br>M6 def {1.1, 1.0, 0.9, 0.8} | IS +14.07% / OOS +15.02%（**min +14.07%**） | −0.95pp | **0.892** | **−28.74%** | +10.75% | +5.21% | ~17.6 | ✅ 1.005 | +13.00% | 🟢 ETF overlay ADOPT（MaxDD+5.8pp改善・S3限定） |
