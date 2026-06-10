@@ -17,5 +17,10 @@ def implicit_financing_annual(leverage: float) -> float:
 def cfd_overnight_annual(leverage: float) -> float:
     return (SOFR_2026 + CFD_OVERNIGHT_SPREAD) * leverage
 
+
+def cfd_overnight_daily(sofr_daily: float, leverage: float) -> float:
+    """Daily CFD financing on full notional with time-varying SOFR. (sofr_daily + 3.0%/252) × L."""
+    return (sofr_daily + CFD_OVERNIGHT_SPREAD / 252.0) * leverage
+
 def us_etf_trade_cost_annual(trades_per_year: float, portfolio_jpy: float = PORTFOLIO_JPY) -> float:
     return (US_ETF_TRADE_CAP_JPY * trades_per_year) / portfolio_jpy

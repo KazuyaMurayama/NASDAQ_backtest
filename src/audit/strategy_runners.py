@@ -15,23 +15,21 @@ E4 戦略の NAV を生データから再生成し、コスト基準を切替可
 設計方針:
   - 正典ファイル (src/*.py) は一切改変しない。
   - 既存の E4 組み立てロジック（e4_regime_klt.py）を最大限再利用する。
-  - コスト層だけ差し替える: 'realistic' では cfd_overnight_annual(L_t)/252 を
-    1日ごとのオーバーナイトコストとして差し引き、売買スプレッドも CFD_SPREAD_ONE_WAY で計上。
+  - コスト層だけ差し替える: 'realistic' (Option A) では歴史変動SOFR + 3.0%/yr の
+    フルNotional課金を日次適用し、売買スプレッドも CFD_SPREAD_ONE_WAY で計上。
   - 'scenarioD': 既存の build_nav_strategy(cfd_spread=CFD_SPREAD_LOW) そのまま。
 
 CFD財務コスト比較:
   scenarioD: (L-1) × (sofr_daily + CFD_SPREAD_LOW/252)
              = (L-1) × (sofr_daily + 0.0020/252)
-  realistic:  (SOFR_2026 + CFD_OVERNIGHT_SPREAD) × L / 252
-             = (0.0363 + 0.030) × L / 252  (定数 SOFR 2026 年)
+  realistic (Option A): cfd_overnight_daily(sofr_daily_t, L_t)
+             = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) × L_t
+             = (時変SOFR/252 + 3.0%/252) × L_t  (フルNotional、L-1倍ではない)
              + CFD_SPREAD_ONE_WAY × pos_change (ポジション変化日に往復スプレッド控除)
 
-  ※ realistic は動的レバ L_t に対して日々のオーバーナイトコストを乗算するため、
-    高レバ日の財務コストを正確に反映する。SOFR を定数 (SOFR_2026=3.63%) で固定している
-    点に注意: 歴史的 SOFR（1974〜2021 IS 期間）の平均は現在より大きく異なる可能性があるが、
-    「2026 年現在の実コスト感応度」を確認する目的では妥当。
-    歴史的 SOFR 変動を含む完全 realistic は scenarioD コードを複製して sofr_daily ×
-    (1+spread_pct) に差し替えることで実現可能（将来拡張）。
+  ※ realistic (Option A) は歴史的時変SOFR（DTB3系列）を使用するため、
+    1974〜2021 IS 期間の高金利期（1980年代 SOFR≈15%）のコストが正確に反映される。
+    旧実装の固定SOFR（SOFR_2026=3.63%）より IS 期間コストが大幅に増加する。
 
 注: 本モジュールは実行時に src/ をパスに追加する（unified_metrics.py と同様）。
 """
@@ -88,6 +86,7 @@ from e4_regime_klt import signal_to_bias_dynamic, K_MID, S2_FIXED
 from src.audit.unified_metrics import compute_10metrics
 from src.audit.product_costs_realistic_20260610 import (
     cfd_overnight_annual,
+    cfd_overnight_daily,
     CFD_SPREAD_ONE_WAY,
 )
 
@@ -184,14 +183,17 @@ def _build_nav_realistic(
     L_s2: pd.Series,
 ) -> pd.Series:
     """
-    Realistic コスト: CFD オーバーナイト = (SOFR_2026 + 3.0%) × L_t / 252 を
-    日次ごとに適用し、ポジション変化日に往復スプレッド CFD_SPREAD_ONE_WAY × 2 を追加控除。
+    Realistic コスト (Option A): 歴史変動SOFR + CFDブローカースプレッド3.0%/yr + フルNotional課金。
+
+    CFD 日次オーバーナイト = cfd_overnight_daily(sofr_daily_t, L_t)
+        = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * L_t
+    すなわち (時変SOFR年率/252 + 3.0%/252) × L_t (フルNotional、L-1倍ではない)
+
+    売買コスト: ポジション変化 × 2 × CFD_SPREAD_ONE_WAY (往復スプレッド)
 
     NAV 崩壊フロア (-99.9%) 込み。
-
-    ※ SOFR は定数 SOFR_2026=3.63% を使用。歴史的 SOFR 変動は含まない。
     """
-    from cfd_leverage_backtest import NAV_FLOOR, TRADING_DAYS as TD
+    from cfd_leverage_backtest import NAV_FLOOR
 
     r_nas = close.pct_change().fillna(0).values
     r_g2 = pd.Series(gold_2x_nav).pct_change().fillna(0).values
@@ -206,18 +208,12 @@ def _build_nav_realistic(
     L_arr = np.asarray(L_s2.values, dtype=float)
     L_shifted = pd.Series(L_arr, index=idx).shift(_DELAY).fillna(1.0).values
 
-    # 日次 CFD 収益 (realistic)
-    # r_cfd = L * r_nas - cfd_overnight_annual(L) / 252
-    # cfd_overnight_annual(L) = (SOFR_2026 + CFD_OVERNIGHT_SPREAD) * L
-    # 注: scenarioD の borrow = (L-1)×(sofr_daily + cfd_spread/252) と異なり
-    #     realistic は L 全体に乗算（IB 系 CFD の典型的なモデル）。
-    from src.audit.product_costs_realistic_20260610 import (
-        CFD_OVERNIGHT_SPREAD,
-        SOFR_2026,
-    )
+    # 時変 SOFR: sofr_daily は load_sofr() が返す日次系列 (DTB3/252相当)
+    sofr_arr = np.asarray(sofr_daily, dtype=float)
 
-    overnight_annual_rate = SOFR_2026 + CFD_OVERNIGHT_SPREAD  # 0.0363 + 0.030 = 0.0663
-    overnight_daily = overnight_annual_rate * L_shifted / TD   # 日次オーバーナイトコスト
+    # 日次 CFD オーバーナイトコスト (Option A: 歴史変動SOFR × フルNotional)
+    # = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * L_t
+    overnight_daily_arr = np.vectorize(cfd_overnight_daily)(sofr_arr, L_shifted)
 
     # ポジション変化検出 (DELAY シフト後の L_shifted の差分)
     L_prev = np.concatenate([[L_shifted[0]], L_shifted[:-1]])
@@ -225,7 +221,7 @@ def _build_nav_realistic(
     # 往復スプレッド: 変化量 × 2 × CFD_SPREAD_ONE_WAY (片道の2倍)
     spread_cost = pos_change * 2.0 * CFD_SPREAD_ONE_WAY
 
-    nas_ret = L_shifted * r_nas - overnight_daily - spread_cost
+    nas_ret = L_shifted * r_nas - overnight_daily_arr - spread_cost
 
     daily = wn_s * lev_s * nas_ret + wg_s * r_g2 + wb_s * r_b3
 
@@ -250,8 +246,9 @@ def run_e4(basis: str) -> dict:
     ----------
     basis : str
         'scenarioD' — 既存コードそのまま (CFD_SPREAD_LOW=0.20%/yr, SOFR 実績値)
-        'realistic' — CFD オーバーナイト = (SOFR_2026=3.63% + 3.0%) × L_t / 252、
-                       売買スプレッド = pos_change × 2 × CFD_SPREAD_ONE_WAY
+        'realistic' — Option A: CFD オーバーナイト = (時変SOFR_daily + 3.0%/252) × L_t
+                       (歴史変動SOFR使用, フルNotional課金)
+                       + 売買スプレッド = pos_change × 2 × CFD_SPREAD_ONE_WAY
 
     Returns
     -------
