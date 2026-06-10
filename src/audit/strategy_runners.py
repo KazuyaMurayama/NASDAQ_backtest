@@ -1,7 +1,7 @@
 """
 src/audit/strategy_runners.py
 ==============================
-E4 戦略の NAV を生データから再生成し、コスト基準を切替可能にする薄いラッパ。
+E4 戦略 & vz065 戦略 (l5/l7) の NAV を生データから再生成し、コスト基準を切替可能にする薄いラッパ。
 
 公開 API:
     run_e4(basis: str) -> dict
@@ -12,12 +12,28 @@ E4 戦略の NAV を生データから再生成し、コスト基準を切替可
             **compute_10metrics(nav, trades_per_year),  # 10 指標
         }
 
+    run_vz065(lmax: float, basis: str) -> dict
+        lmax ∈ {5.0, 7.0} (他の値も受理可)
+        basis ∈ {'scenarioD', 'realistic'}
+        返り値: run_e4 と同一スキーマ。
+        scenarioD: g27 と同一コスト前提
+            (overnight = (L-1)×(sofr+SBI_CFD_SPREAD/252), 売買コスト SPREAD_RT=0.05%)
+        realistic: E4 realistic と同一手法
+            (overnight = (sofr+CFD_OVERNIGHT_SPREAD/252)×L_t (フルNotional),
+             売買コスト = CFD_SPREAD_ONE_WAY × pos_change)
+
 設計方針:
   - 正典ファイル (src/*.py) は一切改変しない。
   - 既存の E4 組み立てロジック（e4_regime_klt.py）を最大限再利用する。
   - コスト層だけ差し替える: 'realistic' (Option A) では歴史変動SOFR + 3.0%/yr の
     フルNotional課金を日次適用し、売買スプレッドも CFD_SPREAD_ONE_WAY で計上。
   - 'scenarioD': 既存の build_nav_strategy(cfd_spread=CFD_SPREAD_LOW) そのまま。
+
+vz065 コスト設計:
+  scenarioD: g27 と同一 (overnight = (L-1)×(sofr+SBI_CFD_SPREAD/252),
+             SPREAD_RT=0.00050 moderate 片道コスト)
+  realistic: E4 と同一手法 (overnight = cfd_overnight_daily(sofr_t, L_t),
+             売買コスト = CFD_SPREAD_ONE_WAY × pos_change)
 
 CFD財務コスト比較:
   scenarioD: (L-1) × (sofr_daily + CFD_SPREAD_LOW/252)
@@ -76,11 +92,24 @@ from corrected_strategy_backtest import (
 from cfd_leverage_backtest import (
     build_nav_strategy,
     CFD_SPREAD_LOW,
+    NAV_FLOOR,
 )
 from dynamic_leverage_strategies import compute_L_s2_vz_gated
 from compute_cfd_worst10y import prepare_gold_local
 from long_cycle_signal import build_lt_signal, apply_lt_mode_b
 from e4_regime_klt import signal_to_bias_dynamic, K_MID, S2_FIXED
+from g14_wfa_sbi_cfd import (
+    SBI_CFD_SPREAD,
+    K_LO as VZ_K_LO,
+    K_HI as VZ_K_HI,
+    K_MID as VZ_K_MID,
+    VZ_THR_065,
+    S2_BASE as VZ_S2_BASE,
+    N_LT2,
+    compute_tilt_with_deadband,
+)
+from g19a_f10_eps_extended import build_f10_wn_for_eps
+from g18_daily_trade_cost_wfa import build_cfd_nav_with_cost
 
 # Audit helpers
 from src.audit.unified_metrics import compute_10metrics
@@ -312,3 +341,235 @@ def run_e4(basis: str) -> dict:
 
     metrics = compute_10metrics(nav_dt, n_trades_yr)
     return {"nav": nav_dt, "trades_per_year": n_trades_yr, **metrics}
+
+
+# ---------------------------------------------------------------------------
+# vz065 戦略共通定数
+# ---------------------------------------------------------------------------
+# g27 SPREAD_RT=0.00050 (moderate, round-trip) → 片道 0.00025
+VZ065_SPREAD_RT = 0.00050
+VZ065_EPS_F10 = 0.015
+VZ065_S2_BASE = dict(target_vol=0.8, k_vz=0.3, gate_min=0.5, n=20, l_min=1.0, step=0.5)
+
+# 共有アセットキャッシュ (vz065 用; E4 _SHARED とは別に保持)
+_VZ065_SHARED: dict | None = None
+
+
+def _load_vz065_shared() -> dict:
+    """vz065 戦略に必要な共有アセット・シグナルをキャッシュ。
+    E4 と共通のデータをベースに、vz_thr=0.65 の lev_mod と
+    F10 ε=0.015 の wn/wb を構築する。
+    """
+    global _VZ065_SHARED
+    if _VZ065_SHARED is not None:
+        return _VZ065_SHARED
+
+    df = load_data(DATA_PATH)
+    close = df["Close"]
+    ret = close.pct_change().fillna(0)
+    dates = df["Date"]
+    n = len(df)
+    n_years = n / TRADING_DAYS
+
+    sofr = load_sofr(dates)
+    gold_1x = prepare_gold_local(dates)
+    gold_2x = build_gold_2x(gold_1x, sofr_daily=sofr, apply_sofr=True)
+    bond_1x = build_bond_1x_nav_corrected(
+        dates, use_time_varying_duration=True, bond_maturity=22.0
+    )
+    bond_3x = build_bond_3x(bond_1x, sofr, apply_sofr=True)
+
+    raw_a2, vz = build_a2_signal(close, ret)
+    lev_raw, wn_A, wg_A, wb_A, n_tr = simulate_rebalance_A(raw_a2, vz, THRESHOLD)
+    n_trades_yr_base = n_tr / n_years
+
+    # vz_thr=0.65 の k_dyn → lt_bias_065 → lev_mod_065
+    lt_sig_raw = build_lt_signal(close, "LT2", N=N_LT2)
+    lt_sig_arr = lt_sig_raw.values
+    vz_arr = vz.values
+
+    k_dyn_065 = np.where(vz_arr > VZ_THR_065, VZ_K_HI,
+                np.where(vz_arr < -VZ_THR_065, VZ_K_LO, VZ_K_MID))
+    lt_bias_065 = pd.Series(
+        np.clip(-k_dyn_065 * lt_sig_arr * 0.5, -0.5, 0.5),
+        index=lt_sig_raw.index,
+    )
+    lev_mod_065 = apply_lt_mode_b(lev_raw, lt_bias_065, l_min=0.0, l_max=1.0)
+
+    # F10 ε=0.015 tilt (g27 と同一)
+    raw_a2_vals = raw_a2.values
+    bull_mask = raw_a2_vals > THRESHOLD
+    wn_f10, wb_f10, _, _ = build_f10_wn_for_eps(
+        raw_a2_vals, vz_arr, wn_A, wb_A, np.asarray(lev_raw), bull_mask, VZ065_EPS_F10
+    )
+    wg_f10 = np.asarray(wg_A)
+
+    _VZ065_SHARED = dict(
+        close=close,
+        dates=dates,
+        sofr=sofr,
+        gold_2x=gold_2x,
+        bond_3x=bond_3x,
+        ret=ret,
+        vz=vz,
+        vz_arr=vz_arr,
+        lev_raw=lev_raw,
+        lev_mod_065=lev_mod_065,
+        wn_A=wn_A,
+        wg_A=wg_A,
+        wb_A=wb_A,
+        wn_f10=wn_f10,
+        wg_f10=wg_f10,
+        wb_f10=wb_f10,
+        n=n,
+        n_years=n_years,
+        n_trades_yr_base=n_trades_yr_base,
+    )
+    return _VZ065_SHARED
+
+
+def _build_nav_vz065_realistic(
+    close: pd.Series,
+    lev_mod_065: np.ndarray,
+    wn_f10: np.ndarray,
+    wg_f10: np.ndarray,
+    wb_f10: np.ndarray,
+    dates: pd.Series,
+    gold_2x_nav: np.ndarray,
+    bond_3x_nav: np.ndarray,
+    sofr_daily: np.ndarray,
+    L_s2: pd.Series,
+) -> pd.Series:
+    """vz065 用 realistic NAV (E4 realistic と完全同一手法)。
+
+    overnight = cfd_overnight_daily(sofr_daily_t, L_t) = (sofr_t/252 + 3%/252) × L_t
+    売買コスト = |Δ(L_shifted)| × 2 × CFD_SPREAD_ONE_WAY
+    """
+    r_nas = close.pct_change().fillna(0).values
+    r_g2 = pd.Series(gold_2x_nav).pct_change().fillna(0).values
+    r_b3 = pd.Series(bond_3x_nav).pct_change().fillna(0).values
+
+    idx = dates.index
+    lev_s = pd.Series(np.asarray(lev_mod_065, dtype=float), index=idx).shift(_DELAY).fillna(0).values
+    wn_s = pd.Series(np.asarray(wn_f10, dtype=float), index=idx).shift(_DELAY).fillna(0).values
+    wg_s = pd.Series(np.asarray(wg_f10, dtype=float), index=idx).shift(_DELAY).fillna(0).values
+    wb_s = pd.Series(np.asarray(wb_f10, dtype=float), index=idx).shift(_DELAY).fillna(0).values
+
+    L_arr = np.asarray(L_s2.values, dtype=float)
+    L_shifted = pd.Series(L_arr, index=idx).shift(_DELAY).fillna(1.0).values
+
+    sofr_arr = np.asarray(sofr_daily, dtype=float)
+    overnight_daily_arr = np.vectorize(cfd_overnight_daily)(sofr_arr, L_shifted)
+
+    L_prev = np.concatenate([[L_shifted[0]], L_shifted[:-1]])
+    pos_change = np.abs(L_shifted - L_prev)
+    spread_cost = pos_change * 2.0 * CFD_SPREAD_ONE_WAY
+
+    nas_ret = L_shifted * r_nas - overnight_daily_arr - spread_cost
+
+    daily = wn_s * lev_s * nas_ret + wg_s * r_g2 + wb_s * r_b3
+
+    blowup_days = int((daily < NAV_FLOOR).sum())
+    daily_clipped = np.maximum(daily, NAV_FLOOR)
+
+    nav = (1 + pd.Series(daily_clipped, index=idx)).cumprod()
+    nav.attrs["blowup_days"] = blowup_days
+    return nav
+
+
+def run_vz065(lmax: float, basis: str) -> dict:
+    """vz=0.65 + lmax=X + F10ε=0.015 の NAV を再生成し、10 指標 + NAV を返す。
+
+    Parameters
+    ----------
+    lmax : float
+        CFD レバレッジ上限。通常 5.0 または 7.0。
+    basis : str
+        'scenarioD' — g27 と同一コスト前提
+            overnight = (L-1)×(sofr+SBI_CFD_SPREAD/252),
+            売買コスト = SPREAD_RT/2 = 0.00025 (moderate)
+        'realistic' — E4 realistic と同一手法
+            overnight = cfd_overnight_daily(sofr_t, L_t) (フルNotional, 時変SOFR),
+            売買コスト = CFD_SPREAD_ONE_WAY × pos_change
+
+    Returns
+    -------
+    dict with keys:
+        nav              : pd.Series (DatetimeIndex)
+        trades_per_year  : float
+        CAGR_IS, CAGR_OOS, CAGR_FULL, IS_OOS_gap_pp,
+        Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
+    """
+    if basis not in ("scenarioD", "realistic"):
+        raise ValueError(f"basis must be 'scenarioD' or 'realistic', got {basis!r}")
+
+    shared = _load_vz065_shared()
+    close = shared["close"]
+    dates = shared["dates"]
+    sofr = shared["sofr"]
+    gold_2x = shared["gold_2x"]
+    bond_3x = shared["bond_3x"]
+    ret = shared["ret"]
+    vz = shared["vz"]
+    lev_mod_065 = shared["lev_mod_065"]
+    wn_f10 = shared["wn_f10"]
+    wg_f10 = shared["wg_f10"]
+    wb_f10 = shared["wb_f10"]
+
+    # lmax に対応する L_s2 を毎回生成 (キャッシュ対象外; lmax は可変引数)
+    L_s2 = compute_L_s2_vz_gated(ret, vz, **{**VZ065_S2_BASE, "l_max": lmax})
+
+    if basis == "scenarioD":
+        # g27 build_variant と同一: build_cfd_nav_with_cost(spread_one_way=SPREAD_RT/2)
+        nav, _ = build_cfd_nav_with_cost(
+            close,
+            lev_mod_065,
+            wn_f10,
+            wg_f10,
+            wb_f10,
+            dates,
+            gold_2x,
+            bond_3x,
+            sofr,
+            L_s2.values,
+            VZ065_SPREAD_RT / 2.0,
+        )
+    else:  # realistic
+        nav = _build_nav_vz065_realistic(
+            close,
+            np.asarray(lev_mod_065.values if hasattr(lev_mod_065, "values") else lev_mod_065),
+            np.asarray(wn_f10),
+            np.asarray(wg_f10),
+            np.asarray(wb_f10),
+            dates,
+            gold_2x,
+            bond_3x,
+            sofr,
+            L_s2,
+        )
+
+    # Trades per year: g27 と同様に wn_f10 or wb_f10 or L_s2 が変化した日をカウント
+    # (g14.count_trades_in_window と同一ロジックを全期間に適用)
+    wn_arr = np.asarray(wn_f10, dtype=float)
+    wb_arr = np.asarray(wb_f10, dtype=float)
+    L_arr = np.asarray(L_s2.values, dtype=float)
+    n = len(L_arr)
+    n_years = n / TRADING_DAYS
+    # count_trades_in_window: wn[i] != wn[i-1] OR wb[i] != wb[i-1] OR lev[i] != lev[i-1]
+    change_flag = np.zeros(n, dtype=bool)
+    change_flag[1:] = (
+        (wn_arr[1:] != wn_arr[:-1])
+        | (wb_arr[1:] != wb_arr[:-1])
+        | (L_arr[1:] != L_arr[:-1])
+    )
+    n_trades = int(change_flag.sum())
+    trades_per_year = n_trades / n_years if n_years > 0 else float("nan")
+
+    # DatetimeIndex に変換
+    dates_dt = pd.to_datetime(dates.values)
+    nav_dt = pd.Series(nav.values, index=pd.DatetimeIndex(dates_dt))
+    if hasattr(nav, "attrs"):
+        nav_dt.attrs.update(nav.attrs)
+
+    metrics = compute_10metrics(nav_dt, trades_per_year)
+    return {"nav": nav_dt, "trades_per_year": trades_per_year, **metrics}
