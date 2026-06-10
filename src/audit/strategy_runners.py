@@ -734,6 +734,161 @@ def run_overlay(variant: str, basis: str) -> dict:
     return {"nav": nav_dt, "trades_per_year": trades_per_year, **metrics}
 
 
+# ---------------------------------------------------------------------------
+# P7 (DH-W1 CashSleeve GOLD75/BOND25) 投信スリーブ定数
+# ---------------------------------------------------------------------------
+# 1x 投信 TER (信託報酬, 年率)  — src/product_costs.py GOLD1X/BOND1X と同値
+_P7_FEE_GOLD  = 0.001838   # SBI・iシェアーズ・ゴールド(ヘッジなし) 0.1838%/yr
+_P7_FEE_BOND  = 0.00154    # iShares 米国債20年超(2255, ヘッジなし) 0.154%/yr
+# P7 配分 (Gold 1x : Bond 1x = 75% : 25%)
+_P7_W_GOLD    = 0.75
+_P7_W_BOND    = 0.25
+# 投信スリーブ 執行ラグ (T+5 営業日)
+_P7_LAG_DAYS  = 5
+# FX ヘッジコスト = 0 (unhedged 前提: GOLD1X/BOND1X は ヘッジなし商品)
+# → FX_HEDGE_COST は適用しない
+# 投信売買コスト = 0 (ノーロード想定)
+
+# P7 shared cache
+_P7_SHARED: dict | None = None
+
+
+def _load_p7_shared() -> None:
+    """P7 用共有アセットを一度だけロードしてキャッシュ。DH-W1 共有も内部で確保。"""
+    global _P7_SHARED
+    if _P7_SHARED is not None:
+        return
+
+    # DH-W1 アセットを再利用
+    _load_dhw1_shared()
+    shared_dh = _DHW1_SHARED
+    a = shared_dh["assets"]
+    dates = a["dates"]
+
+    # 1x 素原資産リターン
+    from corrected_strategy_backtest import build_bond_1x_nav_corrected
+    from compute_cfd_worst10y import prepare_gold_local
+    import numpy as np
+
+    gold_1x = np.asarray(prepare_gold_local(dates), dtype=float)
+    bond_1x = np.asarray(build_bond_1x_nav_corrected(
+        dates, use_time_varying_duration=True, bond_maturity=22.0
+    ), dtype=float)
+
+    ret_gold = np.concatenate([[0.0], np.diff(gold_1x) / gold_1x[:-1]])
+    ret_bond = np.concatenate([[0.0], np.diff(bond_1x) / bond_1x[:-1]])
+    ret_gold = np.nan_to_num(ret_gold, nan=0.0)
+    ret_bond = np.nan_to_num(ret_bond, nan=0.0)
+
+    # 投信ブレンドリターン (P7: Gold75% + Bond25%)
+    fee_daily = (_P7_W_GOLD * _P7_FEE_GOLD + _P7_W_BOND * _P7_FEE_BOND) / 252.0
+    r_blend = _P7_W_GOLD * ret_gold + _P7_W_BOND * ret_bond
+
+    # OUT マスク → 5営業日前方シフト (fund_active)
+    mask = shared_dh["mask"]
+    out_mask = (mask < 0.5)  # True = OUT 日
+    n = len(mask)
+    fund_active = np.zeros(n, dtype=bool)
+    fund_active[_P7_LAG_DAYS:] = out_mask[:-_P7_LAG_DAYS]
+
+    _P7_SHARED = dict(
+        assets=a,
+        mask=mask,
+        out_mask=out_mask,
+        fund_active=fund_active,
+        r_blend=r_blend,
+        fee_daily=fee_daily,
+        ret_gold=ret_gold,
+        ret_bond=ret_bond,
+    )
+
+
+def _build_p7_nav(basis: str) -> tuple:
+    """P7 の合成 NAV を構築して返す (nav: pd.Series, trades_per_year: float)。
+
+    HOLD 期: DH-W1 (scenarioD or realistic) の日次リターンをそのまま使用。
+    OUT 期 (fund_active=True): Gold75%+Bond25% 1x 投信リターン - 日次TER。
+
+    Parameters
+    ----------
+    basis : str
+        'scenarioD' or 'realistic'
+
+    Returns
+    -------
+    (nav: pd.Series[DatetimeIndex], trades_per_year: float)
+    """
+    _load_p7_shared()
+    p7s = _P7_SHARED
+    dhw1s = _DHW1_SHARED
+
+    a = p7s["assets"]
+    dates = a["dates"]
+    dates_dt = pd.to_datetime(dates.values)
+    idx = pd.DatetimeIndex(dates_dt)
+
+    fund_active = p7s["fund_active"]
+    r_blend = p7s["r_blend"]
+    fee_daily = p7s["fee_daily"]
+
+    # DH-W1 ベース日次リターン
+    if basis == "scenarioD":
+        nav_dh = dhw1s["nav_base"]
+    else:  # realistic
+        nav_dh = _build_dhw1_nav_realistic(
+            a, dhw1s["wn"], dhw1s["wg"], dhw1s["wb"],
+            dhw1s["lev_raw_masked"], dates,
+        )
+
+    r_dh = np.nan_to_num(nav_dh.pct_change().fillna(0).values, nan=0.0)
+
+    # P7 合成: HOLD 日は DH リターン、OUT+lag 日は 投信リターン-TER
+    r_p7 = np.where(fund_active, r_blend - fee_daily, r_dh)
+
+    nav_p7 = pd.Series(np.cumprod(1.0 + r_p7), index=idx)
+
+    # Trades/yr = DH-W1 の lev_raw_masked 変化イベント数 (HOLD 期のみ、スリーブ側は無変化扱い)
+    trades_per_year = _compute_dhw1_trades_per_year(dhw1s["lev_raw_masked"], dates)
+
+    return nav_p7, trades_per_year
+
+
+def run_p7(basis: str) -> dict:
+    """P7 (DH-W1 CashSleeve GOLD75/BOND25) の NAV を構築し、10 指標 + NAV を返す。
+
+    DH-W1 の OUT(キャッシュ 46.9%)期を Gold1x 75% / Bond1x 25% の 1倍投信で運用置換。
+    レバ脚 DELAY=2 (build_dh_nav_with_cost 内), 投信スリーブ LAG=5BD (T+5)。
+
+    コスト前提:
+      HOLD 期 (レバ ETF 脚):
+        scenarioD : build_dh_nav_with_cost (DH_PER_UNIT=0.001) と同一
+        realistic : 実TER差分 + US ETF 売買コスト ($22上限) を追加控除
+      OUT 期 (投信スリーブ):
+        TER 日次控除: Gold1x 0.1838%/yr, Bond1x 0.154%/yr (加重平均)
+        FX ヘッジ: 0 (unhedged 前提 — SBI Gold / iShares Bond 共にヘッジなし商品)
+        投信売買コスト: 0 (ノーロード)
+
+    Parameters
+    ----------
+    basis : str
+        'scenarioD' or 'realistic'
+
+    Returns
+    -------
+    dict with keys:
+        nav              : pd.Series (DatetimeIndex)
+        trades_per_year  : float
+        CAGR_IS, CAGR_OOS, CAGR_FULL, IS_OOS_gap_pp,
+        Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
+    """
+    if basis not in ("scenarioD", "realistic"):
+        raise ValueError(f"basis must be 'scenarioD' or 'realistic', got {basis!r}")
+
+    nav, trades_per_year = _build_p7_nav(basis)
+    metrics = compute_10metrics(nav, trades_per_year)
+    return {"nav": nav, "trades_per_year": trades_per_year, **metrics}
+
+
 def run_vz065(lmax: float, basis: str) -> dict:
     """vz=0.65 + lmax=X + F10ε=0.015 の NAV を再生成し、10 指標 + NAV を返す。
 

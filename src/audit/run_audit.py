@@ -51,7 +51,7 @@ if _REPO_ROOT not in sys.path:
 import pandas as pd
 import numpy as np
 
-from src.audit.strategy_runners import run_e4, run_vz065, run_dhw1, run_overlay
+from src.audit.strategy_runners import run_e4, run_vz065, run_dhw1, run_overlay, run_p7
 
 # ---------------------------------------------------------------------------
 # DH-W1 / V0 / V7 旧基準値 (ETF群, canonical split 2021-05-08, 税引前)
@@ -126,6 +126,21 @@ REF_VZ065_L7 = {
     "Trades_yr":    105.0,
     "WFA_WFE":       np.nan,   # N/A → to be filled
     "WFA_CI95_lo":   np.nan,   # N/A → to be filled
+}
+
+# ---------------------------------------------------------------------------
+# P7 旧基準値 (cash_sleeve_4strategies_metrics.csv / CASH_SLEEVE_REPORT, 税後)
+# ---------------------------------------------------------------------------
+REF_P7 = {
+    "CAGR_IS":        0.1817,   # +18.17%  (cash_sleeve_sim CAGR_IS_pct)
+    "CAGR_OOS":       0.1490,   # +14.90%  (CAGR_OOS_pct)
+    "Sharpe_OOS":     0.827,
+    "MaxDD_FULL":    -0.4823,   # -48.23%
+    "Worst10Y_star":  0.0992,   # +9.92%
+    "P10_5Y":         0.0805,   # +8.05%
+    "Trades_yr":     18.8,
+    "WFA_WFE":        1.043,
+    "WFA_CI95_lo":    0.1674,   # +16.74%
 }
 
 
@@ -339,7 +354,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="E4 / vz065 パイロット再計算")
     parser.add_argument(
         "--strategy",
-        choices=["e4", "vz065_l5", "vz065_l7", "dhw1", "v0", "v7"],
+        choices=["e4", "vz065_l5", "vz065_l7", "dhw1", "v0", "v7", "p7"],
         default="e4",
     )
     parser.add_argument(
@@ -410,6 +425,13 @@ def main() -> None:
             return run_overlay("V7", basis)
         def _csv_name(basis):
             return f"audit_v7_{basis}.csv"
+    elif strategy == "p7":
+        strat_label = "P7"
+        ref_old_val = REF_P7
+        def _run_strategy(basis):
+            return run_p7(basis)
+        def _csv_name(basis):
+            return f"audit_p7_{basis}.csv"
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
 
