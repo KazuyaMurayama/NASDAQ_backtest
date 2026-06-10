@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正。§1 Active ⓒ指標も CFD_SPREAD_LOW ベースであることを明記)**
+最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)**
 
 ---
 
@@ -78,70 +78,29 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 
 ---
 
-## Shortlisted（次善候補 / WFA 完了）— 標準10指標
+## Shortlisted（次善候補 / WFA 完了）
 
-> **コスト前提**: F8/F7v3 = Scenario D ⓒ（税引前 raw）+ 逐年 ×0.8273 で⓽手取り算出。LT2-N750 = Scenario D ⓒ のみ（⓽未計算）。
-> CAGR は IS/OOS 両記載。**min(IS,OOS)** = 保守的採用基準。IS 値が未計算の場合 N/A。
+> CAGR 数値は SBI CFD 3.0%/yr ベースで未計算。詳細指標は [STRATEGY_REGISTRY.md](STRATEGY_REGISTRY.md) §2 参照。
 
-| 戦略 | **CAGR⓽ IS / OOS（min）** | IS-OOS gap | Sharpeⓒ_OOS | MaxDDⓒ(★raw) | Worst10Y★ⓒ | P10ⓒ 5Y | Tradeⓞ/yr | WFEⓞ | CI95ⓡ_lo | 採用留保理由 |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| F8 R5_CALM_BOOST | N/A / **+30.5%⓽**（min N/A） | N/A | +0.934 | −63.07%(★raw) / ≈−38.1%⓽ | N/A | N/A | 182 | ✅ 1.208 | +27.92% | Trades/yr 過多（E4比7倍）、OOS 偶然性疑い |
-| F7v3+E4 A:tilt=2.0 | N/A / **+29.8%⓽**（min N/A） | N/A | +0.926 | −61.96%(★raw) / ≈−36.8%⓽ | N/A | N/A | 183 | ✅ 1.203 | +27.15% | 同上 |
-| LT2-N750 固定k=0.5 | ~+31.34%ⓒ / +31.16%ⓒ（**min +31.16%ⓒ**） | ~+0.18pp | +0.858 | −59.45%ⓒ | ~+18.10%ⓒ | N/A | 27 | ✅ 1.145 | +25.7% | E4 に Worst10Y★/IS-OOS gap/CAGR で劣後。WFA PASS 済み fallback 候補 |
-
-> **★ raw = Scenario D コスト後・税引前ⓒ**（旧スプレッド想定）。⓽ 手取り = 年次リターン逐年 ×0.8273（`f8r5_yearly_returns.csv` / `f7v3_yearly_returns.csv` から計算済み）。
-> ⚠ F8/F7v3 の IS CAGR⓽ は未計算。min(IS,OOS) の確定には IS 期間の逐年税後計算が必要。
-
----
-
-## 構成
-
-- **シグナル基盤**: DH Dyn A2 Optimized (DD × AsymEWMA × TrendTV × SlopeMult × MomDecel × VIX_MR), threshold=0.15
-- **LT2 オーバーレイ (modeB, regime-conditional k_lt)**:
-  - `lt_sig = compute_lt2(close, N=750)` — 750日（≈3年）モメンタム z スコア
-  - `k_lt_t = 0.8 if vz_t > +0.7; 0.1 if vz_t < −0.7; 0.5 otherwise` — vz レジーム依存感度
-  - `lt_bias_t = (−k_lt_t × lt_sig_t × 0.5).clip(−0.5, +0.5)` — 動的バイアス
-  - `lev_mod = clip(lev_A + lt_bias, 0, 1)` — DH Dyn lev に動的バイアス
-- **CFD レバレッジ**: `compute_L_s2_vz_gated(ret, vz, target_vol=0.8, k_vz=0.3, gate_min=0.5, n=20, l_min=1.0, l_max=7.0, step=0.5)`
-- **CFD スプレッド**: `CFD_SPREAD_LOW = 0.0020 = 0.20%/yr`（くりっく株365 最安クラス想定）。**⚠ SBI CFD 使用時は `SBI_CFD_SPREAD = 0.0300 = 3.0%/yr`（g14 WFA で別途評価済）→ CAGR⓽ min が約 7pp 低下（+27.41% → +20.0%）。本シミュレーション NAV（キャッシュ）は CFD_SPREAD_LOW ベースであり SBI CFD 実勢を反映していない。**
-- **配分**: `wn·lev_mod·L_s2·r_nas_cfd + wg·r_g2 + wb·r_b3`
-  - `wn`, `wg`, `wb`: DH Dyn [A] Approach A と同一 (`simulate_rebalance_A`)
-  - `lev_mod`: LT2-modeB 適用後の DH Dyn レバレッジ
-  - `L_s2`: VZ ゲート CFD 動的レバレッジ (1x〜7x)
-- **Gold 2x**: TER 0.50% (sim proxy) + 1×SOFR
-- **Bond 3x (TMF)**: TER 0.91% + 2×SOFR
-- **DELAY**: 2営業日
-- **実装**: `src/e4_regime_klt.py`（E4 主実装）, `src/b1_s2_lt2.py`, `src/cfd_leverage_backtest.py`, `src/dynamic_leverage_strategies.py`, `src/long_cycle_signal.py`
-
----
-
-## コスト注意事項
-
-| 補正項目 | 影響 |
-|---|---|
-| SOFR financing drag (NAS CFD + Gold 1xSOFR) | CFD 軸にも適用 |
-| Gold TER ギャップ (proxy 0.50% → UGL 0.95%) | **−10.5 bps/yr** (§16) |
-| TMF TER ギャップ (0.91% → 1.06%) | −3.5 bps/yr (§16) |
-| スワップスプレッド推定差 (+20.5 bps) | −34 bps/yr 相当 (§16) |
-| 合計推定コスト過少計上 | **約 −66 bps/yr** → 現実 CAGR_OOSⓒ ≈ **+30.5%（税引前・補正後）** |
-| 売買税ドラッグ (年27回、税率20.315%) | §3-A 逐年適用 → くりっく株365ベース (0.20%/yr spread): (30.5−0.66)×0.8273 ≈ +24.6% / **SBI CFD ベース (3.0%/yr): CAGR⓽ min ≈ +20.0%、OOS ≈ +22.4%**（`7STRATEGY_PERFORMANCE_REPORT_20260529.md` 一次根拠） |
-| NISA | CFD は原則 NISA 不適用 |
+| 戦略 | Tradeⓞ/yr | WFEⓞ | 棄却理由 |
+|---|---:|---:|---|
+| F8 R5_CALM_BOOST | 182 | ✅ 1.208 | Trades/yr E4 比 7 倍。OOS 偶然性疑い |
+| F7v3+E4 A:tilt=2.0 | 183 | ✅ 1.203 | 同上 |
+| LT2-N750 固定k=0.5 | 27 | ✅ 1.145 | E4 に Worst10Y★/IS-OOS gap/CAGR で劣後。fallback 候補 |
 
 ---
 
 ## 一次根拠ファイル（GitHub 上の正典）
 
-| ファイル | 役割 | 日付 |
-|---|---|---|
-| [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 sweep レポート（採用根拠・64 config PASS 12） | 2026-05-24 |
-| [e4_regime_klt_results.csv](e4_regime_klt_results.csv) | E4 sweep 65行 raw 結果 | 2026-05-24 |
-| [src/e4_regime_klt.py](src/e4_regime_klt.py) | E4 Regime k_lt 実装 | 2026-05-24 |
-| [G3_WFA_E4_2026-05-24.md](G3_WFA_E4_2026-05-24.md) | G3 WFA レポート（CI95_lo=+26.51% / WFE=+1.131 / PASS） | 2026-05-24 |
-| [g3_wfa_e4_summary.csv](g3_wfa_e4_summary.csv) | G3 WFA サマリ | 2026-05-24 |
-| [src/g3_wfa_e4.py](src/g3_wfa_e4.py) | G3 WFA 実行スクリプト | 2026-05-24 |
-| [B1_S2_LT2_2026-05-21.md](B1_S2_LT2_2026-05-21.md) | B1 検証レポート | 2026-05-21 |
-| [src/corrected_strategy_backtest.py](src/corrected_strategy_backtest.py) | DH Dyn シグナル基盤 (Scenario D) | 2026-05-12 |
-| [src/product_costs.py](src/product_costs.py) | コスト定数の単一の真実 | 2026-05-12 |
+| ファイル | 役割 |
+|---|---|
+| [7STRATEGY_PERFORMANCE_REPORT_20260529.md](7STRATEGY_PERFORMANCE_REPORT_20260529.md) | **E4 指標の一次根拠**（SBI CFD 3.0%/yr ベース、CAGR⓽ OOS+22.4%/min+20.0%） |
+| [g14_wfa_sbi_cfd_summary.csv](g14_wfa_sbi_cfd_summary.csv) | g14 WFA SBI CFD サマリ（CI95_lo⓽=+16.3%、WFE=1.15） |
+| [src/g14_wfa_sbi_cfd.py](src/g14_wfa_sbi_cfd.py) | g14 WFA 実行スクリプト（SBI_CFD_SPREAD=3.0%/yr） |
+| [E4_REGIME_KLT_SWEEP_2026-05-24.md](E4_REGIME_KLT_SWEEP_2026-05-24.md) | E4 パラメータ sweep（構造的採用根拠・64 config PASS 12） |
+| [src/e4_regime_klt.py](src/e4_regime_klt.py) | E4 実装 |
+| [src/product_costs.py](src/product_costs.py) | コスト定数の単一の真実 |
+| [analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md) | 投信環境コスト・執行ラグ・P2/P7/P5 検証 |
 
 ---
 
