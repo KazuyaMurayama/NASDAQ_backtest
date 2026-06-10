@@ -1,7 +1,7 @@
 # 7戦略 × 10指標 批判的検証レポート（v2・レビュー訂正版）
 
 作成日: 2026-06-10
-最終更新日: 2026-06-10（v2: 独立3レビューで発見した DELAY バグ等を訂正。**初版の「ETF/投信 > CFD」結論は撤回**）
+最終更新日: 2026-06-10（v3: realistic WFA 再走・実値反映。DELAY=2+spread修正後NAV使用）
 
 - EVALUATION_STANDARD: v1.6 準拠
 - コスト Scenario: **scenarioD（再現用）** と **realistic（2026-06-10 現実コスト・Option A = 時変SOFR + CFD3.0%スプレッド × レバL）**
@@ -93,7 +93,7 @@
 
 ---
 
-## 2. 現実コスト版 7戦略 × 10指標表（訂正後・Option A full L×）
+## 2. 現実コスト版 7戦略 × 10指標表（v3・Option A full L×）
 
 > realistic full L×（時変SOFR+CFD3.0%×レバL / ETF実TER+米ETF$22売買 / 投信1x TER unhedged）。aftertax は CFD/投信=課税×0.8273、ETF=NISA非課税(pretax)で記載。
 
@@ -107,7 +107,23 @@
 | DH-W1 | ETF | +17.81% | +18.68% | +18.68%(NISA) | 0.835 | −34.64% | +10.11% | 17.6 | — |
 | V0 def | ETF | +16.23% | +17.66% | +17.66%(NISA) | 0.873 | **−28.86%** | +10.34% | 31.2 | — |
 
-> **WFA(CI95_lo/WFE)** は NAV修正に伴い realistic値の再走が必要（**残課題**）。scenarioD のWFAは有効: E4 CI95+27.54/WFE1.221, l5 +20.22/1.509, l7 +20.78/1.494, DH-W1 +14.14/1.106 等。
+### 2b. WFA（修正後 realistic NAV・full L×基準）— 全戦略 52 窓（R8 統一達成）
+
+> 非重複252日窓, IS境界2021-05-08, DELAY=2+spread修正後NAVから算出（v3新規実値）。WFE判定はEVALUATION_STANDARD §3.13準拠: ≤1.2 OK / 1.2–1.5 CAUTION / >1.5 regime_luck。
+
+| 戦略 | 環境 | n_windows | CI95_lo | WFE | t_pvalue | mean_CAGR | WFE判定 | WFA判定 | 解釈注記 |
+|---|---|---:|---:|---:|---:|---:|---|---|---|
+| vz065_l7 | CFD(full) | 52 | **+17.37%** | 1.461 | <0.001 | +30.07% | CAUTION | PASS | OOS偏重: IS期の1980年代高金利コストが重く IS_mean低→WFE高。過学習ではなくコスト構造差 |
+| vz065_l5 | CFD(full) | 52 | **+16.92%** | 1.477 | <0.001 | +27.20% | CAUTION | PASS | 同上。l7より低レバ分コスト軽減でCI95_loはl7と僅差 |
+| P7 | 投信 | 52 | **+17.42%** | 1.133 | <0.001 | +24.55% | OK | PASS | CFDオーバーナイトなし・ETF TER差のみ → WFE安定 |
+| E4 | CFD(full) | 52 | **+16.64%** | 1.211 | <0.001 | +29.20% | CAUTION | PASS | WFE1.21は境界付近。IS高コスト（1980s SOFR15%×L4–7）でIS_mean低い構造的要因 |
+| V7 | ETF | 52 | **+14.23%** | 1.085 | <0.001 | +20.99% | OK | PASS | — |
+| DH-W1 | ETF | 52 | **+13.87%** | 1.107 | <0.001 | +20.51% | OK | PASS | — |
+| V0 | ETF | 52 | **+12.67%** | 1.148 | <0.001 | +18.46% | OK | PASS | MaxDD最良−28.86%、CI95_loは7戦略中最低 |
+
+> CFD感度（(L-1)×borrowed）: E4 CI95+19.69%/WFE1.240, l5 +20.17%/1.490, l7 +20.64%/1.473（full比+3pp、WFEは同パターン）。
+
+> **realistic WFAは修正NAV（DELAY=2・spread=wn×lev×L全体）・full L×基準で算出。** 一次データ: `audit_results/wfa_realistic_summary_20260610.csv`。
 
 ---
 
@@ -157,8 +173,8 @@
    - CFD行を realistic(SBI CFD 3.0%)基準で再掲。リポジトリの+22.4%修正は妥当と確認
 
 ### 既知の限界・残課題
-- realistic の WFA(CI95/WFE) は修正NAVでの再走が未実施（残課題）。
-- CFD財務の **full L× vs (L-1)×** は SBI約款の建玉金利体系の一次確認が必要（+3.6pp差）。
+- ~~realistic の WFA(CI95/WFE) は修正NAVでの再走が未実施~~ → **v3 で解消。§2b 参照**。
+- CFD財務の **full L× vs (L-1)×** は SBI約款の建玉金利体系の一次確認が必要（+3.6pp差）。full L×が公式基準。
 - P7「現+14.90%」はハーネス未再現(+19.33%)。別出典(cash_sleeve sim, 旧split税後)で要個別照合。
 - `PRODUCT_COST_COMPARISON_2026-06-10.md` は branch `claude/review-repository-gKLyi` のみ（main未マージ）。
 
@@ -166,6 +182,7 @@
 
 ## 付録: 一次データ
 `audit_results/audit_{strategy}_{scenarioD,realistic}.csv` + CFD感度 `audit_{e4,vz065_l5,vz065_l7}_realistic_borrowed.csv`。
-検証コード `src/audit/`、テスト `tests/audit/`（19件PASS）。
+WFA サマリ: `audit_results/wfa_realistic_summary_20260610.csv`（v3 新規）。
+検証コード `src/audit/`（`compute_wfa_realistic_20260610.py` 追加）、テスト `tests/audit/`（19件PASS）。
 
 *管理者: 男座員也（Kazuya Oza）*
