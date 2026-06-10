@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用)
+最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加)
 
 ---
 
@@ -19,23 +19,18 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 
 ### v4.5 推奨 Active 候補（環境別）— 標準10指標
 
-> **コスト前提**: CFD 候補 = D+tax（Scenario D + moderate 0.05% spread + §3-A 税後⓽）/ ETF 候補 = D+tax（0.10% spread）
-> **全値⓽税後**（手取り）。§1 Active E4（ⓒ税引前）との**直接比較は不可**（税調整基準が異なる）。
-> CAGRは IS/OOS 両記載。**min(IS,OOS)** = 保守的採用基準値（太字）。
+> **全値⓽税後（手取り）**。CAGR は IS/OOS 両記載、**min(IS,OOS)** = 保守的採用基準値。
 
-| 環境 | 戦略 | **CAGR⓽ IS / OOS（min）** | IS-OOS gap | Sharpeⓒ | MaxDDⓒ | Worst10Y★ⓒ | P10ⓒ 5Y | Tradeⓞ/yr | WFEⓞ | CI95ⓡ_lo | Status |
+| 環境 | 戦略 | **CAGR⓽ IS / OOS（min）** | IS-OOS gap⓽ | Sharpeⓒ | MaxDDⓒ | Worst10Y★ⓒ | P10ⓒ 5Y | Tradeⓞ/yr | WFEⓞ | CI95ⓡ_lo | Status |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | **CFD (主軸, v4.7)** | **vz=0.65+l5+F10ε** | IS +20.16% / OOS +18.93%（**min +18.93%**） | +1.23pp | 0.841 | −56.72% | ~+12.67% | ~+8.75% | 86 | ✅ 1.389 | N/A | 🟢 CFD Active 候補（防御最優先） |
 | ↳ 副候補 (攻め型) | vz=0.65+l7+F10ε | IS +20.23% / OOS +21.49%（**min +20.23%**） | −1.26pp | 0.829 | −65.95% | +9.96% | +4.05% | ~105 | N/A | N/A | 防御弱（MaxDD/Worst10Y/P10 l5 に劣後） |
-| **ETF only (NISA等)** | **DH-W1** (Asymm Hysteresis) | IS **+15.31%** / OOS **+15.74%**（**min +15.31%**）⓽ (ETF課税)<br>_ⓒ pretax: IS+18.10%/OOS+18.88%_ | +0.43pp(⓽) | 0.845 | −34.57% | +10.37% | +4.82% | 68.7 | ✅ 1.023 | +13.61% | 🟡 ETF 環境 Active 候補 |
+| **ETF only (NISA等)** | **DH-W1** (Asymm Hyst) | IS +15.31% / OOS +15.74%（**min +15.31%**） | −0.43pp | 0.845 | −34.57% | +10.37% | +4.82% | 68.7 | ✅ 1.023 | +13.61% | 🟡 ETF 環境 Active 候補 |
+| ↳ overlay MaxDD優先 | **DH-W1 + mom63 V0 def**<br>M6 def {1.1, 1.0, 0.9, 0.8} | IS +14.07% / OOS +15.02%（**min +14.07%**） | −0.95pp | **0.892** | **−28.74%** | +10.75% | +5.21% | ~17.6 | ✅ 1.005 | +13.00% | 🟢 ETF overlay ADOPT（MaxDD+5.8pp改善・S3限定） |
+| ↳ overlay CAGR死守 | **DH-W1 + mom63 V7 boost**<br>M6 def {1.2, 1.1, 1.0, 1.0} | IS +15.74% / OOS +15.96%（**min +15.74%**） | −0.22pp | 0.841 | −34.57% | +11.02% | +5.22% | 26.5 | ✅ 1.029 | +14.06% | 🟡 ETF overlay候補（Bootstrap未実施） |
+| **投信環境 (NISA等)** | **DH-W1 P7** GOLD75/BOND25スリーブ | IS +18.18% / OOS +14.90%（**min +14.90%**） | +3.28pp | 0.827 | −48.23% | +9.92% | +8.05% | N/A | ✅ 1.043 | +16.74% | 🟢 投信環境 Active 候補・中庸推奨⭐ |
 
-> ⚠ **コスト・税の比較注意 (canonical split に統一)**:
-> - **E4 Active**: ⓒ +33.53% / ⓽公式(aftertax_cagr_canonical) **+28.01%**（OOS canonical, IS_END=2021-05-07, ×0.8273 yearly）
-> - **vz=0.65+l5+F10ε**: +18.93% は integrated report §0' ⓽（別経路、別期間）→ E4 ⓽ と直接比較可
-> - **DH-W1**: ⓽ **+15.74%** OOS (canonical, 課税口座) → NISA 内非課税なら pretax +18.88% そのまま
-> - After-tax: yearly ×0.8273 applied to periodized returns, canonical IS/OOS split (2021-05-07)。詳細は SIGNAL_EXPANSION_FINAL_DECISION §3.6
-
-両戦略とも v4.5 STRATEGY_REGISTRY §2 Shortlisted に登録済 (`vz065_l7_F10eps015`、`DH_W1_AsymmHyst`)。**§1 Active への正式昇格 (本ファイル下記「現行ベスト戦略」更新)** は実運用変更を伴うため、ユーザー判断を要する。
+全戦略 STRATEGY_REGISTRY §2 Shortlisted 登録済み。**§1 Active への正式昇格** は実運用変更を伴うためユーザー判断を要する。
 
 ### 棄却された v4.x 改善案 (min ルール下で REF を下回る)
 - **vz=0.65+l7+F10ε-AH/AT/HL** (v4.4 採用→v4.5 棄却) — OOS 単独では魅力的だが min(IS, OOS) で REF 劣後、WFE>1.5 で regime luck 疑い (STRATEGY_REGISTRY §3 Rejected)
