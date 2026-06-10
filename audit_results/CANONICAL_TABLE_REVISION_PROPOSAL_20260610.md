@@ -247,7 +247,8 @@ realistic（full L×）コスト条件下での比較ポイント：
 `EVALUATION_STANDARD §1.1` の「日本居住者税」行の直下または `src/product_costs.py` 参照部分に以下を追記する：
 
 ```markdown
-- **税後 CAGR 乗数**: `0.8273 = 1 - 0.20315`（JP_CAPITAL_GAINS_TAX=20.315%）。
+- **税後 CAGR 乗数**: `0.8273 = 1 − 0.85 × 0.20315`（利益の約85%相当が課税対象との想定。
+  `src/g17_trade_cost_adjustment.py` の `EFFECTIVE_TAX_FACTOR = 1.0 - 0.85 * TAX_RATE` 定義参照）。
   計算スクリプト: `scripts/compute_aftertax_cagr_v3.py`（または `compute_aftertax_cagr_v3_20260607.py`）。
   本スクリプトが canonical split（2021-05-07）での pretax → aftertax 変換の正典実装。
 ```

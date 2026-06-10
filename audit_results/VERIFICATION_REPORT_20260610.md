@@ -1,7 +1,7 @@
 # 7戦略 × 10指標 批判的検証レポート（v2・レビュー訂正版）
 
 作成日: 2026-06-10
-最終更新日: 2026-06-10（v3: realistic WFA 再走・実値反映。DELAY=2+spread修正後NAV使用）
+最終更新日: 2026-06-10（v4: WFA窓設計を正典準拠(canonical/g1_wfa)に修正・WFE解釈訂正）
 
 - EVALUATION_STANDARD: v1.6 準拠
 - コスト Scenario: **scenarioD（再現用）** と **realistic（2026-06-10 現実コスト・Option A = 時変SOFR + CFD3.0%スプレッド × レバL）**
@@ -30,7 +30,7 @@
 ## 0. エグゼクティブサマリ（質問①②③・訂正後）
 
 ### Q1. 同じ基準でバックテストされていたか → **NO**
-- CFD / ETF / 投信の**3別コスト環境**。同一表内で **CAGR=⓽税後 と Sharpe/MaxDD=ⓒ税前 が混在**（R2）。WFA窓数も出典で49〜52と差（統一ハーネスで52窓に統一）。
+- CFD / ETF / 投信の**3別コスト環境**。同一表内で **CAGR=⓽税後 と Sharpe/MaxDD=ⓒ税前 が混在**（R2）。WFA窓数も出典で49〜52と差（v4: 正典窓=49窓(canonical/カレンダー年アンカー)と固定窓=52窓(fixed252)を併記統一）。
 
 ### Q2. コストを正しく反映できていたか → **NO（CFD財務が過少、ただし幅は初版より小）**
 - 旧 sim は CFD財務を `CFD_SPREAD_LOW=0.20%/yr` で計上。現実は `(SOFR+3.0%)×レバL`。
@@ -107,23 +107,49 @@
 | DH-W1 | ETF | +17.81% | +18.68% | +18.68%(NISA) | 0.835 | −34.64% | +10.11% | 17.6 | — |
 | V0 def | ETF | +16.23% | +17.66% | +17.66%(NISA) | 0.873 | **−28.86%** | +10.34% | 31.2 | — |
 
-### 2b. WFA（修正後 realistic NAV・full L×基準）— 全戦略 52 窓（R8 統一達成）
+### 2b. WFA（修正後 realistic NAV・full L×基準）— 正典窓49窓 / 固定窓52窓 両方式（v4更新）
 
-> 非重複252日窓, IS境界2021-05-08, DELAY=2+spread修正後NAVから算出（v3新規実値）。WFE判定はEVALUATION_STANDARD §3.13準拠: ≤1.2 OK / 1.2–1.5 CAUTION / >1.5 regime_luck。
+> DELAY=2+spread修正後NAV使用。IS境界2021-05-08。WFE判定はEVALUATION_STANDARD §3.13準拠: ≤1.2 OK / 1.2–1.5 CAUTION / >1.5 regime_luck。
+>
+> **窓方式について（v4 修正）**: 旧版(v3)は「非重複252日固定窓・NAV先頭起点・52窓」を正典準拠と誤記していた。正典 `src/g1_wfa.py::generate_windows` は**カレンダー年アンカー方式（各年1月〜12月の営業日範囲、EVAL_START=1977-01-03 warmup後）で約49〜50窓**を生成する別方式。以下では**正典窓(canonical, 49窓)**を公式基準とし、旧来の固定窓(fixed252, 52窓)は比較参照値として右列に併記する。
 
-| 戦略 | 環境 | n_windows | CI95_lo | WFE | t_pvalue | mean_CAGR | WFE判定 | WFA判定 | 解釈注記 |
-|---|---|---:|---:|---:|---:|---:|---|---|---|
-| vz065_l7 | CFD(full) | 52 | **+17.37%** | 1.461 | <0.001 | +30.07% | CAUTION | PASS | OOS偏重: IS期の1980年代高金利コストが重く IS_mean低→WFE高。過学習ではなくコスト構造差 |
-| vz065_l5 | CFD(full) | 52 | **+16.92%** | 1.477 | <0.001 | +27.20% | CAUTION | PASS | 同上。l7より低レバ分コスト軽減でCI95_loはl7と僅差 |
-| P7 | 投信 | 52 | **+17.42%** | 1.133 | <0.001 | +24.55% | OK | PASS | CFDオーバーナイトなし・ETF TER差のみ → WFE安定 |
-| E4 | CFD(full) | 52 | **+16.64%** | 1.211 | <0.001 | +29.20% | CAUTION | PASS | WFE1.21は境界付近。IS高コスト（1980s SOFR15%×L4–7）でIS_mean低い構造的要因 |
-| V7 | ETF | 52 | **+14.23%** | 1.085 | <0.001 | +20.99% | OK | PASS | — |
-| DH-W1 | ETF | 52 | **+13.87%** | 1.107 | <0.001 | +20.51% | OK | PASS | — |
-| V0 | ETF | 52 | **+12.67%** | 1.148 | <0.001 | +18.46% | OK | PASS | MaxDD最良−28.86%、CI95_loは7戦略中最低 |
+#### 正典窓 (canonical, 49窓) ← 公式基準
 
-> CFD感度（(L-1)×borrowed）: E4 CI95+19.69%/WFE1.240, l5 +20.17%/1.490, l7 +20.64%/1.473（full比+3pp、WFEは同パターン）。
+| 戦略 | 環境 | n_windows | CI95_lo | WFE | WFE判定 | WFA判定 | 解釈注記 |
+|---|---|---:|---:|---:|---|---|---|
+| vz065_l7 | CFD(full) | 49 | **+16.45%** | 1.328 | CAUTION | PASS | 小標本OOS偏重(postIS4窓)→regime luck疑い。下記WFE注記参照 |
+| vz065_l5 | CFD(full) | 49 | **+16.27%** | 1.348 | CAUTION | PASS | 同上 |
+| P7 | 投信 | 49 | **+16.57%** | 1.042 | OK | PASS | CFDオーバーナイトなし → WFE安定 |
+| E4 | CFD(full) | 49 | **+15.63%** | 1.094 | OK | PASS | 正典窓ではWFE<1.2でOK。固定窓1.211との差は窓設計起因 |
+| V7 | ETF | 49 | **+14.09%** | 0.975 | OK | PASS | — |
+| DH-W1 | ETF | 49 | **+13.69%** | 0.996 | OK | PASS | — |
+| V0 | ETF | 49 | **+12.57%** | 1.043 | OK | PASS | MaxDD最良−28.86% |
 
-> **realistic WFAは修正NAV（DELAY=2・spread=wn×lev×L全体）・full L×基準で算出。** 一次データ: `audit_results/wfa_realistic_summary_20260610.csv`。
+CFD感度（(L-1)×borrowed, canonical): E4 CI95+18.66%/WFE1.132, l5 +19.52%/1.373, l7 +19.70%/1.351。
+
+#### 固定窓 (fixed252, 52窓) ← 比較参照（旧v3公表値）
+
+| 戦略 | 環境 | n_windows | CI95_lo | WFE | WFE判定 | WFA判定 |
+|---|---|---:|---:|---:|---|---|
+| vz065_l7 | CFD(full) | 52 | +17.37% | 1.461 | CAUTION | PASS |
+| vz065_l5 | CFD(full) | 52 | +16.92% | 1.477 | CAUTION | PASS |
+| P7 | 投信 | 52 | +17.42% | 1.133 | OK | PASS |
+| E4 | CFD(full) | 52 | +16.64% | 1.211 | CAUTION | PASS |
+| V7 | ETF | 52 | +14.23% | 1.085 | OK | PASS |
+| DH-W1 | ETF | 52 | +13.87% | 1.107 | OK | PASS |
+| V0 | ETF | 52 | +12.67% | 1.148 | OK | PASS |
+
+CFD感度（borrowed, fixed252): E4 CI95+19.69%/WFE1.240, l5 +20.17%/1.490, l7 +20.64%/1.473。
+
+> **【v4 WFE解釈訂正】** 旧版(v3)の「CFDのWFE>1.2はrealistic IS期高金利コストでIS_mean低下→WFE上昇（過学習でない）」という記述は**因果が逆で誤りであった**。正しくは以下:
+>
+> WFE>1.2の実体は**realisticコストが作ったものではない**。scenarioD時点で既にE4=1.221、vz065_l5=1.509と高く、realisticへの移行でWFEはむしろ僅かに**低下**している（E4: 1.221→1.211[fixed]/1.094[canonical]、vz065_l5: 1.509→1.477[fixed]/1.348[canonical]）。WFEの実体は**postIS窓がわずか4本（2022〜2025年のテック急騰局面）という小標本のregime luck**である。
+>
+> よって vz065 の regime luck 疑い（WFE 1.33〜1.48、scenarioDではl5=1.509>1.5）は**WFEが補強する**方向にある。「過学習でない」という旧版の断定は**撤回**する。正しくは「**小標本OOS(postIS4窓)のregime luckを示唆しており、CFD優位の頑健性は限定的**」。
+>
+> なお**全戦略ともWFA_verdict=PASS**であり、統計的有意性(α基準: CI95_lo>0, t_p<0.05)は維持されている。regime luck疑いはWFE(β基準)のCAUTIONレベルであり、PASSを否定するものではない。
+>
+> **realistic WFAは修正NAV（DELAY=2・spread=wn×lev×L全体）・full L×基準で算出。** 一次データ: `audit_results/wfa_realistic_summary_20260610.csv`（window_method列で方式識別）。
 
 ---
 
@@ -138,7 +164,7 @@
 | R5 | 日次取引コスト反映の不均一 | **確定** | 一部出典が別。realistic統一ハーネスで均一化 |
 | R6 | doc自認の−66bps過少 | **確定・包含** | R7に内包 |
 | R7 | **CFD財務過少計上** | **確定・幅は訂正** | E4 OOS −11.7pp(full)/−8.1pp(borrowed)。**初版の−18ppはDELAYバグ込みで誇張**。リポジトリ+22.4%修正は妥当 |
-| R8 | WFA窓数の差 | **確定・統一** | ハーネスで全戦略52窓 |
+| R8 | WFA窓数の差 | **確定・統一** | 正典窓49窓(canonical/g1_wfa準拠)と固定252日窓52窓を両方式で算出・併記（v4修正）。正典準拠方式が公式基準 |
 | R9 | 近似/N/A未確定 | **解消** | l7 CI95_lo=+20.78%/WFE=1.494(scenarioD)確定、Worst10Y厳密化 |
 | R10 | 表CAGR(税後+暦年/旧split)とpretext再計算の乖離 | **確定** | ETF/投信~+3pp、CFD~+10pp |
 
@@ -173,7 +199,8 @@
    - CFD行を realistic(SBI CFD 3.0%)基準で再掲。リポジトリの+22.4%修正は妥当と確認
 
 ### 既知の限界・残課題
-- ~~realistic の WFA(CI95/WFE) は修正NAVでの再走が未実施~~ → **v3 で解消。§2b 参照**。
+- ~~realistic の WFA(CI95/WFE) は修正NAVでの再走が未実施~~ → **v3 で解消。§2b 参照**。  
+- ~~WFA窓設計がunified_wfa/g1_wfa規約と異なる(52窓固定・1974起点)~~ → **v4 で解消。正典窓(canonical/カレンダー年アンカー・49窓)と固定窓52窓を両方式で算出・§2b 参照**。
 - CFD財務の **full L× vs (L-1)×** は SBI約款の建玉金利体系の一次確認が必要（+3.6pp差）。full L×が公式基準。
 - P7「現+14.90%」はハーネス未再現(+19.33%)。別出典(cash_sleeve sim, 旧split税後)で要個別照合。
 - `PRODUCT_COST_COMPARISON_2026-06-10.md` は branch `claude/review-repository-gKLyi` のみ（main未マージ）。
