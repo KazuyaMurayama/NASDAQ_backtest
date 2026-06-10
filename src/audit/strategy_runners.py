@@ -477,6 +477,263 @@ def _build_nav_vz065_realistic(
     return nav
 
 
+# ---------------------------------------------------------------------------
+# DH-W1 ETF コスト定数
+# ---------------------------------------------------------------------------
+# Realistic TER (ETF actual vs sim proxy)
+_TER_UGL_REAL   = 0.0095   # UGL (Gold 2x): actual 0.95% vs sim 0.49%
+_TER_TMF_REAL   = 0.0106   # TMF: actual 1.06% vs sim 0.91%
+_TER_TQQQ_REAL  = 0.0086   # TQQQ: actual 0.86% (unchanged)
+_TER_UGL_SIM    = 0.0049   # sim proxy (already embedded in build_dh_nav_with_cost via gold_2x)
+_TER_TMF_SIM    = 0.0091   # sim proxy (already embedded via bond_3x)
+_TER_TQQQ_SIM   = 0.0086   # sim proxy (already embedded)
+# Incremental TER drag to add on top of sim (daily)
+_TER_GOLD2X_EXTRA_DAILY = (_TER_UGL_REAL  - _TER_UGL_SIM)  / 252.0   # +0.46%/yr daily
+_TER_TMF_EXTRA_DAILY    = (_TER_TMF_REAL  - _TER_TMF_SIM)  / 252.0   # +0.15%/yr daily
+_TER_TQQQ_EXTRA_DAILY   = (_TER_TQQQ_REAL - _TER_TQQQ_SIM) / 252.0   # 0 (unchanged)
+
+_DH_PER_UNIT = 0.0010  # scenarioD: moderate per-unit turnover cost (same as g23a)
+
+# DH-W1 shared cache (computed once)
+_DHW1_SHARED: dict | None = None
+
+
+def _load_dhw1_shared() -> None:
+    """DH-W1 用共有アセットを一度だけロードしてキャッシュ。"""
+    global _DHW1_SHARED
+    if _DHW1_SHARED is not None:
+        return
+
+    from g14_wfa_sbi_cfd import load_shared_assets
+    from g23a_dh_refinement_variants import hold_mask_W1, DH_PER_UNIT
+    from g18_daily_trade_cost_wfa import build_dh_nav_with_cost
+
+    a = load_shared_assets()
+    mask = hold_mask_W1(a)
+    wn = np.asarray(a["wn_A"]) * mask
+    wg = np.asarray(a["wg_A"]) * mask
+    wb = np.asarray(a["wb_A"]) * mask
+    lev_raw_masked = np.asarray(a["lev_raw"]) * mask
+
+    # scenarioD NAV (build once, reuse)
+    nav_base, _ = build_dh_nav_with_cost(
+        a["close"], lev_raw_masked, wn, wg, wb,
+        a["dates"], a["gold_2x"], a["bond_3x"], a["sofr"], DH_PER_UNIT,
+    )
+
+    _DHW1_SHARED = dict(
+        assets=a,
+        mask=mask,
+        wn=wn,
+        wg=wg,
+        wb=wb,
+        lev_raw_masked=lev_raw_masked,
+        nav_base=nav_base,
+    )
+
+
+def _compute_dhw1_trades_per_year(lev_raw_masked: np.ndarray, dates: pd.Series) -> float:
+    """lev_raw_masked の変化イベント数から Trades/yr を算出。
+
+    定義: リバランスイベント数 = |lev[i] != lev[i-1]| のカウント (wn/wb 変化含む)。
+    """
+    n = len(lev_raw_masked)
+    n_years = n / 252.0
+    change_flag = np.zeros(n, dtype=bool)
+    change_flag[1:] = lev_raw_masked[1:] != lev_raw_masked[:-1]
+    n_trades = int(change_flag.sum())
+    return n_trades / n_years if n_years > 0 else float("nan")
+
+
+def _build_dhw1_nav_realistic(
+    a: dict,
+    wn: np.ndarray,
+    wg: np.ndarray,
+    wb: np.ndarray,
+    lev_raw_masked: np.ndarray,
+    dates: pd.Series,
+) -> pd.Series:
+    """DH-W1 realistic NAV: sim NAV に実TERとETF売買コストを追加控除する。
+
+    アプローチ:
+      1. scenarioD NAV (sim TER 込み) を build_dh_nav_with_cost で構築。
+      2. 実TERとsim TERの差分 (incrementalTER) を日次 × 各アセット配分で追加控除。
+      3. US ETF 売買コスト ($22上限モデル, us_etf_trade_cost_annual) を年率→日次で追加控除。
+      4. FX ヘッジなし (米ETF未ヘッジ)。
+      5. CFD オーバーナイトは適用しない (ETF 群)。
+
+    SOFR financing: sim と同様に時変SOFR×2 を維持 (sim内で bond_3x/gold_2xに埋め込み済み)。
+    """
+    from g18_daily_trade_cost_wfa import build_dh_nav_with_cost
+    from src.audit.product_costs_realistic_20260610 import us_etf_trade_cost_annual
+
+    # Step 1: sim NAV with scenarioD per_unit turnover
+    nav_sim, _ = build_dh_nav_with_cost(
+        a["close"], lev_raw_masked, wn, wg, wb,
+        dates, a["gold_2x"], a["bond_3x"], a["sofr"], _DH_PER_UNIT,
+    )
+
+    # Step 2: incremental TER drag (daily rate)
+    # wg = Gold2x weight * mask, wb = Bond3x(TMF) weight * mask, wn = TQQQ weight * mask
+    wn_arr = np.asarray(wn, dtype=float)
+    wg_arr = np.asarray(wg, dtype=float)
+    wb_arr = np.asarray(wb, dtype=float)
+
+    # Daily incremental TER drag: weight × extra_TER_daily
+    # (proportional to portfolio allocation, already accounts for exposure)
+    ter_drag_daily = (
+        wn_arr * _TER_TQQQ_EXTRA_DAILY
+        + wg_arr * _TER_GOLD2X_EXTRA_DAILY
+        + wb_arr * _TER_TMF_EXTRA_DAILY
+    )
+
+    # Step 3: US ETF trade cost (annual, $22 cap model)
+    trades_per_year = _compute_dhw1_trades_per_year(lev_raw_masked, dates)
+    etf_trade_cost_annual = us_etf_trade_cost_annual(trades_per_year)
+    etf_trade_cost_daily = etf_trade_cost_annual / 252.0
+
+    # Step 4: build adjusted NAV
+    r_sim = np.nan_to_num(nav_sim.pct_change().fillna(0).values, nan=0.0)
+    r_adj = r_sim - ter_drag_daily - etf_trade_cost_daily
+    nav_adj = pd.Series(np.cumprod(1.0 + r_adj), index=nav_sim.index)
+    return nav_adj
+
+
+def run_dhw1(basis: str) -> dict:
+    """DH-W1 (Asymm+Hysteresis, ENTER0.7/EXIT0.3) の NAV を再生成し、10 指標 + NAV を返す。
+
+    ETF 群コスト体系:
+      scenarioD : build_dh_nav_with_cost(per_unit_cost=DH_PER_UNIT=0.0010)
+                  — SOFR financing は _make_nav 内の build_nav_strategy (SBI_CFD_SPREAD) 経由
+      realistic  : TER を実製品値に差替 (UGL 0.95%, TMF 1.06%, TQQQ 0.86%) + 米ETF売買コスト
+                  + 2×SOFR financing (時変) 維持。CFDオーバーナイトは適用しない。
+
+    Parameters
+    ----------
+    basis : str
+        'scenarioD' or 'realistic'
+
+    Returns
+    -------
+    dict with keys: nav, trades_per_year, CAGR_IS, CAGR_OOS, CAGR_FULL,
+        IS_OOS_gap_pp, Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
+    """
+    if basis not in ("scenarioD", "realistic"):
+        raise ValueError(f"basis must be 'scenarioD' or 'realistic', got {basis!r}")
+
+    _load_dhw1_shared()
+    shared = _DHW1_SHARED
+    a = shared["assets"]
+    nav_base = shared["nav_base"]
+    wn = shared["wn"]
+    wg = shared["wg"]
+    wb = shared["wb"]
+    lev_raw_masked = shared["lev_raw_masked"]
+    mask = shared["mask"]
+    dates = a["dates"]
+    dates_dt = pd.to_datetime(dates.values)
+
+    if basis == "scenarioD":
+        nav = nav_base
+    else:  # realistic
+        nav = _build_dhw1_nav_realistic(a, wn, wg, wb, lev_raw_masked, dates)
+
+    nav_dt = pd.Series(nav.values, index=pd.DatetimeIndex(dates_dt))
+
+    trades_per_year = _compute_dhw1_trades_per_year(lev_raw_masked, dates)
+
+    metrics = compute_10metrics(nav_dt, trades_per_year)
+    return {"nav": nav_dt, "trades_per_year": trades_per_year, **metrics}
+
+
+def run_overlay(variant: str, basis: str) -> dict:
+    """DH-W1 + nasdaq_mom63 M6 overlay (V0 defensive / V7 boost) を再生成し、10 指標を返す。
+
+    V0 mapping: {0: 1.10, 1: 1.00, 2: 0.90, 3: 0.80} (defensive)
+    V7 mapping: {0: 1.20, 1: 1.10, 2: 1.00, 3: 1.00} (boost)
+
+    Pipeline: quantile_cut(levels=4) → publication_lag(+1BD) → lev×mask_W1×mult
+
+    Parameters
+    ----------
+    variant : str
+        'V0' or 'V7'
+    basis : str
+        'scenarioD' or 'realistic'
+
+    Returns
+    -------
+    dict with keys: nav, trades_per_year, CAGR_IS, CAGR_OOS, ... (same as run_dhw1)
+    """
+    if variant not in ("V0", "V7"):
+        raise ValueError(f"variant must be 'V0' or 'V7', got {variant!r}")
+    if basis not in ("scenarioD", "realistic"):
+        raise ValueError(f"basis must be 'scenarioD' or 'realistic', got {basis!r}")
+
+    _load_dhw1_shared()
+    shared = _DHW1_SHARED
+    a = shared["assets"]
+    mask = shared["mask"]
+    dates = a["dates"]
+    dates_dt = pd.to_datetime(dates.values)
+    date_index = pd.DatetimeIndex(dates_dt)
+
+    # V0/V7 mapping catalogue (from tune_s3_overlay_20260607.py)
+    _OVERLAY_MAPPINGS = {
+        "V0": {0: 1.10, 1: 1.00, 2: 0.90, 3: 0.80},  # defensive
+        "V7": {0: 1.20, 1: 1.10, 2: 1.00, 3: 1.00},  # pure boost
+    }
+    mapping = _OVERLAY_MAPPINGS[variant]
+
+    # Load macro signal
+    _macro_path = os.path.join(
+        _SRC_DIR, "..", "data", "macro_features.csv"
+    )
+    macro = pd.read_csv(_macro_path, parse_dates=["date"], index_col="date").sort_index()
+    signal_raw = macro["nasdaq_mom63"].dropna()
+
+    # quantile_cut (full sample) then publication lag +1BD
+    from signals.quantize import quantile_cut as _quantile_cut
+    from signals.timing import apply_publication_lag as _apply_lag
+
+    sig_q = _quantile_cut(signal_raw, levels=4)
+    sig_q = sig_q.dropna().astype("int8")
+    sig_lagged = _apply_lag(sig_q, "daily")
+    sig_lagged = sig_lagged[~sig_lagged.index.duplicated(keep="last")]
+
+    # Align to strategy dates
+    sig_aligned = sig_lagged.reindex(date_index).ffill()
+    mult_arr = sig_aligned.map(
+        lambda s: mapping.get(int(s), 1.0) if pd.notna(s) else 1.0
+    ).fillna(1.0).values
+    mult_arr = np.clip(np.asarray(mult_arr, dtype=float), 0.0, 3.0)
+
+    # Apply multiplier to lev_raw_masked (W1 mask already applied)
+    lev_raw_masked_base = shared["lev_raw_masked"]
+    lev_raw_mod = lev_raw_masked_base * mult_arr
+
+    wn = shared["wn"]
+    wg = shared["wg"]
+    wb = shared["wb"]
+
+    from g18_daily_trade_cost_wfa import build_dh_nav_with_cost
+
+    if basis == "scenarioD":
+        nav, _ = build_dh_nav_with_cost(
+            a["close"], lev_raw_mod, wn, wg, wb,
+            dates, a["gold_2x"], a["bond_3x"], a["sofr"], _DH_PER_UNIT,
+        )
+    else:  # realistic
+        nav = _build_dhw1_nav_realistic(a, wn, wg, wb, lev_raw_mod, dates)
+
+    nav_dt = pd.Series(nav.values, index=date_index)
+
+    trades_per_year = _compute_dhw1_trades_per_year(lev_raw_mod, dates)
+
+    metrics = compute_10metrics(nav_dt, trades_per_year)
+    return {"nav": nav_dt, "trades_per_year": trades_per_year, **metrics}
+
+
 def run_vz065(lmax: float, basis: str) -> dict:
     """vz=0.65 + lmax=X + F10ε=0.015 の NAV を再生成し、10 指標 + NAV を返す。
 

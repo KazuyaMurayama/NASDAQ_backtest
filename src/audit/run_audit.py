@@ -51,7 +51,41 @@ if _REPO_ROOT not in sys.path:
 import pandas as pd
 import numpy as np
 
-from src.audit.strategy_runners import run_e4, run_vz065
+from src.audit.strategy_runners import run_e4, run_vz065, run_dhw1, run_overlay
+
+# ---------------------------------------------------------------------------
+# DH-W1 / V0 / V7 旧基準値 (ETF群, canonical split 2021-05-08, 税引前)
+# ---------------------------------------------------------------------------
+REF_DHW1 = {
+    "CAGR_IS":        0.1531,   # +15.31%
+    "CAGR_OOS":       0.1574,   # +15.74%
+    "Sharpe_OOS":     0.845,
+    "MaxDD_FULL":    -0.3457,   # -34.57%
+    "Worst10Y_star":  0.1037,   # +10.37%
+    "Trades_yr":      68.7,     # v4.5 表記 (定義不明 — R4 調査対象)
+    "WFA_WFE":        1.023,
+    "WFA_CI95_lo":    0.1361,   # +13.61%
+}
+
+REF_V0 = {
+    "CAGR_IS":        0.1407,   # +14.07%
+    "CAGR_OOS":       0.1502,   # +15.02%
+    "Sharpe_OOS":     0.892,
+    "MaxDD_FULL":    -0.2874,   # -28.74%
+    "Trades_yr":      17.6,
+    "WFA_WFE":        1.005,
+    "WFA_CI95_lo":    0.1300,   # +13.00%
+}
+
+REF_V7 = {
+    "CAGR_IS":        0.1574,   # +15.74%
+    "CAGR_OOS":       0.1596,   # +15.96%
+    "Sharpe_OOS":     0.841,
+    "MaxDD_FULL":    -0.3457,   # -34.57%
+    "Trades_yr":      26.5,
+    "WFA_WFE":        1.029,
+    "WFA_CI95_lo":    0.1406,   # +14.06%
+}
 
 # ---------------------------------------------------------------------------
 # 旧基準値 (CURRENT_BEST_STRATEGY.md / e4_regime_klt.py 冒頭コメント, 税引前)
@@ -305,7 +339,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="E4 / vz065 パイロット再計算")
     parser.add_argument(
         "--strategy",
-        choices=["e4", "vz065_l5", "vz065_l7"],
+        choices=["e4", "vz065_l5", "vz065_l7", "dhw1", "v0", "v7"],
         default="e4",
     )
     parser.add_argument(
@@ -355,6 +389,27 @@ def main() -> None:
             return run_vz065(7.0, basis)
         def _csv_name(basis):
             return f"audit_vz065_l7_{basis}.csv"
+    elif strategy == "dhw1":
+        strat_label = "DH-W1"
+        ref_old_val = REF_DHW1
+        def _run_strategy(basis):
+            return run_dhw1(basis)
+        def _csv_name(basis):
+            return f"audit_dhw1_{basis}.csv"
+    elif strategy == "v0":
+        strat_label = "V0"
+        ref_old_val = REF_V0
+        def _run_strategy(basis):
+            return run_overlay("V0", basis)
+        def _csv_name(basis):
+            return f"audit_v0_{basis}.csv"
+    elif strategy == "v7":
+        strat_label = "V7"
+        ref_old_val = REF_V7
+        def _run_strategy(basis):
+            return run_overlay("V7", basis)
+        def _csv_name(basis):
+            return f"audit_v7_{basis}.csv"
     else:
         raise ValueError(f"Unknown strategy: {strategy}")
 
