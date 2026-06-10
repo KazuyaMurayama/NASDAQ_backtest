@@ -137,6 +137,13 @@
 3. **CFD財務 (L-1)×借入のみ感度を追加**: full L× と並記（業者が証拠金分にも課金するか未確定のため両論併記）。
 4. **test相対パス修正（MINOR）**。pytest 19件全PASS。
 
+### 再検証で確定（DELAY修正の正しさを証明）
+「DELAY=2修正(レビュー)が正しいのか、DELAY=1初版が正しいのか」を**コスト分離 round-trip テスト**で決着（`src/audit/reverify_delay_diag.py`）:
+- realistic ビルダーのコストを scenarioD と完全同一に設定すると、**DELAY=2 で scenarioD の日次NAVを完全再現**（E4: max|ΔNAV|=0.0、vz065_l5: 4.95e-10）。**DELAY=1 は指数的に乖離**（8.14e+06）。
+- → realistic経路はDELAY=2でscenarioDと構造的に等価＝**realistic化で変わるのはコストのみ。DELAY=2修正は正しく、DELAY=1初版はバグと確定**。
+- 4項目（バグ実在／E4 +21.83%／R7幅−8〜12pp／ランキング撤回）すべて **レビュー(2回目)が正しい**ことを独立確認。確定値 E4 realistic = **+21.83%**（中間値+22.33%もspread過少で誤り）。
+- ④の二面性: ランキング撤回は税引前・min(IS,OOS)で頑健（CFD>ETF）。ただし**after-tax課税後はE4(CFD)のみETF群に逆転**、Sharpe/MaxDDではETF群が優位。「CFD一択」ではない。
+
 ---
 
 ## 4. 結論と推奨（訂正後）
