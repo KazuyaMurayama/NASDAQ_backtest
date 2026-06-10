@@ -1,7 +1,12 @@
 # MULTIASSET CURRENT BEST — 3資産（NASDAQ/Gold/Bond）最終構成（単一の真実）
 
 作成日: 2026-06-08
-最終更新日: 2026-06-08
+最終更新日: 2026-06-10
+
+> ⚠⚠ **2026-06-10 重大訂正**: 本書の統合結果（税後CAGR 最大+8.9%）は **ベンチマーク DH-W1（min税後CAGR +18.10%）に大きく未達＝不採用**。
+> 本タスクの本質は「**NASDAQ/GOLD/BOND/CASH 配分 × レバレッジ の2軸最適化でDH-W1を超える**」こと（下記は超えていない）。
+> **正典扱いしないこと。** 正しい計画は `MULTIASSET_2AXIS_OPTIMIZATION_PLAN_20260609.md`、引き継ぎは `MULTIASSET_SESSION_HANDOFF_20260610.md` を参照。
+> 確定シグナル（Gold=m252_tv0.10_z0.75_mo / Bond=m252_tv0.05_z1.0_wk）と構築モジュールは再利用可。配分・レバの結論は破棄。
 
 > マルチアセット（NASDAQ/Gold/Bond）タイミング戦略の確定構成。これが単一の真実。
 > NASDAQ単独のベストは別途 `CURRENT_BEST_STRATEGY.md`。本書は3資産統合版。

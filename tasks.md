@@ -1,11 +1,20 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-06-07
+最終更新: 2026-06-10
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
 ## 🔴 In Progress
-（なし）
+
+### マルチアセット2軸最適化（NASDAQ/Gold/Bond/Cash × レバレッジ）2026-06-10〜
+> 引き継ぎ必読: [MULTIASSET_SESSION_HANDOFF_20260610.md](MULTIASSET_SESSION_HANDOFF_20260610.md) / 計画: [MULTIASSET_2AXIS_OPTIMIZATION_PLAN_20260609.md](MULTIASSET_2AXIS_OPTIMIZATION_PLAN_20260609.md)
+- [ ] **2軸最適化で DH-W1（min税後CAGR +18.10%, MaxDD −34.57%）を超える**。配分軸に **CASH を含む**。報告は標準10指標・表・太字。
+  - [ ] Phase 0: `leverage_eval.ten_metrics()`（min(IS,OOS)税後CAGR込, split=2021-05-08）追加（TDD）
+  - [ ] Phase 1: `portfolio_engine.py`（4資産×per-assetレバ純コスト後・税後NAV、NASDAQスリーブはDH-W1同等以上）
+  - [ ] Phase 2: `optimize_2axis.py`（配分×レバ結合探索→DH-W1 3軸同時超えフィルタ→動的配分上積み）
+  - [ ] Phase 3-4: WFA/bootstrap確定→10指標太字表→CURRENT_BEST/REGISTRY/tasks更新
+- 確定済シグナル: Gold=`m252_tv0.10_z0.75_mo` / Bond=`m252_tv0.05_z1.0_wk`（WFA+bootstrap PASS）。Bondは分散役（cash超えず）。
+- ⚠ 旧 `MULTIASSET_INTEGRATED_20260608.md` / `MULTIASSET_CURRENT_BEST.md` の配分・レバ結論は **ベンチ未達(+8.9%)で破棄**。構築モジュール・確定シグナルのみ再利用。
 
 ## 🟡 Pending
 
