@@ -377,33 +377,50 @@ def main() -> None:
         action="store_false",
         help="WFA をスキップ",
     )
+    parser.add_argument(
+        "--cfd-notional",
+        choices=["full", "borrowed"],
+        default="full",
+        help=(
+            "CFD オーバーナイトコスト計算モード (realistic のみ有効)。"
+            " full=フルNotional課金 (既定), borrowed=借入分(L-1)×のみ課金 (感度モード)。"
+            " ETF 系戦略 (dhw1/v0/v7/p7) には適用されない。"
+        ),
+    )
     args = parser.parse_args()
 
     bases_to_run = ["scenarioD", "realistic"] if args.basis == "all" else [args.basis]
     strategy = args.strategy
+    cfd_notional = args.cfd_notional
+
+    # borrowed suffix for CSV naming (only applied to realistic)
+    _borrowed_suffix = "_borrowed" if cfd_notional == "borrowed" else ""
 
     # strategy ごとの設定
     if strategy == "e4":
         strat_label = "E4"
         ref_old_val = REF_OLD
         def _run_strategy(basis):
-            return run_e4(basis)
+            return run_e4(basis, cfd_notional=cfd_notional if basis == "realistic" else "full")
         def _csv_name(basis):
-            return f"audit_e4_{basis}.csv"
+            suffix = _borrowed_suffix if basis == "realistic" else ""
+            return f"audit_e4_{basis}{suffix}.csv"
     elif strategy == "vz065_l5":
         strat_label = "vz065_l5"
         ref_old_val = REF_VZ065_L5
         def _run_strategy(basis):
-            return run_vz065(5.0, basis)
+            return run_vz065(5.0, basis, cfd_notional=cfd_notional if basis == "realistic" else "full")
         def _csv_name(basis):
-            return f"audit_vz065_l5_{basis}.csv"
+            suffix = _borrowed_suffix if basis == "realistic" else ""
+            return f"audit_vz065_l5_{basis}{suffix}.csv"
     elif strategy == "vz065_l7":
         strat_label = "vz065_l7"
         ref_old_val = REF_VZ065_L7
         def _run_strategy(basis):
-            return run_vz065(7.0, basis)
+            return run_vz065(7.0, basis, cfd_notional=cfd_notional if basis == "realistic" else "full")
         def _csv_name(basis):
-            return f"audit_vz065_l7_{basis}.csv"
+            suffix = _borrowed_suffix if basis == "realistic" else ""
+            return f"audit_vz065_l7_{basis}{suffix}.csv"
     elif strategy == "dhw1":
         strat_label = "DH-W1"
         ref_old_val = REF_DHW1

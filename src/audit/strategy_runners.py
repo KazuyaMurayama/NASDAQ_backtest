@@ -116,6 +116,7 @@ from src.audit.unified_metrics import compute_10metrics
 from src.audit.product_costs_realistic_20260610 import (
     cfd_overnight_annual,
     cfd_overnight_daily,
+    cfd_overnight_daily_borrowed,
     CFD_SPREAD_ONE_WAY,
 )
 
@@ -196,7 +197,7 @@ def _load_shared() -> dict:
 # ---------------------------------------------------------------------------
 # NAV 構築: realistic コスト置換
 # ---------------------------------------------------------------------------
-_DELAY = 1  # corrected_strategy_backtest.DELAY と同値
+_DELAY = 2  # corrected_strategy_backtest.DELAY と同値 (実値=2)
 
 
 def _build_nav_realistic(
@@ -210,15 +211,17 @@ def _build_nav_realistic(
     bond_3x_nav: np.ndarray,
     sofr_daily: np.ndarray,
     L_s2: pd.Series,
+    cfd_notional: str = "full",
 ) -> pd.Series:
     """
-    Realistic コスト (Option A): 歴史変動SOFR + CFDブローカースプレッド3.0%/yr + フルNotional課金。
+    Realistic コスト (Option A): 歴史変動SOFR + CFDブローカースプレッド3.0%/yr。
 
-    CFD 日次オーバーナイト = cfd_overnight_daily(sofr_daily_t, L_t)
-        = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * L_t
-    すなわち (時変SOFR年率/252 + 3.0%/252) × L_t (フルNotional、L-1倍ではない)
+    cfd_notional='full'  (既定): フルNotional課金
+        CFD 日次オーバーナイト = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * L_t
+    cfd_notional='borrowed': 借入分のみ課金 (感度モード)
+        CFD 日次オーバーナイト = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * max(L_t-1, 0)
 
-    売買コスト: ポジション変化 × 2 × CFD_SPREAD_ONE_WAY (往復スプレッド)
+    売買コスト: 実ポジション全体 wn_s × lev_s × L_shifted の変化 × 2 × CFD_SPREAD_ONE_WAY
 
     NAV 崩壊フロア (-99.9%) 込み。
     """
@@ -240,13 +243,14 @@ def _build_nav_realistic(
     # 時変 SOFR: sofr_daily は load_sofr() が返す日次系列 (DTB3/252相当)
     sofr_arr = np.asarray(sofr_daily, dtype=float)
 
-    # 日次 CFD オーバーナイトコスト (Option A: 歴史変動SOFR × フルNotional)
-    # = (sofr_daily_t + CFD_OVERNIGHT_SPREAD/252) * L_t
-    overnight_daily_arr = np.vectorize(cfd_overnight_daily)(sofr_arr, L_shifted)
+    # 日次 CFD オーバーナイトコスト
+    _overnight_fn = cfd_overnight_daily if cfd_notional == "full" else cfd_overnight_daily_borrowed
+    overnight_daily_arr = np.vectorize(_overnight_fn)(sofr_arr, L_shifted)
 
-    # ポジション変化検出 (DELAY シフト後の L_shifted の差分)
-    L_prev = np.concatenate([[L_shifted[0]], L_shifted[:-1]])
-    pos_change = np.abs(L_shifted - L_prev)
+    # ポジション変化検出: 実ポジション全体 wn_s × lev_s × L_shifted の変化 (g18 正典準拠)
+    full_pos = wn_s * lev_s * L_shifted
+    prev_pos = np.concatenate([[full_pos[0]], full_pos[:-1]])
+    pos_change = np.abs(full_pos - prev_pos)
     # 往復スプレッド: 変化量 × 2 × CFD_SPREAD_ONE_WAY (片道の2倍)
     spread_cost = pos_change * 2.0 * CFD_SPREAD_ONE_WAY
 
@@ -267,7 +271,7 @@ def _build_nav_realistic(
 # ---------------------------------------------------------------------------
 
 
-def run_e4(basis: str) -> dict:
+def run_e4(basis: str, cfd_notional: str = "full") -> dict:
     """E4 (S2_VZGated + LT2-N750 + E4 Regime k_lt, k_lo=0.1, k_hi=0.8, vz_thr=0.7) の
     NAV を生データから再生成し、10 指標 + NAV を返す。
 
@@ -278,6 +282,10 @@ def run_e4(basis: str) -> dict:
         'realistic' — Option A: CFD オーバーナイト = (時変SOFR_daily + 3.0%/252) × L_t
                        (歴史変動SOFR使用, フルNotional課金)
                        + 売買スプレッド = pos_change × 2 × CFD_SPREAD_ONE_WAY
+    cfd_notional : str
+        'full'     (既定): フルNotional課金 (L × overnight_rate)
+        'borrowed' (感度): 借入分のみ課金 (max(L-1,0) × overnight_rate)
+        scenarioD では無視される。
 
     Returns
     -------
@@ -330,6 +338,7 @@ def run_e4(basis: str) -> dict:
             bond_3x,
             sofr,
             L_s2,
+            cfd_notional=cfd_notional,
         )
 
     # calc_7metrics (inside compute_10metrics) needs dates comparable to pd.Timestamp.
@@ -439,11 +448,13 @@ def _build_nav_vz065_realistic(
     bond_3x_nav: np.ndarray,
     sofr_daily: np.ndarray,
     L_s2: pd.Series,
+    cfd_notional: str = "full",
 ) -> pd.Series:
     """vz065 用 realistic NAV (E4 realistic と完全同一手法)。
 
-    overnight = cfd_overnight_daily(sofr_daily_t, L_t) = (sofr_t/252 + 3%/252) × L_t
-    売買コスト = |Δ(L_shifted)| × 2 × CFD_SPREAD_ONE_WAY
+    cfd_notional='full'  (既定): overnight = (sofr_t/252 + 3%/252) × L_t
+    cfd_notional='borrowed': overnight = (sofr_t/252 + 3%/252) × max(L_t-1, 0)
+    売買コスト = |Δ(wn_s × lev_s × L_shifted)| × 2 × CFD_SPREAD_ONE_WAY (g18 正典準拠)
     """
     r_nas = close.pct_change().fillna(0).values
     r_g2 = pd.Series(gold_2x_nav).pct_change().fillna(0).values
@@ -459,10 +470,13 @@ def _build_nav_vz065_realistic(
     L_shifted = pd.Series(L_arr, index=idx).shift(_DELAY).fillna(1.0).values
 
     sofr_arr = np.asarray(sofr_daily, dtype=float)
-    overnight_daily_arr = np.vectorize(cfd_overnight_daily)(sofr_arr, L_shifted)
+    _overnight_fn = cfd_overnight_daily if cfd_notional == "full" else cfd_overnight_daily_borrowed
+    overnight_daily_arr = np.vectorize(_overnight_fn)(sofr_arr, L_shifted)
 
-    L_prev = np.concatenate([[L_shifted[0]], L_shifted[:-1]])
-    pos_change = np.abs(L_shifted - L_prev)
+    # ポジション変化検出: 実ポジション全体 wn_s × lev_s × L_shifted の変化 (g18 正典準拠)
+    full_pos = wn_s * lev_s * L_shifted
+    prev_pos = np.concatenate([[full_pos[0]], full_pos[:-1]])
+    pos_change = np.abs(full_pos - prev_pos)
     spread_cost = pos_change * 2.0 * CFD_SPREAD_ONE_WAY
 
     nas_ret = L_shifted * r_nas - overnight_daily_arr - spread_cost
@@ -889,7 +903,7 @@ def run_p7(basis: str) -> dict:
     return {"nav": nav, "trades_per_year": trades_per_year, **metrics}
 
 
-def run_vz065(lmax: float, basis: str) -> dict:
+def run_vz065(lmax: float, basis: str, cfd_notional: str = "full") -> dict:
     """vz=0.65 + lmax=X + F10ε=0.015 の NAV を再生成し、10 指標 + NAV を返す。
 
     Parameters
@@ -903,6 +917,10 @@ def run_vz065(lmax: float, basis: str) -> dict:
         'realistic' — E4 realistic と同一手法
             overnight = cfd_overnight_daily(sofr_t, L_t) (フルNotional, 時変SOFR),
             売買コスト = CFD_SPREAD_ONE_WAY × pos_change
+    cfd_notional : str
+        'full'     (既定): フルNotional課金
+        'borrowed' (感度): 借入分のみ課金
+        scenarioD では無視される。
 
     Returns
     -------
@@ -958,6 +976,7 @@ def run_vz065(lmax: float, basis: str) -> dict:
             bond_3x,
             sofr,
             L_s2,
+            cfd_notional=cfd_notional,
         )
 
     # Trades per year: g27 と同様に wn_f10 or wb_f10 or L_s2 が変化した日をカウント

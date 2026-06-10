@@ -1,6 +1,6 @@
 from src.audit.product_costs_realistic_20260610 import (
     SOFR_2026, R_USD_FINANCING, FX_HEDGE_COST, cfd_overnight_annual,
-    cfd_overnight_daily, CFD_OVERNIGHT_SPREAD,
+    cfd_overnight_daily, cfd_overnight_daily_borrowed, CFD_OVERNIGHT_SPREAD,
     implicit_financing_annual, us_etf_trade_cost_annual, JP_TAX,
 )
 
@@ -57,3 +57,33 @@ def test_cfd_overnight_daily_uses_cfd_spread_constant():
     # sofr_daily=0 の時: result = CFD_OVERNIGHT_SPREAD / 252.0 * L
     expected = CFD_OVERNIGHT_SPREAD / 252.0 * L
     assert abs(cfd_overnight_daily(sofr_d, L) - expected) < 1e-14
+
+
+def test_cfd_overnight_daily_borrowed_formula():
+    """borrowed モード: (sofr_daily + 3%/252) × max(L-1, 0) — 借入分のみ課金"""
+    sofr_d = 0.04 / 252.0
+    L = 3.0
+    expected = (sofr_d + CFD_OVERNIGHT_SPREAD / 252.0) * (L - 1.0)
+    result = cfd_overnight_daily_borrowed(sofr_d, L)
+    assert abs(result - expected) < 1e-12
+
+
+def test_cfd_overnight_daily_borrowed_vs_full():
+    """borrowed < full for L > 1 (借入分のみ < フルNotional)"""
+    sofr_d = 0.04 / 252.0
+    for L in (2.0, 3.0, 5.0, 7.0):
+        full = cfd_overnight_daily(sofr_d, L)
+        borrowed = cfd_overnight_daily_borrowed(sofr_d, L)
+        assert borrowed < full, f"L={L}: borrowed={borrowed} should be < full={full}"
+
+
+def test_cfd_overnight_daily_borrowed_at_L1():
+    """L=1 の場合: max(L-1,0)=0 なので cost=0"""
+    sofr_d = 0.04 / 252.0
+    assert cfd_overnight_daily_borrowed(sofr_d, 1.0) == 0.0
+
+
+def test_cfd_overnight_daily_borrowed_below_L1():
+    """L < 1 の場合: max(L-1,0)=0 なので cost=0 (ショートなし前提)"""
+    sofr_d = 0.04 / 252.0
+    assert cfd_overnight_daily_borrowed(sofr_d, 0.5) == 0.0

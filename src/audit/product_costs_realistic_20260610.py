@@ -24,3 +24,14 @@ def cfd_overnight_daily(sofr_daily: float, leverage: float) -> float:
 
 def us_etf_trade_cost_annual(trades_per_year: float, portfolio_jpy: float = PORTFOLIO_JPY) -> float:
     return (US_ETF_TRADE_CAP_JPY * trades_per_year) / portfolio_jpy
+
+
+def cfd_overnight_daily_borrowed(sofr_daily: float, leverage: float) -> float:
+    """Daily CFD financing on borrowed amount only (L-1)× notional.
+
+    Sensitivity mode: finances only the borrowed portion (L-1), not full notional L.
+    cost = (sofr_daily + CFD_OVERNIGHT_SPREAD/252) * max(L-1, 0)
+
+    Contrast with cfd_overnight_daily which uses full notional L.
+    """
+    return (sofr_daily + CFD_OVERNIGHT_SPREAD / 252.0) * max(leverage - 1.0, 0.0)

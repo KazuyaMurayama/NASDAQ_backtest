@@ -9,9 +9,12 @@ TDD: unified_wfa.py の公開インターフェースを検証する。
   - WFE ≈ 1.131, CI95_lo ≈ 0.265 (小数)
   - OOS_START_REF = '2021-05-08'
 """
+import os
 import pandas as pd
 import pytest
 from src.audit.unified_wfa import summarize_wfa, WINDOW_LEN, OOS_START_REF
+
+_G3_CSV = os.path.join(os.path.dirname(__file__), '..', '..', 'g3_wfa_e4_per_window.csv')
 
 
 def test_window_constants():
@@ -28,7 +31,7 @@ def test_summary_matches_existing_g3_e4():
       WFE     = 1.130664  (許容 ±0.03)
       CI95_lo = 0.265093  (小数、許容 ±0.01)
     """
-    per = pd.read_csv('g3_wfa_e4_per_window.csv')
+    per = pd.read_csv(_G3_CSV)
 
     # start_date / end_date を datetime に変換
     for col in per.columns:
@@ -54,7 +57,7 @@ def test_summary_matches_existing_g3_e4():
 
 def test_summarize_wfa_returns_required_keys():
     """summarize_wfa の戻り値が最低限のキーを含む。"""
-    per = pd.read_csv('g3_wfa_e4_per_window.csv')
+    per = pd.read_csv(_G3_CSV)
     for col in per.columns:
         if 'date' in col.lower():
             per[col] = pd.to_datetime(per[col])
@@ -71,7 +74,7 @@ def test_summarize_wfa_excludes_short_windows():
 
     short_flag 全True にした場合 → 空 dict か n_windows=0 が返る。
     """
-    per = pd.read_csv('g3_wfa_e4_per_window.csv')
+    per = pd.read_csv(_G3_CSV)
     for col in per.columns:
         if 'date' in col.lower():
             per[col] = pd.to_datetime(per[col])
