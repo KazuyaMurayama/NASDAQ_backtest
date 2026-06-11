@@ -3,6 +3,8 @@
 作成日: 2026-06-11
 最終更新日: 2026-06-11
 
+> **📌 ステータス: 最終確定（2026-06-11 ユーザー承認）** — P09_TQQQ Active候補昇格の評価一式の正典。[CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) / STRATEGY_REGISTRY §2 から参照される。
+>
 > 5年・10年の保有リターンを重視する観点で、v7候補（**V7-TQQQ / P09_TQQQ（Active候補）/ LU1 / vz065_l5**）を **標準10指標＋ローリング5y/10y分布＋6次元スコアカード**で評価。全て税後（×0.8273、特定口座20.315%課税。**TQQQ等レバ型はNISA対象外**）。
 > 一次根拠: `src/audit/horizon_returns_20260611.py` / `audit_results/horizon_returns_20260611.csv`、スコア配分は本文 §3。
 

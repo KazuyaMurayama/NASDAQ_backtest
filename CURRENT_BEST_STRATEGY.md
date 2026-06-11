@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)** / **2026-06-11 v6 (ETF指定戦略 DH-W1/V0/V7/P7 の NASDAQ脚コストを CFD→TQQQ に是正。設計商品TQQQの正値で点指標を更新: DH-W1 min +14.73→+15.85%, V0 +13.43→+14.27%, V7 +15.07→+16.27%, P7 +15.84→+16.92%。CFD環境(E4/vz065)は不変。WFA列は†CFD基準据置・TQQQ再計算pending)** / **2026-06-11 v7 (ベスト候補再構成: CFD戦略 E4/vz065_l7 と ETF DH-W1/V0 を §アーカイブへ退避[削除せず指標保存]、vz065_l5 はCFD候補として残置[ユーザー判断]、V7-TQQQ/P09_TQQQ/LU1 を主候補・LU2 を別枠に追加。v6 の † WFA を TQQQ基準・正典窓49窓で再計算し確定[CFD分枝が旧†値を dWFE≤0.0002 で再現]、† 解除。CI95_lo: V7 +14.09→+15.48 / P7 +16.57→+17.85。標準10指標列を compute_10metrics §3.12 と全件整合確認。E4 は本番Active継続中=切替はユーザー判断)**
+最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)** / **2026-06-11 v6 (ETF指定戦略 DH-W1/V0/V7/P7 の NASDAQ脚コストを CFD→TQQQ に是正。設計商品TQQQの正値で点指標を更新: DH-W1 min +14.73→+15.85%, V0 +13.43→+14.27%, V7 +15.07→+16.27%, P7 +15.84→+16.92%。CFD環境(E4/vz065)は不変。WFA列は†CFD基準据置・TQQQ再計算pending)** / **2026-06-11 v7 (ベスト候補再構成: CFD戦略 E4/vz065_l7 と ETF DH-W1/V0 を §アーカイブへ退避[削除せず指標保存]、vz065_l5 はCFD候補として残置[ユーザー判断]、V7-TQQQ/P09_TQQQ/LU1 を主候補・LU2 を別枠に追加。v6 の † WFA を TQQQ基準・正典窓49窓で再計算し確定[CFD分枝が旧†値を dWFE≤0.0002 で再現]、† 解除。CI95_lo: V7 +14.09→+15.48 / P7 +16.57→+17.85。標準10指標列を compute_10metrics §3.12 と全件整合確認。E4 は本番Active継続中=切替はユーザー判断)** / **2026-06-11 v7.2 (P09_TQQQ Active候補昇格を反映、最終確定評価レポート HORIZON_AND_SCORECARD_20260611.md への参照を追加[6次元スコアカード P09 8.12首位級・5y/10y分布・年次リターン表]、一次根拠ファイル表に同レポートと EVALUATION_UPGRADE_RESULTS_20260611.md を追加)**
 
 ---
 
@@ -41,6 +41,9 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | **LU2** uniform IN ×1.15 | IS +20.63% / OOS +18.83%（**min +18.83%**） | +1.80pp | 0.872 | −38.68% | +12.37% | +6.70% | 29.2 | **0.988** | +19.74% | ⚠ **保有日66%が実効>3×＝CFD/信用必須**（超過分SOFR+3.0%計上済）。**WFE 0.988<1.0**（postIS汎化やや弱）。CAGR優位は形でなく一律レバ増。CFD格下げ方針と整合させるなら本枠は採用慎重 |
 
+> **v7.2 注記 (2026-06-11) ─ 最終確定評価レポート**
+> P09_TQQQ Active候補昇格の評価一式（標準10指標・ローリング5y/10y分布・6次元スコアカード P09 8.12 ≈ LU1 8.09 > V7 6.93 ≫ vz065_l5 3.57ベト失格・年次リターン表 LU1/P09/NASDAQ1X B&H 1974–2026）は **[HORIZON_AND_SCORECARD_20260611.md](HORIZON_AND_SCORECARD_20260611.md) を最終確定レポート**とする。拡張評価（CPCV/レジーム層別/ストレス窓/bootstrap）の一次根拠は [EVALUATION_UPGRADE_RESULTS_20260611.md](EVALUATION_UPGRADE_RESULTS_20260611.md)。
+>
 > **v7 注記 (2026-06-11) ─ ベスト候補の再構成（CFD退避＋TQQQ基準WFA確定＋攻め候補追加）**
 > - **CFD退避**: E4 RegimeKLT・vz065_l7 を §アーカイブへ移動。**vz065_l5 は CFD候補として残置**（ユーザー判断 2026-06-11、CFDを選択肢に残すため）。退避根拠は「TQQQ是正でCFDが劣後」**ではない**（是正はETF脚のみでCFD数値は不変）。正しい理由は **NISA非課税かつMaxDD/Sharpe重視という選好の下では、20.3%課税＋MaxDD−65%(E4)/−68%(l7)＋Sharpe0.678(E4) のCFDは非選好**。E4は本番Active継続中＝実運用切替はユーザー判断。
 > - **TQQQ基準WFA確定（† 解除）**: v6 で仮置きだった WFEⓞ/CI95ⓡ_lo 列を TQQQ基準・正典窓(49窓)で再計算。CFD分枝が旧†値を **dWFE≤0.0002 / dCI95≤0.005pp で再現**（harness健全）。TQQQ基準では CI95_lo が +1.0〜1.3pp 上昇（DH-W1 +13.69→+14.99 / V0 +12.57→+13.55 / V7 +14.09→**+15.48** / P7 +16.57→**+17.85**）、WFE は比率のため不変。全行 β(WFE∈[0.5,2.0])・α(CI95>0&t_p<0.05) PASS。一次根拠 `audit_results/tqqq_wfa_recompute_20260611.csv`。
@@ -50,7 +53,7 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 >
 > **旧 v6/v5 注記（履歴）**: ETF脚 CFD→TQQQ コスト是正（点指標 +0.84〜1.20pp、ランキング不変 P7>V7>DH-W1>V0、CFD版0.00pp再現）と、realistic full L×・正典窓49窓基準の確立。詳細は git log（v5/v6 コミット）参照。
 
-**P09_TQQQ** は STRATEGY_REGISTRY §2 Shortlisted 登録済み。**V7-TQQQ / LU1 / LU2 の §2 登録は次工程**（本表が一次根拠）。**正式 Active 昇格**（実運用変更）はユーザー判断を要する。退避した CFD戦略は下記 §アーカイブに全指標を保存。
+**P09_TQQQ** は STRATEGY_REGISTRY §2 に **Active候補（2026-06-11昇格・ユーザー承認）** 登録済み（評価一式は [HORIZON_AND_SCORECARD_20260611.md](HORIZON_AND_SCORECARD_20260611.md)）。**V7-TQQQ / LU1 / LU2 の §2 登録は次工程**（本表が一次根拠）。**本番運用切替（E4→P09、GAS通知システム）は実装計画進行中**。退避した CFD戦略は下記 §アーカイブに全指標を保存。
 
 ### 📦 アーカイブ（2026-06-11 v7 で主候補から退避・指標は保存）
 
@@ -125,6 +128,8 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 
 | ファイル | 役割 |
 |---|---|
+| [HORIZON_AND_SCORECARD_20260611.md](HORIZON_AND_SCORECARD_20260611.md) | **P09_TQQQ Active候補昇格の最終確定レポート**（標準10指標・5y/10y分布・6次元スコアカード・年次リターン表） |
+| [EVALUATION_UPGRADE_RESULTS_20260611.md](EVALUATION_UPGRADE_RESULTS_20260611.md) | 拡張評価一次根拠（CPCV45折・レジーム層別・ストレス窓・bootstrap） |
 | [7STRATEGY_PERFORMANCE_REPORT_20260529.md](7STRATEGY_PERFORMANCE_REPORT_20260529.md) | **E4 指標の一次根拠**（SBI CFD 3.0%/yr ベース、CAGR⓽ OOS+22.4%/min+20.0%） |
 | [g14_wfa_sbi_cfd_summary.csv](g14_wfa_sbi_cfd_summary.csv) | g14 WFA SBI CFD サマリ（CI95_lo⓽=+16.3%、WFE=1.15） |
 | [src/g14_wfa_sbi_cfd.py](src/g14_wfa_sbi_cfd.py) | g14 WFA 実行スクリプト（SBI_CFD_SPREAD=3.0%/yr） |
