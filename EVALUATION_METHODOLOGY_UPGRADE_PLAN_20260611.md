@@ -28,7 +28,7 @@
 ## 2. 提案する評価フレーム（推奨順）
 
 ### 2.1 【主指標へ格上げ】拡張ウォークフォワード（rolling / expanding WFA）
-- 既存 `src/g1_wfa.py`（正典窓49窓, WINDOW=252）の **out-of-sample CI95下限** を headline 採否指標に格上げ。min(IS,OOS) は補助に降格。
+- 既存 `src/g1_wfa.py`（正典窓49窓, WINDOW=252）の **out-of-sample CI95下限** を採否の主指標級に格上げし、**min(IS,OOS) と並べて co-primary で提示**（min は降格せず両睨み。主従確定は Phase 4 後）。
 - 追加: **expanding-origin**（学習窓を伸ばしながら次1年を検証）と **rolling-origin**（固定長窓をスライド）の両方を出し、窓を跨ぐ汎化を直接測る。
 - 採否ゲート（β/α は現行 §3.9/§3.10 を踏襲）: WFE∈[0.5,2.0] かつ **CI95_lo>0 かつ t_p<0.05**。
 
@@ -64,7 +64,7 @@
 
 | # | 指標 | 現行 | 提案 | 理由 |
 |---|---|---|---|---|
-| A | **採否 headline** | min(IS,OOS) CAGR⓽ | → **WFA CI95_lo⓽** を headline、min(IS,OOS) は補助 | 窓跨ぎ汎化を主指標化 |
+| A | **採否 headline** | min(IS,OOS) CAGR⓽ | → **min(IS,OOS) と WFA CI95_lo⓽ を併記し co-primary（両睨み）**。主従の確定は拡張評価の結果を見てから（ユーザー判断 2026-06-11） | min CAGR も妥当性あり。窓跨ぎ汎化を加えて両方で見る |
 | B | **新規: CPCV_p10 CAGR⓽** | なし | CPCV 折分布の第10パーセンタイル | 「悪い折でもこの水準」= 真のロバスト下限 |
 | C | **新規: CPCV_worst_fold⓽** | なし | 最悪折の CAGR / MaxDD | 1局面依存の検出 |
 | D | **新規: Regime_min CAGR⓽** | なし | Bull/Bear/HighVol/金利↑↓ の最小レジームCAGR | 全レジーム下限 |
@@ -76,7 +76,7 @@
 - **強昇格(Active候補)**: WFA(α∩β) ∧ CPCV_p10>baseline ∧ Regime_min>0 ∧ bootstrap多指標 P>0.90。
 - **条件付き(Shortlist)**: WFA(α∩β) PASS だが bootstrap非有意 or 単一レジーム劣後（**現P09_TQQQはここ**）。
 - **棄却**: WFE>2.0(regime luck) or CPCV最悪折で大幅劣後 or Regime_min<0。
-- min(IS,OOS) は「保守的参考値」として残すが**単独採否には使わない**。
+- **min(IS,OOS) と WFA CI95_lo は当面 co-primary（両方提示）**。どちらを主にするか（または合成するか）は **Phase 4 の拡張評価結果を見てユーザーが確定**（2026-06-11 判断）。min CAGR は妥当性があるため補助降格はせず、両睨みで採否を判断する。
 
 ---
 
@@ -119,7 +119,7 @@
 
 ## 6. 確定までにユーザー判断が要る点
 
-1. **採否 headline を WFA CI95_lo に切替**えてよいか（min(IS,OOS) を補助降格）。
+1. ~~採否 headline を WFA CI95_lo に切替えてよいか~~ → **決定済 (2026-06-11): 当面は min(IS,OOS) と WFA CI95_lo を co-primary で両提示し、主従の確定は Phase 4 結果を見てから**。CFD（vz065_l5 を残置）が指標変更で再評価される可能性も考慮する。
 2. レジームラベルの定義（トレンド+ボラ+金利で機械ラベル / 手動イベント窓のどちら主体か）。
 3. CPCV のブロック数N・テスト折k・embargo日数（既定 N=8,k=2,embargo21 を推奨）。
 4. この評価系を **どの候補から** 先に回すか（推奨: 攻め候補 P09_TQQQ / LU1 を最優先＝採否が割れている）。
