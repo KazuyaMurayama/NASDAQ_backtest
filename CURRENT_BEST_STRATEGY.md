@@ -4,7 +4,7 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)**
+最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)** / **2026-06-11 v6 (ETF指定戦略 DH-W1/V0/V7/P7 の NASDAQ脚コストを CFD→TQQQ に是正。設計商品TQQQの正値で点指標を更新: DH-W1 min +14.73→+15.85%, V0 +13.43→+14.27%, V7 +15.07→+16.27%, P7 +15.84→+16.92%。CFD環境(E4/vz065)は不変。WFA列は†CFD基準据置・TQQQ再計算pending)**
 
 ---
 
@@ -28,11 +28,19 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 | **§1 Active（比較基準）** | **E4 RegimeKLT**<br>S2+LT2, k_lo=0.1, k_hi=0.8<br>vz_thr=0.7, CFD | IS +16.93% / OOS +18.06%（**min +16.93%**） | **−1.13pp** | **0.678** | −65.05% | **+5.82%** | **−0.68%** | **27.1** | ✅ 1.094 | **+15.63%** | ◆ §1 Active（WFA G3 PASS・realistic full L× 正典窓49窓。旧 g14 (L-1)×基準 +22.4% は借入基準差・SOFR計上差により廃止） |
 | **CFD Active候補 (v4.7)** | **vz=0.65+l5 (vz065_l5)** | IS +16.84% / OOS +20.85%（**min +16.84%**） | −4.01pp | 0.769 | −59.08% | +6.55% | +2.42% | 84.9 | 1.348 | +16.27% | WFE 1.35 CAUTION(postIS4窓 regime luck疑い)。full L×正典窓検証済み |
 | ↳ 副候補 (攻め型) | vz=0.65+l7 (vz065_l7) | IS +16.81% / OOS +22.47%（**min +16.81%**） | −5.66pp | 0.764 | −68.44% | +6.27% | −1.64% | 104.7 | 1.328 | +16.45% | WFE 1.33 CAUTION(postIS4窓 regime luck疑い)。MaxDD深化・Trades多でリスク高 |
-| **ETF only (NISA等)** | **DH-W1** (Asymm Hyst) | IS +14.73% / OOS +15.46%（**min +14.73%**） | −0.72pp | 0.835 | −34.64% | +8.37% | +3.77% | 17.6 | ✅ 0.996 | +13.69% | 🟡 ETF 環境 Active 候補 |
-| ↳ overlay MaxDD優先 | **DH-W1 + mom63 V0 def**<br>M6 def {1.1, 1.0, 0.9, 0.8} | IS +13.43% / OOS +14.61%（**min +13.43%**） | −1.18pp | **0.873** | **−28.86%** | +8.55% | +3.99% | 31.2 | ✅ 1.043 | +12.57% | 🟢 ETF overlay ADOPT（MaxDD+5.8pp改善・S3限定） |
-| ↳ overlay CAGR死守 | **DH-W1 + mom63 V7 boost**<br>M6 def {1.2, 1.1, 1.0, 1.0} | IS +15.07% / OOS +15.59%（**min +15.07%**） | −0.52pp | 0.827 | −34.66% | +8.83% | +4.03% | 25.2 | ✅ 0.975 | +14.09% | 🟡 ETF overlay候補（Bootstrap未実施） |
-| **投信環境 (NISA等)** | **DH-W1 P7** GOLD75/BOND25スリーブ | IS +17.79% / OOS +15.84%（**min +15.84%**） | +1.95pp | 0.818 | −48.25% | +10.16% | +5.42% | 17.6 | ✅ 1.042 | +16.57% | 🟢 投信環境 Active 候補・中庸推奨⭐ |
+| **ETF only (NISA等)** | **DH-W1** (Asymm Hyst) | IS +15.85% / OOS +16.60%（**min +15.85%**） | −0.75pp | 0.883 | −34.44% | +9.54% | +4.79% | 17.6 | ✅ 0.996† | +13.69%† | 🟡 ETF 環境 Active 候補（v6: TQQQ-cost是正 +1.12pp） |
+| ↳ overlay MaxDD優先 | **DH-W1 + mom63 V0 def**<br>M6 def {1.1, 1.0, 0.9, 0.8} | IS +14.27% / OOS +15.41%（**min +14.27%**） | −1.14pp | **0.912** | **−28.71%** | +9.49% | +4.81% | 31.2 | ✅ 1.043† | +12.57%† | 🟢 ETF overlay ADOPT（v6: TQQQ-cost是正 +0.84pp・MaxDD改善維持） |
+| ↳ overlay CAGR死守 | **DH-W1 + mom63 V7 boost**<br>M6 def {1.2, 1.1, 1.0, 1.0} | IS +16.27% / OOS +16.80%（**min +16.27%**） | −0.53pp | 0.877 | −34.47% | +10.08% | +5.15% | 25.2 | ✅ 0.975† | +14.09%† | 🟡 ETF overlay候補（v6: TQQQ-cost是正 +1.20pp） |
+| **投信環境 (NISA等)** | **DH-W1 P7** GOLD75/BOND25スリーブ | IS +18.89% / OOS +16.92%（**min +16.92%**） | +1.97pp | 0.861 | −48.10% | +11.41% | +6.38% | 17.6 | ✅ 1.042† | +16.57%† | 🟢 投信環境 Active 候補・中庸推奨⭐（v6: TQQQ-cost是正 +1.09pp） |
 
+> **v6 注記 (2026-06-11) ─ ETF環境のNASDAQ脚コストモデル是正（CFD→TQQQ）**
+> - **是正内容**: ETF指定戦略（**DH-W1 / V0 / V7 / P7**）の NASDAQ 脚は、エンジン既定の継承で **CFD財務（SOFR+3.0%×(L-1)≈19.9%/yr@3x）** で計上されていたが、これらは設計上 **TQQQ ETF（2×SOFR+swap0.5%+TER0.86%≈9.1%/yr）** で保有する戦略。設計商品 TQQQ のコストに是正した。
+> - **効果（税後 min(IS,OOS)）**: DH-W1 +14.73→**+15.85%**(+1.12pp) / V0 +13.43→**+14.27%**(+0.84pp) / V7 +15.07→**+16.27%**(+1.20pp) / P7 +15.84→**+16.92%**(+1.09pp)。ランキング不変（P7>V7>DH-W1>V0）。Sharpe も +0.04〜0.05 改善、MaxDD はほぼ不変。
+> - **検証**: 全戦略 harness が CFD版で既存 `run_*('realistic')` を **0.00pp** 再現（gate PASS）。ボラドラッグは両版とも同一 `L·r` 日次cumprodに内包＝差は財務コスト項のみ（二重計上なし）。一次根拠 `audit_results/tqqq_correction_etf_strategies_20260611.csv`。
+> - **適用範囲**: **ETF指定戦略のみ**。§1 Active(E4)・vz065 等の **CFD環境戦略は CFD基準を維持**（CFDで実運用するため正しい）。
+> - **† 注記（WFA pending）**: WFEⓞ / CI95ⓡ_lo 列は **CFD基準のまま**（TQQQでのWFA再計算は次工程）。点指標(CAGR/Sharpe/MaxDD/Worst10Y/P10)のみTQQQ是正済み。WFE方向はIS/OOS窓を等しく動かすため結論不変見込み。
+> - **NISA非課税**: ETF/投信は税前ⓒ=手取り。TQQQ是正後 DH-W1 pretax min ≈ +19.16%、V7 ≈ +19.67%、P7 ≈ +20.45%（×1/0.8273）。
+>
 > **v5 注記 (2026-06-11)**
 > - (i) **基準**: realistic full L×（SBI CFD建玉金利=想定元本全額）・正典窓(49窓)WFA。CAGR⓽ = pretax × 0.8273(税20.315%)。Sharpeⓒ / MaxDDⓒ は税前。
 > - (ii) **二面性**: 税引前では CFD(E4/vz065)が CAGR 上位だが、(a) postIS4窓 regime luck 疑い(vz065 WFE>1.3 CAUTION)、(b) after-tax 20.315% 課税 vs ETF/投信 NISA非課税、(c) MaxDD −65% 超(E4)/−68%(vz065_l7) vs DH-W1 −34%/V0 −28%、(d) Sharpe 0.678(E4) vs 0.873(V0)/0.835(DH-W1) で ETF・投信が多指標優位。**CFD 一択ではない**。
