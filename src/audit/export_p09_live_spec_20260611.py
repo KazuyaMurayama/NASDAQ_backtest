@@ -19,9 +19,16 @@ Exports two artifacts for the GAS port:
 2) audit_results/p09_golden_vectors_20260611.csv
    Daily intermediates for the FULL chain over the last N_GOLDEN business
    days (default 756 = ~3y), used for 1:1 parity testing of the GAS port:
-     close, lev_raw, wn_A/wg_A/wb_A, vz, lt_sig, lev_mod_065, w1_mask,
-     mom63, mom63_q(lagged), mult_p09/mult_lu1, L_p09/L_lu1 (DELAY-shifted),
-     fund_active, gold_1x, bond_1x, w_g, w_b, bond_on, w_b_eff.
+     t_index (absolute row index since 1974 -- anchors the weekly
+     inverse-vol update cadence t%5==0), close, lev_raw, wn_A/wg_A/wb_A,
+     vz, lt_sig, lev_mod_065, w1_mask, mom63, mult_p09/mult_lu1,
+     L_p09/L_lu1 (DELAY-shifted), fund_active, gold_1x, bond_1x,
+     w_g, w_b, bond_on, w_b_eff.
+
+3) audit_results/p09_close_history_20260611.csv
+   date,close for the last N_CLOSE_HIST (3,100) business days from the
+   research dataset, so the GAS LT2-N750 port can be parity-tested on
+   identical input (LT2 needs ~2,250 prior days for a full window).
 
 ASCII-only prints. Saves into repo; no commit.
 """
@@ -63,7 +70,8 @@ from g23a_dh_refinement_variants import ENTER_THR_W1, EXIT_THR_W1, hold_mask_W1
 from long_cycle_signal import build_lt_signal
 from corrected_strategy_backtest import THRESHOLD
 
-N_GOLDEN = 756  # ~3 years of business days
+N_GOLDEN = 756      # ~3 years of business days
+N_CLOSE_HIST = 3100  # close history rows for LT2 parity (2250 warmup + golden)
 
 
 def main():
@@ -144,6 +152,7 @@ def main():
     # ---- golden vectors CSV (last N_GOLDEN rows) ----
     sl = slice(n - N_GOLDEN, n)
     gv = pd.DataFrame({
+        "t_index": np.arange(n)[sl],
         "date": dates_dt[sl].strftime("%Y-%m-%d"),
         "close": np.asarray(close.values, float)[sl],
         "lev_raw": lev_raw[sl],
@@ -166,6 +175,16 @@ def main():
     gv.to_csv(out_csv, index=False, float_format="%.8f")
     print("Saved golden vectors: %s (%d rows, %s .. %s)"
           % (out_csv, len(gv), gv["date"].iloc[0], gv["date"].iloc[-1]))
+
+    # ---- close history CSV (LT2 parity warmup + golden window) ----
+    slh = slice(n - N_CLOSE_HIST, n)
+    ch = pd.DataFrame({
+        "date": dates_dt[slh].strftime("%Y-%m-%d"),
+        "close": np.asarray(close.values, float)[slh],
+    })
+    out_ch = os.path.join(_REPO_DIR, "audit_results", "p09_close_history_20260611.csv")
+    ch.to_csv(out_ch, index=False, float_format="%.6f")
+    print("Saved close history: %s (%d rows, %s ..)" % (out_ch, len(ch), ch["date"].iloc[0]))
 
     # ---- spec JSON ----
     spec = {
