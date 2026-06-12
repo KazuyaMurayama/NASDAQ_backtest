@@ -1,10 +1,18 @@
 # Tasks — nasdaq_backtest
 
-最終更新: 2026-06-10
+最終更新: 2026-06-12
 
 > 🎯 **「ベスト戦略は？」と問われたら、まず [CURRENT_BEST_STRATEGY.md](CURRENT_BEST_STRATEGY.md) を読むこと。**
 
 ## 🔴 In Progress
+
+### P09_TQQQ GAS並走運用（2026-06-11〜・NASDAQ-strategy-gas リポと連携）
+> 正典手順: NASDAQ-strategy-gas/docs/P09_GAS_MIGRATION_PLAN_20260611.md
+- [x] 凍結spec/golden エクスポート（`export_p09_live_spec_20260611.py`）・Python/JS パリティ証明（7チェック PASS）
+- [x] 実機 installP09 デプロイ（PARITY ALL PASS）→ 並走開始（2026-06-11）
+- [x] 通知フォワードリターンを **P09実戦略ビン別表**へ置換（[P09_FORWARD_RETURN_REPORT_20260612.md](P09_FORWARD_RETURN_REPORT_20260612.md)。最強ブーストIN_Q0_hi=+121%/年・勝率69%）
+- [ ] 並走2〜4週監視（〜2026-07上旬目安）→ Phase 4.4 切替判断（E4→P09、ユーザー承認）
+- [ ] **年1回（次回2027-06目安）**: mom63凍結四分位境界＋フォワードリターン表の再生成（`p09_forward_return_20260612.py` 再実行→GAS定数更新→変更レポート）
 
 ### マルチアセット2軸最適化（NASDAQ/Gold/Bond/Cash × レバレッジ）2026-06-10〜
 > 引き継ぎ必読: [MULTIASSET_SESSION_HANDOFF_20260610.md](MULTIASSET_SESSION_HANDOFF_20260610.md) / 計画: [MULTIASSET_2AXIS_OPTIMIZATION_PLAN_20260609.md](MULTIASSET_2AXIS_OPTIMIZATION_PLAN_20260609.md)
