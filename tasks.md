@@ -6,6 +6,15 @@
 
 ## 🔴 In Progress
 
+### IS高CAGR再発掘×レバ強化（2026-06-12 検証完了・昇格審議待ち）
+> 正典: [REEVALUATION_AND_LEVERUP_PLAN_20260612.md](REEVALUATION_AND_LEVERUP_PLAN_20260612.md) / 結果: [REEVALUATION_RESULTS_20260612.md](REEVALUATION_RESULTS_20260612.md)（Phase A）+ [LEVERUP_SWEEP_RESULTS_20260612.md](LEVERUP_SWEEP_RESULTS_20260612.md)（Phase B/C・6次元採点）
+- [x] A1: F10ε/F8-R5/F7v3/vz065_l7 realistic再計算 → **全CLOSE**（IS⓽16.6〜16.8%・MaxDD−67〜−69%）。P01_w63もCLOSE
+- [x] B1: LU2フルゲート初通過（ベト無し）。C1（bondOFF日SOFR計上）= 全戦略+0.25pp
+- [x] B2-B4: 44構成スイープ → min⓽≥20%が12構成・ベト抵触ゼロ。B4(post-hoc条件付きブースト)はTop8に残らずクローズ
+- [x] C4: >3x超過分をくりっく株365へ（コスト2.5%→0.25%/yr）→ B3系+0.3〜0.4pp
+- [ ] **昇格審議（ユーザー判断）**: 主推奨 **B3a_k365**（Q0/Q1=1.40×uniform1.15×C1×k365）= min⓽ **+20.98%**・CI95_lo +22.52%・MaxDD−38.2%・総合8.28>P09 8.12。代替: B3c_k365（総合8.35・MaxDD−37.1%）/ LU2_C1_k365。**7月上旬のE4→P09切替判断と一体審議を推奨**
+- [ ] 承認時: CURRENT_BEST/STRATEGY_REGISTRY 反映＋GAS CONFIG切替。C1/C4は採否と独立に実運用ガイド化推奨
+
 ### P09_TQQQ GAS並走運用（2026-06-11〜・NASDAQ-strategy-gas リポと連携）
 > 正典手順: NASDAQ-strategy-gas/docs/P09_GAS_MIGRATION_PLAN_20260611.md
 - [x] 凍結spec/golden エクスポート（`export_p09_live_spec_20260611.py`）・Python/JS パリティ証明（7チェック PASS）
