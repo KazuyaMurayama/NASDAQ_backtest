@@ -1,0 +1,5 @@
+﻿label,mode,veto,veto_flags,d1_ret,d2_rob,d3_risk,d4_tail,d5_cost,d6_sig,total_bal,total_cagr
+V7_TQQQ,BAL+CAGR,OK,,6.404,6.643,7.382,7.149,9.0,6.0,7.001,5.996
+P09_C1,BAL+CAGR,OK,,8.789,9.399,7.855,8.824,8.42,6.75,8.498,6.869
+B3a_k365,BAL+CAGR,OK,,10.0,8.689,7.414,9.513,4.071,7.506,8.268,7.232
+B3a+G5_vix_hard,BAL+CAGR,OK,,10.0,8.904,7.966,9.491,1.721,7.737,8.129,6.991
