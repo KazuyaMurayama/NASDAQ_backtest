@@ -4,7 +4,62 @@
 > **「ベスト戦略は？」と問われた時、Claude / 人間ともにまずこのファイルだけを見れば良いように設計されています。**
 
 作成日: 2026-05-11
-最終更新日: 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)** / **2026-06-11 v6 (ETF指定戦略 DH-W1/V0/V7/P7 の NASDAQ脚コストを CFD→TQQQ に是正。設計商品TQQQの正値で点指標を更新: DH-W1 min +14.73→+15.85%, V0 +13.43→+14.27%, V7 +15.07→+16.27%, P7 +15.84→+16.92%。CFD環境(E4/vz065)は不変。WFA列は†CFD基準据置・TQQQ再計算pending)** / **2026-06-11 v7 (ベスト候補再構成: CFD戦略 E4/vz065_l7 と ETF DH-W1/V0 を §アーカイブへ退避[削除せず指標保存]、vz065_l5 はCFD候補として残置[ユーザー判断]、V7-TQQQ/P09_TQQQ/LU1 を主候補・LU2 を別枠に追加。v6 の † WFA を TQQQ基準・正典窓49窓で再計算し確定[CFD分枝が旧†値を dWFE≤0.0002 で再現]、† 解除。CI95_lo: V7 +14.09→+15.48 / P7 +16.57→+17.85。標準10指標列を compute_10metrics §3.12 と全件整合確認。E4 は本番Active継続中=切替はユーザー判断)** / **2026-06-11 v7.2 (P09_TQQQ Active候補昇格を反映、最終確定評価レポート HORIZON_AND_SCORECARD_20260611.md への参照を追加[6次元スコアカード P09 8.12首位級・5y/10y分布・年次リターン表]、一次根拠ファイル表に同レポートと EVALUATION_UPGRADE_RESULTS_20260611.md を追加)**
+最終更新日: **2026-06-15 (v8: ベスト戦略を B3a_k365、ベスト戦略候補を P09_C1 に確定。冒頭 §🏆 に追記。一次根拠 LEVERUP_SWEEP_RESULTS_20260612.md・QC LEVERUP_QC_SIGNOFF_20260613.md[独立再実装で§6.1値80/79再現]。本番稼働は E4 継続・P09 GAS並走・切替判断7月)** / 2026-06-07 (v4.9.2: 税後 CAGR を canonical split (IS_END=2021-05-07) で統一。`scripts/compute_aftertax_cagr_v3_20260607.py` で全戦略を pretax と同じ canonical split に同期、calendar/canonical split duality を廃止) / 2026-06-08 (標準10指標・IS/OOS min 表記・ⓒ/⓽コスト前提明確化 全セクション適用) / 2026-06-10 (v4.5推奨表: 全値⓽に統一・比較注意書き削除、V0/V7 overlay・P7投信の3行追加) / 2026-06-10 v2 (v4.5推奨表: E4 ⓽行追加で§1 Active vs vz065_l5 を同一基準で直接比較可能化) / **2026-06-10 v3 (コスト誤謬修正: E4 CAGR⓽ を CFD_SPREAD_LOW=0.20%/yr の誤値 +27.41% から SBI CFD 3.0% 正値 +20.0% に修正)** / **2026-06-10 v4 (構成・コスト注意事項削除、一次根拠を SBI CFD g14 ベースに更新、Shortlisted から CFD_SPREAD_LOW 誤値を除去)** / **2026-06-11 v5 (v4.5表を realistic full L×(SBI CFD建玉金利=想定元本全額, 一次確認済) + 正典窓(49窓)WFA で更新。E4 ⓽OOS: g14 (L-1)×借入基準 +22.4% → full L×正基準 +18.06% に訂正。R4: DH-W1 Trades 68.7→17.6 訂正(NAV符号反転の疑似指標を実リバランス値に修正)。R9: vz065_l7 N/A→CI95+16.45%/WFE1.328 補填。⚠マーク除去・vz065 WFE CAUTION注記に置換)** / **2026-06-11 v6 (ETF指定戦略 DH-W1/V0/V7/P7 の NASDAQ脚コストを CFD→TQQQ に是正。設計商品TQQQの正値で点指標を更新: DH-W1 min +14.73→+15.85%, V0 +13.43→+14.27%, V7 +15.07→+16.27%, P7 +15.84→+16.92%。CFD環境(E4/vz065)は不変。WFA列は†CFD基準据置・TQQQ再計算pending)** / **2026-06-11 v7 (ベスト候補再構成: CFD戦略 E4/vz065_l7 と ETF DH-W1/V0 を §アーカイブへ退避[削除せず指標保存]、vz065_l5 はCFD候補として残置[ユーザー判断]、V7-TQQQ/P09_TQQQ/LU1 を主候補・LU2 を別枠に追加。v6 の † WFA を TQQQ基準・正典窓49窓で再計算し確定[CFD分枝が旧†値を dWFE≤0.0002 で再現]、† 解除。CI95_lo: V7 +14.09→+15.48 / P7 +16.57→+17.85。標準10指標列を compute_10metrics §3.12 と全件整合確認。E4 は本番Active継続中=切替はユーザー判断)** / **2026-06-11 v7.2 (P09_TQQQ Active候補昇格を反映、最終確定評価レポート HORIZON_AND_SCORECARD_20260611.md への参照を追加[6次元スコアカード P09 8.12首位級・5y/10y分布・年次リターン表]、一次根拠ファイル表に同レポートと EVALUATION_UPGRADE_RESULTS_20260611.md を追加)**
+
+---
+
+## 🏆 現行ベスト戦略（v8・2026-06-15 確定）
+
+> **ベスト戦略 = B3a_k365 ／ ベスト戦略候補 = P09_C1**（ユーザー決定 2026-06-15）。
+> 一次根拠: [LEVERUP_SWEEP_RESULTS_20260612.md](LEVERUP_SWEEP_RESULTS_20260612.md)（Phase B/C・6次元採点・multi-metric bootstrap §8.1）。
+> 品質保証: [LEVERUP_QC_SIGNOFF_20260613.md](LEVERUP_QC_SIGNOFF_20260613.md)（3エージェント独立レビュー＋**独立再実装で§6.1値を80セル中79再現**、コスト/レバ/充填/C1/k365/税/WFA/CPCV/bootstrap の実装健全性を確認）。
+> 全値⓽税後（×0.8273・特定口座20.315%課税。TQQQ/くりっく株365 はNISA対象外）。min(IS,OOS)=保守的採用基準。
+
+### ベスト戦略: B3a_k365（CAGR重視）
+
+**構成**: DH-W1（Asymm Hysteresis, Enter≥0.7/Exit≤0.3）＋ mom63 V7ブーストマップ **{Q0:1.40, Q1:1.40, Q2:1.05, Q3:1.00}** × uniform leverage **×1.15** ＋ P09 OUT充填（Gold常時＋Bond@`bond_mom252>0`・逆ボラW63・T+5ラグ）＋ **C1**（OUT∧bondOFF日に現金利回りSOFR計上）。**コスト**: ≤3×=TQQQ（swap0.5%+TER0.86%）、>3×超過分=くりっく株365（取引所CFD・SOFR+0.75pp ≒ 超過0.25%/yr）。
+
+| 指標（⓽税後 / ⓒ税前） | 値 | 備考 |
+|---|---:|---|
+| CAGR_IS⓽ / CAGR_OOS⓽ | +23.10% / **+20.98%** | min(IS,OOS)=OOS |
+| **min⓽（点推定／選択バイアス割引後）** | **+20.98% / ≈20.1%** | best-of-44のため割引。bootstrap下限18.2% |
+| IS-OOS gap⓽ | +2.57pp | 過学習兆候は軽微 |
+| Sharpeⓒ / MaxDDⓒ | 0.904 / **−38.2%** | DDはP09比 −3.2pp（レバの対価） |
+| Worst10Y★⓽ / P10_5Y⓽ / Worst5Y⓽ | +14.53% / +8.08% / +0.10% | 10年テール最強。Worst5Yは実質ゼロ（感度で反転） |
+| WFA CI95_loⓡ / WFEⓞ | +22.52% / 0.987 | α/β PASS |
+| CPCV p10 / Regime_min | +16.01% / −2.88% | Regime_minは弱気相場で悪化（レバの帰結） |
+| boot P(min vs V7) | 0.893 | 強い傾向・95%未達（年次blockで0.94接近） |
+| Trades/yrⓞ / >3x日比率 | 33.3 / 37.7% | >3x日はくりっく株365運用 |
+| worst暦年 | −22.4%（2015） | P09より深い（5年未満取崩し資金には不適） |
+
+### ベスト戦略候補: P09_C1（バランス・risk-adjusted重視）
+
+**構成**: V7-TQQQ（デフォルトmom63マップ {Q0:1.20, Q1:1.10, Q2:1.00, Q3:1.00}・scale 1.0）＋ P09 OUT充填 ＋ C1。**>3×超過課金なし**（ただし約6.1%の日は実効L>3＝完全CFD不要ではない）。
+
+| 指標（⓽税後 / ⓒ税前） | 値 |
+|---|---:|
+| CAGR_IS⓽ / CAGR_OOS⓽(=min) | +19.88% / **+17.77%** |
+| Sharpeⓒ / MaxDDⓒ | 0.912 / −34.99% |
+| Worst10Y★⓽ / P10_5Y⓽ / Worst5Y⓽ | +11.49% / +7.02% / −0.58% |
+| WFA CI95_loⓡ / WFEⓞ / CPCV p10 / Regime_min | +18.96% / 0.989 / +14.15% / **−0.08%（最良）** |
+| boot P / Trades/yrⓞ / >3x日比率 | 0.820 / 29.2 / ~6.1% |
+| 2008防御 / worst暦年 | **+19.86%（最強）** / −18.7%（2015） |
+
+**位置づけ**: 6次元バランス採点で首位（8.50）・CFD依存最小・2008防御最強・Regime_min最良。min⓽は20%未達だが、**Sharpe（risk-adjusted）はB3aと同等**で、純レバアップでないぶん頑健。**B3aのSharpeはP09比で中立**＝レバはリターンもリスクも比例増（multi-metric bootstrap §8.1）。
+
+### 採用判定・全ゲートPASS
+
+B3a/P09_C1 ともハードベト無し（MaxDD<−50%/WFE>1.5/W10Y★<0/Regime_min<−10%）・WFA正典49窓・CPCV(45fold)・レジーム層別・**multi-metric bootstrap（MaxDD/Worst10Y★/Sharpe 対V7・対P09）完了**。B3aの採用是非は「CAGR+10年テール取得 vs MaxDD−5〜7.5pp悪化・Sharpe中立」のリスク選好判断（CAGR優先・DD許容と整合）。
+
+### B3a vs B3c（同一戦略のレバ違い）
+
+B3a(scale 1.15)とB3c(scale 1.10)はマップ同一・uniform leverageのみ差。**B3a=CAGR最大**（min +20.98%・MaxDD −38.2%）、**B3c=DD約1pp浅**（min +20.41%・MaxDD −37.1%・WFE 0.995最良）。「DDを少し削りたい」場合は B3c。
+
+### ⚙ 運用ステータス（重要・「ベスト戦略」≠「本番稼働中」）
+
+- **本番Active（スプレッドシート稼働中）= E4 RegimeKLT**（下記 §アーカイブ）。**P09 は GAS（NASDAQ-strategy-gas リポ）で並走運用中**。
+- B3a_k365 を「ベスト戦略」と確定したのは**分析上の結論**。本番切替は別判断で、**E4→P09 切替判断は7月上旬**予定。B3a/P09_C1/B3c への切替は GAS の BOOST_MAP/STRATEGY CONFIG 変更で追従可能。
+- 改善余地（未検証）: [LEVERUP_SWEEP_RESULTS §10](LEVERUP_SWEEP_RESULTS_20260612.md) — I1 防御オーバーレイ併用（MaxDDコスト相殺・最有力）／I2 vol-target／I3 C2 bondOFF防御資産化。
 
 ---
 
@@ -183,6 +238,7 @@ v4.5 (2026-06-05) で **min(IS, OOS) CAGR** を保守的期待リターン指標
 変更履歴は git log で追跡可能 (`git log --follow CURRENT_BEST_STRATEGY.md`)
 
 ### 変更履歴
+- **2026-06-15 (v8: ベスト戦略確定)**: ユーザー決定により **ベスト戦略=B3a_k365（CAGR重視）／ベスト戦略候補=P09_C1（バランス重視）** を冒頭 §🏆 に確定記載。B3a_k365 = DH-W1+V7マップ{Q0:1.40,Q1:1.40,Q2:1.05,Q3:1.00}×uniform1.15＋P09 OUT充填＋C1（bondOFF日SOFR）、コスト ≤3x=TQQQ/>3x=くりっく株365。min⓽ +20.98%（選択バイアス割引後≈20.1%）・MaxDD−38.2%・WFA CI95_lo+22.52%・全ゲートPASS。P09_C1 = V7-TQQQ＋P09充填＋C1（min⓽ +17.77%・6次元バランス採点首位8.50・2008防御最強・CFD依存最小）。一次根拠 [LEVERUP_SWEEP_RESULTS_20260612.md](LEVERUP_SWEEP_RESULTS_20260612.md)、QC [LEVERUP_QC_SIGNOFF_20260613.md](LEVERUP_QC_SIGNOFF_20260613.md)（3エージェント＋独立再実装で§6.1値80セル中79再現）。**本番稼働は E4 継続・P09 GAS並走・E4→P09切替判断は7月上旬**（B3a/P09への本番切替は別判断）。
 - **2026-06-11 (v7: ベスト候補再構成)**: ユーザー判断により CFD戦略 **E4 RegimeKLT・vz065_l7** と ETF の素 DH-W1・V0 を **§アーカイブへ退避（削除せず全指標保存）**。**vz065_l5（レバ5倍・CFD中で最バランス）は唯一のCFD候補として残置**（評価指標変更でCFDが再評価される可能性に備える）。主候補を **V7-TQQQ（基準）/ P09_TQQQ（攻め・DD許容）/ LU1（攻め・強boost）/ P7（投信中庸⭐）/ vz065_l5（CFD）** に再編、**LU2** は CFD必須・WFE<1.0 のため別枠。v6 で † 仮置きだった WFA（WFEⓞ/CI95ⓡ_lo）を **TQQQ基準・正典窓49窓で再計算し確定**（CFD分枝が旧†値を dWFE≤0.0002/dCI95≤0.005pp で再現、harness `src/audit/tqqq_wfa_recompute_20260611.py`）。CI95_lo: V7 +14.09→+15.48% / P7 +16.57→+17.85% 等に上方更新、† 解除。標準10指標列を `compute_10metrics`（§3.12正典）と全件整合確認。LU1/LU2 は実効>3×期を CFD金利(SOFR+3.0%)で加重控除（`lu_cfd_recost_20260611.csv`）。**E4 は本番Active継続中**＝実運用切替はユーザー判断。退避理由の正典化: 「TQQQ是正でCFD劣後」ではなく「NISA非課税・DD/Sharpe重視の選好下でCFDが非選好」。
 - **2026-06-07 (DH-W1 Cash-Sleeve 4戦略)**: ETF 環境 Active 候補 DH-W1 の OUT(キャッシュ 46.9%)期を 1 倍投信で運用置換する 4 戦略を **「投信環境 Active 候補」セクション** として §Shortlisted 直前に新設。**P2 GOLD100**(攻め, OOS +16.44% 最高)/**P7 GOLD75/BOND25 ⭐**(中庸推奨, MaxDD −48.23%)/**P5 GOLD50/BOND50**(守り, MaxDD −35.97% 最良)。全 WFA 50窓 α∩β PASS。検証済み: OUT 期資産挙動、全商品コスト表(SOFR/TER/スワップ/売買/税 20.315%)、執行ラグ(レバ脚 DELAY=2 / 投信スリーブ 5BD)。t_p/bootstrap 未実施で正式昇格保留。§1 本番 Active(E4 Regime k_lt)は変更なし。STRATEGY_REGISTRY §2 に 3 件登録。一次根拠: [CASH_SLEEVE_REPORT_20260607.md](analysis_cash_sleeve/CASH_SLEEVE_REPORT_20260607.md)。
 - **2026-06-05 (v4.8: Session 4 + 5)**: `nasdaq_mom63 × S3 × M6 defensive` overlay を **Risk-Reduction Overlay Candidate** として §Shortlisted 直前に新設。Session 4 で S3 (DH-W1, ETF only) に対し Phase D 4 gate 全 PASS → ADOPT。Session 5 で S2 (D5) / E4 (現行 Active) への転用を audit-grade で検証 → 両方 NEEDS_FURTHER_WORK (WFE<1.0、ハードゲート不通過。P(MaxDD better)>0.94 で方向性は一貫)。結論: overlay は **S3 限定 (strategy-specific)**。§1 本番 Active (CFD: E4 Regime k_lt) は変更なし。

@@ -12,10 +12,10 @@
 - [x] B1: LU2フルゲート初通過（ベト無し）。C1（bondOFF日SOFR計上）= 全戦略+0.25pp
 - [x] B2-B4: 44構成スイープ → min⓽≥20%が12構成・ベト抵触ゼロ。B4(post-hoc条件付きブースト)はTop8に残らずクローズ
 - [x] C4: >3x超過分をくりっく株365へ（コスト2.5%→0.25%/yr）→ B3系+0.3〜0.4pp
-- [x] **QC v2（2026-06-13・3エージェント独立レビュー）**: 数値・コードPASS。**当初「主推奨B3a・総合8.28>P09 8.12」を訂正** — 再現可能採点器でバランス総合は P09_C1 8.50首位・B3a 8.27最下位。B3aは生min⓽のみ優位（選択バイアスで20.98%→19.7〜20.4%割引）。サインオフ=[LEVERUP_QC_SIGNOFF_20260613.md](LEVERUP_QC_SIGNOFF_20260613.md)
-- [ ] **昇格審議（ユーザー判断・v2推奨）**: バランス重視=**P09_C1**（採点首位・CFD不要・2008防御最強）／CAGR重視レバ=**B3c_k365**（WFE0.995・MaxDD−37.1%、B3aより推奨）。B3aは名目min⓽最大化専用で非推奨寄り。**7月上旬のE4→P09切替判断と一体審議**
-- [ ] **昇格前の必須工程**: 選定候補で multi-metric bootstrap（MaxDD/Worst10Y/Sharpe）追加実行（教訓C完全遵守・QC留保6の解消）
-- [ ] 承認時: CURRENT_BEST/STRATEGY_REGISTRY 反映＋GAS CONFIG切替。C1/C4は採否と独立に実運用ガイド化推奨
+- [x] **QC v2/v3（2026-06-13〜15）**: 3エージェント独立レビュー＋独立再実装QC。数値・コードPASS（§6.1値80セル中79を別実装で再現）。採点はバランス重視＝P09_C1首位／CAGR重視＝B3a首位（飽和採点の限界を是正）。サインオフ=[LEVERUP_QC_SIGNOFF_20260613.md](LEVERUP_QC_SIGNOFF_20260613.md)
+- [x] **multi-metric bootstrap（2026-06-15・教訓C遵守・留保6解消）**: MaxDD/Worst10Y★/Sharpe を対V7・対P09で取得。B3aの交換条件確定（CAGR/10年テール取得・Sharpe中立・MaxDD悪化）
+- [x] **ベスト戦略確定（2026-06-15・ユーザー決定）**: **ベスト戦略=B3a_k365（CAGR重視・min⓽+20.98%）／ベスト戦略候補=P09_C1（バランス重視・採点首位）**。CURRENT_BEST_STRATEGY.md §🏆 v8 ＋ STRATEGY_REGISTRY §1/§2 に反映済。B3c_k365（DD約1pp削減版）も §2 登録
+- [ ] **本番切替（7月上旬判断）**: E4→P09 切替判断と一体で B3a/P09_C1 本番化を審議。GAS CONFIG（BOOST_MAP/STRATEGY）切替で追従。C1/C4は採否と独立に実運用ガイド化推奨
 - [ ] **改善検討（QC由来・[§10](LEVERUP_SWEEP_RESULTS_20260612.md)）**: I1 防御オーバーレイ併用（既ADOPT mom63×M6 def を B3基盤で再検証＝MaxDD−5pp級・最有力）／I2 vol-target／I3 C2 bondOFF防御資産化
 
 ### P09_TQQQ GAS並走運用（2026-06-11〜・NASDAQ-strategy-gas リポと連携）
