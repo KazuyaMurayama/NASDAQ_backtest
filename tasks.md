@@ -16,8 +16,7 @@
 - [x] **multi-metric bootstrap（2026-06-15・教訓C遵守・留保6解消）**: MaxDD/Worst10Y★/Sharpe を対V7・対P09で取得。B3aの交換条件確定（CAGR/10年テール取得・Sharpe中立・MaxDD悪化）
 - [x] **ベスト戦略確定（2026-06-15・ユーザー決定）**: **ベスト戦略=B3a_k365（CAGR重視・min⓽+20.98%）／ベスト戦略候補=P09_C1（バランス重視・採点首位）**。CURRENT_BEST_STRATEGY.md §🏆 v8 ＋ STRATEGY_REGISTRY §1/§2 に反映済。B3c_k365（DD約1pp削減版）も §2 登録
 - [ ] **本番切替（7月上旬判断）**: E4→P09 切替判断と一体で B3a/P09_C1 本番化を審議。GAS CONFIG（BOOST_MAP/STRATEGY）切替で追従。C1/C4は採否と独立に実運用ガイド化推奨
-- [x] **成功要素グラフト探索（2026-06-15・[MULTISTRATEGY_COMBINE_RESULTS_20260615.md](MULTISTRATEGY_COMBINE_RESULTS_20260615.md)）**: B3a土台に5要素をnative重畳・全ゲート。**G5_vix_hard（vix_mom21 defensiveオーバーレイ）が唯一の改善レバー**＝MaxDD+2.27pp(bootstrap有意)・Sharpe+0.024をmin⓽−0.32ppで獲得→STRATEGY_REGISTRY §2にリスク低減オプション登録。vol-target/レジーム連動/bondOFF→Gold/LT2移植/組合せは効果なし。**B3aはbest維持**（採点は取引ペナルティでG5僅か下回る）。採否はユーザーのリスク選好（MaxDD縮小 vs 取引2倍弱）
-- [ ] **（任意）B3a+G5_vix_hard の採否判断**: MaxDDを有意に縮めたいなら採用オプション。本番反映は7月のE4→P09切替と一体審議
+- [x] **成功要素グラフト探索＋QC（2026-06-15〜16・[結果](MULTISTRATEGY_COMBINE_RESULTS_20260615.md)/[QCサインオフ](MULTISTRATEGY_COMBINE_QC_SIGNOFF_20260616.md)）**: B3a土台に5要素をnative重畳・全ゲート。当初G5_vix_hardを改善候補としたが**3エージェント独立QCで撤回** — MaxDD改善の66%は単なる一律デレバ・vix時機固有は非有意(p=0.40)。数値・コードは正しく漏れも実害なし。**結論: B3aに追加で効く成功要素は無し。リスク低減は B3c_k365(uniform 1.10・BAL総合8.361最高・低取引)で行うのが最良。risk-returnはレバ水準で制御するのが本質**。G1/G2/G3/G4/G5/組合せ全て非採用（再検証不要）
 
 ### P09_TQQQ GAS並走運用（2026-06-11〜・NASDAQ-strategy-gas リポと連携）
 > 正典手順: NASDAQ-strategy-gas/docs/P09_GAS_MIGRATION_PLAN_20260611.md
