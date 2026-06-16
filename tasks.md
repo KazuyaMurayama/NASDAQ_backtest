@@ -16,6 +16,7 @@
 - [x] **multi-metric bootstrap（2026-06-15・教訓C遵守・留保6解消）**: MaxDD/Worst10Y★/Sharpe を対V7・対P09で取得。B3aの交換条件確定（CAGR/10年テール取得・Sharpe中立・MaxDD悪化）
 - [x] **ベスト戦略確定（2026-06-15・ユーザー決定）**: **ベスト戦略=B3a_k365（CAGR重視・min⓽+20.98%）／ベスト戦略候補=P09_C1（バランス重視・採点首位）**。CURRENT_BEST_STRATEGY.md §🏆 v8 ＋ STRATEGY_REGISTRY §1/§2 に反映済。B3c_k365（DD約1pp削減版）も §2 登録
 - [ ] **本番切替（7月上旬判断）**: E4→P09 切替判断と一体で B3a/P09_C1 本番化を審議。GAS CONFIG（BOOST_MAP/STRATEGY）切替で追従。C1/C4は採否と独立に実運用ガイド化推奨
+- [x] **CAGR押上げ＝レバ拡張×早期再エントリー（2026-06-16・[結果](LEVERUP_EXTENSION_RESULTS_20260616.md)/計画=LEVERUP_EXTENSION_PLAN_20260616.md）**: B3aの uniform leverage を1.15超へ拡張＋DH-W1 enter早期化を検証。**CAGRは scale を上げれば min⓽ +20.98%→約+24%までベト内で伸びる（ベト到達≈scale1.50）**。最良: scale1.35強map +23.83%(MaxDD−45%・CI95_lo+26.6%)／combo上端 +23.97%(MaxDD−48%ベト間近)。**ただし純レバ＝Sharpe非改善・MaxDD/worst年(−26%)比例悪化・min改善95%非有意**。早期再エントリーenter0.60はSharpe0.955だがgap圧縮がOOS強気依存。**レバ点はリスク選好で選ぶ＝B3aバランス維持・やや攻めscale1.25・攻めscale1.35強map**。REGISTRY §2に「B3aレバ拡張フロンティア」登録・CURRENT_BESTにダイヤル表追記。サニティ全PASS・ベト緩和なし
 - [x] **成功要素グラフト探索＋QC（2026-06-15〜16・[結果](MULTISTRATEGY_COMBINE_RESULTS_20260615.md)/[QCサインオフ](MULTISTRATEGY_COMBINE_QC_SIGNOFF_20260616.md)）**: B3a土台に5要素をnative重畳・全ゲート。当初G5_vix_hardを改善候補としたが**3エージェント独立QCで撤回** — MaxDD改善の66%は単なる一律デレバ・vix時機固有は非有意(p=0.40)。数値・コードは正しく漏れも実害なし。**結論: B3aに追加で効く成功要素は無し。リスク低減は B3c_k365(uniform 1.10・BAL総合8.361最高・低取引)で行うのが最良。risk-returnはレバ水準で制御するのが本質**。G1/G2/G3/G4/G5/組合せ全て非採用（再検証不要）
 
 ### P09_TQQQ GAS並走運用（2026-06-11〜・NASDAQ-strategy-gas リポと連携）
