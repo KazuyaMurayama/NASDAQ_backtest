@@ -143,6 +143,23 @@ EXEC_LAG_FUND_1X = 5  # T+5
 PER_TRADE_COST = 0.0010  # 0.10% one-way (moderate), applied x turnover
 
 # ---------------------------------------------------------------------------
+# >3x leverage via exchange CFD (くりっく株365 NASDAQ-100) — margin-reservation
+# cost assumption. MANDATORY for any strategy whose effective leverage exceeds
+# 3x (i.e. beyond a 3x ETF), because the >3x EXCESS notional must be held on a
+# margin CFD that requires posted collateral. See EVALUATION_STANDARD §1.5.
+# Basis: PRODUCT_COST_COMPARISON_2026-06-10.md §9 / MARGIN_CAPACITY_STRESS_RESULTS_20260617.md
+# ---------------------------------------------------------------------------
+K365_FINANCING_SPREAD = 0.0075   # k365 金利相当 ≈ SOFR + 0.75pp (exchange CFD, 業者マージン極小)
+K365_EXCESS_EXTRA = K365_FINANCING_SPREAD - TQQQ.swap_spread  # 0.0025: extra over TQQQ swap on (L-3)+ notional
+K365_MARGIN_RATE_MIN = 0.0424    # 取引所最小証拠金 ¥9,320/枚 ÷ 想定元本¥220K/枚 ≈ 4.24% (危険・評価非採用)
+K365_MARGIN_RATE_STD = 0.08      # 評価標準: 最小の約2倍。全期間52年で強制清算0回 (M1-M3/M5b)
+K365_MARGIN_RATE_CONSERV = 0.12  # 保守: 1987 Black Monday(-11.35%)も耐える
+K365_MARGIN_ROLL_COST = 0.0020   # 四半期ロールの bid-ask 概算 ~0.2%/yr on notional (推定・DATA GAP)
+K365_MARGIN_NONEARNING = True    # 取り置き証拠金は無利息 (機会損失 = margin x SOFR)
+# Realistic margin-funded drag (S2 isolated account + roll cost, m=8%): ~-0.7~-0.9pp
+# for high-lever configs (sc1.35 -0.9 / B3a -0.7 / P09 -0.1pp). High-lever advantage preserved.
+
+# ---------------------------------------------------------------------------
 # Japan tax constants
 # ---------------------------------------------------------------------------
 JP_CAPITAL_GAINS_TAX = 0.20315   # 所得税15% + 復興税0.315% + 住民税5%

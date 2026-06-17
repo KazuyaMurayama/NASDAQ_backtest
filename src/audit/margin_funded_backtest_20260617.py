@@ -1,4 +1,14 @@
 """
+*** SUPERSEDED / FLAWED — DO NOT USE FOR CONCLUSIONS ***
+This script (M5 v1) has a capital-accounting bug: it forced TQQQ to tie up
+wn (full NASDAQ weight) of cash for the <=3x part and capped L to 3.0, ignoring
+that k365 is a MARGIN instrument (leverage is built with ~8% margin, not full
+cash). This produced an over-pessimistic "collapse to ~13.5% min" result.
+Corrected in: src/audit/margin_funded_backtest_v2_20260617.py (M5b), which shows
+the realistic margin drag is only ~-0.4 to -0.9pp (high-lever advantage preserved).
+See MARGIN_CAPACITY_STRESS_RESULTS_20260617.md §8.
+*** END SUPERSEDED NOTICE ***
+
 src/audit/margin_funded_backtest_20260617.py
 =============================================
 M5: Margin-funded realistic backtest (MARGIN_CAPACITY_STRESS_PLAN_20260617.md §5).
