@@ -1,0 +1,14 @@
+﻿section,fetch_date,data_date,source_url,contract,settlement_price,oi_lots,daily_volume_lots,lot_notional_jpy,monthly_volume_2026_05,monthly_volume_2026_04,monthly_volume_2026_03,monthly_volume_2026_02,monthly_volume_2026_01,monthly_avg_daily_2026_05,month_end_oi_2026_05,month_end_oi_2025_12,oi_source,note,aum_scenario,aum_jpy,excess_frac_label,excess_frac,notional_jpy,lots_required,oi_current_lots,pct_of_current_OI,pct_of_monthend_OI,pct_of_daily_vol,cap_ok_5pct_OI,cap_ok_10pct_OI,max_AUM_at_5pct_OI_jpy,max_AUM_at_10pct_OI_jpy
+M7_oi_snapshot,2026-06-17,2026-06-16,https://www.tfx.co.jp/,NASDAQ-100/26,30020.0,83035.0,49354.0,220000.0,890072.0,786482.0,775251.0,831623.0,656188.0,42384.0,54254.0,33100.0,TFX website (https://www.tfx.co.jp/historical/cfd/transit_cfd.html),OI and volume obtained via WebFetch 2026-06-17 from TFX official site. Represents the current active contract NASDAQ-100/26. Historical daily OI series not available via WebFetch (requires TFX direct download). See https://www.tfx.co.jp/historical/cfd/ for CSV download (max 1yr per query).,,,,,,,,,,,,,,
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_30M,30000000.0,peak,2.784,83520000.0,379.6,83035.0,0.46,0.7,0.77,True,True,328083693.0,656167385.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_30M,30000000.0,p95,2.46,73800000.0,335.5,83035.0,0.4,0.62,0.68,True,True,371294715.0,742589431.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_30M,30000000.0,mean,1.008418,30252538.0,137.5,83035.0,0.17,0.25,0.28,True,True,905760374.0,1811520749.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_100M,100000000.0,peak,2.784,278400000.0,1265.5,83035.0,1.52,2.33,2.56,True,True,328083693.0,656167385.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_100M,100000000.0,p95,2.46,246000000.0,1118.2,83035.0,1.35,2.06,2.27,True,True,371294715.0,742589431.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_100M,100000000.0,mean,1.008418,100841793.0,458.4,83035.0,0.55,0.84,0.93,True,True,905760374.0,1811520749.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_300M,300000000.0,peak,2.784,835200000.0,3796.4,83035.0,4.57,7.0,7.69,True,True,328083693.0,656167385.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_300M,300000000.0,p95,2.46,738000000.0,3354.5,83035.0,4.04,6.18,6.8,True,True,371294715.0,742589431.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_300M,300000000.0,mean,1.008418,302525378.0,1375.1,83035.0,1.66,2.53,2.79,True,True,905760374.0,1811520749.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_1B,1000000000.0,peak,2.784,2784000000.0,12654.5,83035.0,15.24,23.32,25.64,False,False,328083693.0,656167385.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_1B,1000000000.0,p95,2.46,2460000000.0,11181.8,83035.0,13.47,20.61,22.66,False,False,371294715.0,742589431.0
+M7_capacity,,,,,,,,,,,,,,,,,,,AUM_1B,1000000000.0,mean,1.008418,1008417928.0,4583.7,83035.0,5.52,8.45,9.29,False,True,905760374.0,1811520749.0
