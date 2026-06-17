@@ -1,0 +1,42 @@
+﻿section,key,value,note,in_value,out_value,all_pct,mean_L,mean_excess_above3
+sanity,min9_got_pct,23.8321,expect +23.83%,,,,,
+sanity,maxdd_got_pct,-45.0414,expect -45.04%,,,,,
+sanity,ok,1.0,,,,,,
+day_counts,n_total,13169.0,,,,,,
+day_counts,n_in,7003.0,NASDAQ-active,,,,,
+day_counts,n_out,6166.0,OUT days,,,,,
+day_counts,n_out_bondon,3105.0,,,,,,
+day_counts,n_out_bondoff,3061.0,,,,,,
+agg1_weight,NASDAQ (wn_eff),36.8596,pct of capital,69.3137,0.0,,,
+agg1_weight,Gold   (wg_eff),25.7345,pct of capital,13.1584,40.0178,,,
+agg1_weight,Bond   (wb_eff),20.8124,pct of capital,13.1584,29.5054,,,
+agg1_weight,Cash   (SOFR),14.2699,pct of capital,0.0,30.4768,,,
+agg2_L_stats,N_in,7003.0,,,,,,
+agg2_L_stats,mean,3.6973,,,,,,
+agg2_L_stats,median,4.05,,,,,,
+agg2_L_stats,p10,1.6628,,,,,,
+agg2_L_stats,p25,3.2452,,,,,,
+agg2_L_stats,p75,4.455,,,,,,
+agg2_L_stats,p90,5.5701,,,,,,
+agg2_L_stats,max,6.48,,,,,,
+agg2_L_stats,mean_all,2.0705,,,,,,
+agg2_Q_breakdown,Q0,473.0,mult=2.16 -> L_exp~6.48,6.75,2.6047,,,
+agg2_Q_breakdown,Q1,1694.0,mult=2.02 -> L_exp~6.08,24.19,3.9989,,,
+agg2_Q_breakdown,Q2,2293.0,mult=1.49 -> L_exp~4.46,32.74,3.6736,,,
+agg2_Q_breakdown,Q3,2538.0,mult=1.35 -> L_exp~4.05,36.24,3.7276,,,
+agg3_excess,n_gt3_all,5743.0,,,,,,
+agg3_excess,ratio_all_pct,43.61,,,,,,
+agg3_excess,n_gt3_in,5454.0,,,,,,
+agg3_excess,ratio_in_pct,77.8809,,,,,,
+agg3_excess,mean_exc_given_gt3_all,1.324255,,,,,,
+agg3_excess,mean_exc_given_gt3_in,1.307042,,,,,,
+agg3_excess,mean_exc_all,0.577508,,,,,,
+agg3_excess,mean_exc_in,1.017936,,,,,,
+agg4_bin_table,L<0.5  (near-zero/OUT),6224.0,,359.0,5865.0,47.2625,0.0006,0.0
+agg4_bin_table,0.5-1.0,104.0,,104.0,0.0,0.7897,0.7671,0.0
+agg4_bin_table,1.0-2.0,418.0,,416.0,2.0,3.1741,1.519,0.0
+agg4_bin_table,2.0-3.0,680.0,,670.0,10.0,5.1636,2.5193,0.0
+agg4_bin_table,3.0-4.0  >3x,1728.0,,1668.0,60.0,13.1217,3.6083,0.6083
+agg4_bin_table,4.0-5.0  >3x,3034.0,,2893.0,141.0,23.039,4.2438,1.2438
+agg4_bin_table,5.0-6.0  >3x,504.0,,456.0,48.0,3.8272,5.5642,2.5642
+agg4_bin_table,6.0+     >3x,477.0,,437.0,40.0,3.6221,6.1198,3.1198
