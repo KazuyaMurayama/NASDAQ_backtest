@@ -68,7 +68,7 @@
 - **リターン/保有ホライズン系は scale1.35強map が全勝**: min⓽ **+6.06pp**(+23.83 vs +17.77)、Worst10Y★ +5.94pp、P10_5Y +1.94pp、Worst5Y +0.91pp(P09はマイナス)、CPCV p10 +3.57pp、WFA CI95_lo +7.59pp。**「CAGR優先・5y/10y保有重視」のユーザー選好では scale1.35強map が明確上位**。
 - **その対価（P09_C1 が勝つ列）**: Sharpe −0.030(risk-adjustedは改善せず＝純レバ)、MaxDD **−10.05pp深い**(−45.04 vs −34.99)、bear-regime **−5.32pp悪化**(−5.40 vs −0.08)、2008防御 −5.7pp弱体、>3x日比率 **6.1%→43.6%**(=くりっく株365証拠金・容量・追証リスクが最重量)、worst暦年 −18.7%→−26.2%。
 - **採用ゲート照合**: scale1.35強map は **min⓽+23.83% ≥ +18.5%・ベト無・Worst5Y正 → ユーザーのCAGR優先採用ゲートを通過**。P09_C1 は min⓽+17.77% で 18.5%閾値未達（=バランス/頑健性枠の候補であってCAGR枠ではない）。
-- **証拠金funded現実コスト込み**（[MARGIN_CAPACITY_STRESS_RESULTS_20260617.md](MARGIN_CAPACITY_STRESS_RESULTS_20260617.md) §8）: 現実ドラッグ scale1.35強map ≈ **−0.9pp**(→実効 min⓽≈+22.9%)、P09_C1 ≈ −0.1pp(→≈+17.7%)。**差は依然 約+5pp で scale1.35強map 優位**。ただし >3x日43.6%・最大L6.48x のため、証拠金8%取り置き・建玉容量・パス依存追証の留保が**4候補中で最も重い**のも scale1.35強map。
+- **証拠金コスト（v4最終是正）**（[MARGIN_CAPACITY §8](MARGIN_CAPACITY_STRESS_RESULTS_20260617.md)／[PRODUCT_COST_COMPARISON §10](PRODUCT_COST_COMPARISON_2026-06-10.md)）: 証拠金は担保（自己資金）で損益は建玉全額に発生＝**継続的CAGRドラッグを生まない**（旧 −0.9pp も −3.42pp も却下）。∴ **上表の min⓽ がそのまま比較に使える**＝scale1.35強map +23.83% は M6 でも到達可能（強制清算は1975-77に3回・各13-19%AUMだがCAGR+0.08pp・min⓽不変、5大危機はOUTで清算0）。**対P09差 +6.06pp は証拠金で縮まらない**（前版の「較正後+2.89pp」は撤回）。唯一の継続コストは金利相当額（計上済・−ロール小）。高レバの実コストは**テールリスク（強制ロスカット）**で、リスク低減は現金でなくレバ水準（B3c/B3a/scale1.25）で行う。
 - **結論**: 「**より多いCAGRを取りに行くか（scale1.35強map）／risk-adjustedとDD・防御の質を取るか（P09_C1）**」の純粋なリスク選好の二択。risk-adjusted(Sharpe)は P09_C1 が上＝scale1.35強map は戦略改善ではなくレバ選好。**CAGR最大化なら scale1.35強map が現実的上限**（MaxDD−45%・bear−5.40%・CFD依存最大を許容できる場合）。
 
 ## 3. multi-metric bootstrap（対B3a・主要構成）
