@@ -8,9 +8,10 @@ Split constants (public):
   IS_END    = 2021-05-07
   OOS_START = 2021-05-08
 
-Returns dict with keys:
+Returns dict with keys (v2.0):
   CAGR_IS, CAGR_OOS, CAGR_FULL, IS_OOS_gap_pp,
-  Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
+  Sharpe_OOS, Sharpe_FULL, MaxDD_FULL, Worst1D, Worst1D_date,
+  Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
 """
 import sys
 import os
@@ -67,7 +68,8 @@ def compute_10metrics(nav: pd.Series, trades_per_year: float) -> dict:
     -------
     dict with keys:
         CAGR_IS, CAGR_OOS, CAGR_FULL, IS_OOS_gap_pp,
-        Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr
+        Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, Trades_yr,
+        Sharpe_FULL, Worst1D, Worst1D_date  (v2 追加)
     """
     # ---- Sanitise input ----
     nav = nav.dropna().sort_index()
@@ -101,6 +103,29 @@ def compute_10metrics(nav: pd.Series, trades_per_year: float) -> dict:
     except Exception:
         worst5y = np.nan
 
+    # ---- Sharpe_FULL (全期間・Rf=0) ----
+    try:
+        _daily_ret = nav.pct_change().dropna()
+        if len(_daily_ret) > 1 and _daily_ret.std() > 0:
+            sharpe_full = float(_daily_ret.mean() / _daily_ret.std() * np.sqrt(252))
+        else:
+            sharpe_full = np.nan
+    except Exception:
+        sharpe_full = np.nan
+
+    # ---- Worst1D (全期間の最悪単日リターン) ----
+    try:
+        _daily_ret2 = nav.pct_change().dropna()
+        if len(_daily_ret2) > 0:
+            worst1d = float(_daily_ret2.min())
+            worst1d_date = _daily_ret2.idxmin().strftime('%Y-%m-%d')
+        else:
+            worst1d = np.nan
+            worst1d_date = None
+    except Exception:
+        worst1d = np.nan
+        worst1d_date = None
+
     # ---- IS-OOS gap ----
     cagr_is  = m7.get('CAGR_IS',   np.nan)
     cagr_oos = m7.get('CAGR_OOS',  np.nan)
@@ -120,4 +145,8 @@ def compute_10metrics(nav: pd.Series, trades_per_year: float) -> dict:
         'P10_5Y':         p10_5y,
         'Worst5Y':        worst5y,
         'Trades_yr':      trades_per_year,
+        # 新規追加 (v2)
+        'Sharpe_FULL':    sharpe_full,
+        'Worst1D':        worst1d,
+        'Worst1D_date':   worst1d_date,
     }

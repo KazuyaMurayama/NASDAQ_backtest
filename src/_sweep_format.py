@@ -1,29 +1,35 @@
 """
 _sweep_format.py — Sweep MDテーブル共有フォーマッタ
 =====================================================
-EVALUATION_STANDARD §3.12 / §5.6 準拠 (v1.4, 2026-06-03)
+EVALUATION_STANDARD §3.12 / §5.6 準拠 (v2.0, 2026-06-19)
 
-統一指標セット（9指標）:
-  1. CAGR_OOS    2. Sharpe  3. MaxDD  4. W10Y★
-  5. P10▷        6. Gap     7. Tr     8. Overfit(WFE)
-  9. CI95_lo
+統一指標セット（新10列標準）:
+  1. CAGR_IS   2. CAGR_OOS  3. Sharpe_Full  4. MaxDD
+  5. 最悪単日   6. Worst10Y★  7. Worst5Y      8. P10▷
+  9. Trade/年   10. 頑強性・過学習
 
-Overfit(WFE)（過学習リスクスコア）: WFE値に基づく評価
-  ✅ LOW : 0.5 ≤ WFE ≤ 2.0（正常域）
-  ⚠ MED : WFE > 2.0（OOS期間が過大に有利）
-  ❌ HIGH: WFE < 0.5（IS期間優位 = 古典的過学習）
-  —      : WFA未計算
+頑強性・過学習セル判定ロジック:
+  ❌過学習疑い: WFE<0.5 or >2 or CI95_lo<0 or |gap|>5pp
+  ✅頑強:       WFE∈[0.5,2] and CI95_lo>0 and |gap|≤3pp
+                and (CPCV_p10>0 or 未算出) and (t_p<0.05 or 未算出)
+                and (Regime_min>-10 or 未算出)
+  ⚠条件付:     上記以外
+  (部分):       算出済でないゲートがある場合に付加
 
 提供フォーマッタ:
-  - MD_HEADER_1P  / fmt_row_1p   : 1パラメータ sweep（b6 等）
-  - MD_HEADER_2P  / fmt_row_2p   : 2パラメータ sweep（b3/b4/b5/b7/b8 等）
-  - MD_HEADER_STRAT / fmt_row_strat : 戦略横並び比較（e2_hybrid / STRATEGY_COMPARISON 等）
-  - MD_HEADER_INTEGRATED / fmt_row_integrated : 統合比較レポート v6.1（11列・累積CAGR⓽列含む）
-  - fmt_annual_table  : §5 年次リターン表（1977-2026 / moderate / 税後）
-  - fmt_stats_table   : §6 統計サマリ（1974-2026 / moderate / 7行）
+  - MD_HEADER_1P  / fmt_row_1p   : 1パラメータ sweep
+  - MD_HEADER_2P  / fmt_row_2p   : 2パラメータ sweep
+  - MD_HEADER_STRAT / fmt_row_strat : 戦略横並び比較
+  - MD_HEADER_INTEGRATED / fmt_row_integrated : 統合比較レポート
+  - fmt_annual_table  : §5 年次リターン表
+  - fmt_stats_table   : §6 統計サマリ
 
-CAGR は CAGR_OOS の1列のみ。CAGR_IS / CAGR_FULL を MD ヘッダに含めると v1.1 違反。
-（例外: MD_HEADER_INTEGRATED の「累積CAGR⓽ OOS/IS」列は IS/OOS を1セル内に併記する形式のため非違反）
+Sharpe マーカ: ◎ = Sharpe_Full > +0.934 / ★ = > +1.100（フル期間基準）
+  ◎ 閾値 = E4 Active 実算出値 +0.9341 (2026-06-19 実バックテスト確定)
+  ★ 閾値 = B3a_k365 実算出値 +1.1023 (同上)
+  ※旧値 (◎=0.700 / ★=0.800) は推定値につき廃止
+列名 Worst10Y★ の ★ は最悪10年CAGRの重要指標記号（Sharpe マーカとは別意味）
+IS=1974-2021-05-07 / OOS=2021-05-08-現在 / Full=全期間
 """
 import numpy as np
 
@@ -47,7 +53,7 @@ def _ff2(v):
 
 
 def _gap_pp(v):
-    """IS-OOS gap (pp表示) 例: +0.12pp"""
+    """IS-OOS gap (pp表示) — 後方互換用・非推奨（v2.0以降は頑強性セル内部材料）"""
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return '   —    '
     return f'{v * 100:+5.2f}pp'
@@ -61,20 +67,14 @@ def _tr(v):
 
 
 def _wfa(v):
-    """WFA CI95_lo 3桁小数 例: +0.265 (未計算時は —)"""
+    """WFA CI95_lo — 後方互換用・非推奨（v2.0以降は_robustness_cell使用）"""
     if v is None or (isinstance(v, float) and np.isnan(v)):
         return '   —   '
     return f'{v:+6.3f}'
 
 
 def _ovfit_wfe(wfe):
-    """過学習スコア (WFEベース): 判定ラベルと WFE値（小数1桁）を <br> 2行で返す。
-
-    WFE = mean_CAGR_OOS / mean_CAGR_IS（WFA 全窓平均）
-    ✅ LOW : 0.5 ≤ WFE ≤ 2.0（正常域）
-    ⚠ MED : WFE > 2.0（OOS期間が過大に有利）
-    ❌ HIGH: WFE < 0.5（IS期間優位 = 古典的過学習）
-    """
+    """過学習スコア — 後方互換用・非推奨（v2.0以降は_robustness_cell使用）"""
     if wfe is None or (isinstance(wfe, float) and np.isnan(wfe)):
         return '—'
     wfe = float(wfe)
@@ -87,174 +87,269 @@ def _ovfit_wfe(wfe):
     return f'{label}<br>({wfe:.1f})'
 
 
+def _worst1d(v, date):
+    """最悪単日 + 発生日: −12.3%<br>(2020-03-16)"""
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return '  —  '
+    date_str = f'({date})' if date else ''
+    return f'{v * 100:+5.1f}%<br>{date_str}'
+
+
+def _robustness_cell(r):
+    """頑強性・過学習統合セル。NaN安全。
+
+    Parameters
+    ----------
+    r : dict
+        任意キー: WFA_WFE, WFA_CI95_lo, IS_OOS_gap_pp,
+                  CPCV_p10, t_p, Regime_min
+    """
+    wfe     = r.get('WFA_WFE')
+    ci95    = r.get('WFA_CI95_lo')
+    gap     = r.get('IS_OOS_gap_pp')
+    cpcv    = r.get('CPCV_p10')
+    tp      = r.get('t_p')
+    reg_min = r.get('Regime_min')
+
+    def _isnan(x):
+        return x is None or (isinstance(x, float) and np.isnan(x))
+
+    has_wfe  = not _isnan(wfe)
+    has_ci95 = not _isnan(ci95)
+    has_gap  = not _isnan(gap)
+    has_cpcv = not _isnan(cpcv)
+    has_tp   = not _isnan(tp)
+    has_reg  = not _isnan(reg_min)
+
+    if not has_wfe and not has_ci95:
+        return '—'
+
+    # 過学習疑いゲート
+    is_fail = False
+    if has_wfe  and (float(wfe) < 0.5 or float(wfe) > 2.0):
+        is_fail = True
+    if has_ci95 and float(ci95) < 0:
+        is_fail = True
+    if has_gap  and abs(float(gap)) > 5:
+        is_fail = True
+
+    # 頑強性ゲート
+    is_pass = True
+    partial = False
+    if has_wfe:
+        if not (0.5 <= float(wfe) <= 2.0):
+            is_pass = False
+    else:
+        is_pass = False
+        partial = True
+    if has_ci95:
+        if float(ci95) <= 0:
+            is_pass = False
+    else:
+        is_pass = False
+        partial = True
+    if has_gap:
+        if abs(float(gap)) > 3:
+            is_pass = False
+    else:
+        partial = True
+    if has_cpcv:
+        if float(cpcv) <= 0:
+            is_pass = False
+    else:
+        partial = True
+    if has_tp:
+        if float(tp) >= 0.05:
+            is_pass = False
+    else:
+        partial = True
+    if has_reg:
+        if float(reg_min) <= -0.10:   # reg_min は比率 (-0.10 = -10%)
+            is_pass = False
+    else:
+        partial = True
+
+    if is_fail:
+        label = '❌過学習疑い'
+    elif is_pass:
+        label = '✅頑強'
+        if partial:
+            label += '(部分)'
+    else:
+        label = '⚠条件付'
+        if partial:
+            label += '(部分)'
+
+    lines = [label]
+    if has_wfe and has_ci95:
+        lines.append(f'WFE{float(wfe):.2f} CI95lo{float(ci95)*100:+.0f}%')
+    elif has_wfe:
+        lines.append(f'WFE{float(wfe):.2f}')
+    elif has_ci95:
+        lines.append(f'CI95lo{float(ci95)*100:+.0f}%')
+    if has_cpcv or has_tp:
+        cpcv_str = f'CPCV{float(cpcv)*100:+.0f}%' if has_cpcv else ''
+        tp_str   = f' t_p{float(tp):.3f}' if has_tp else ''
+        lines.append(cpcv_str + tp_str)
+    if has_reg:
+        lines.append(f'Reg{float(reg_min)*100:+.1f}%')   # 比率→% 表示
+
+    return '<br>'.join(lines)
+
+
 # ---------------------------------------------------------------------------
-# 9-metric 標準テーブルヘッダ (§5.6 / Overfit(WFE) は v1.3 でOvFit+WFEを統合)
+# 新10列標準テーブルヘッダ (v2.0)
 # ---------------------------------------------------------------------------
 
+_METRIC_COLS_HEADER = (
+    ' CAGR<br>IS<br>⓽ | CAGR<br>OOS<br>⓽ | Sharpe<br>Full<br>ⓒ'
+    ' | Max<br>DD<br>ⓒ | 最悪<br>単日<br>ⓒ | Worst<br>10Y★<br>⓽'
+    ' | Worst<br>5Y<br>⓽ | P10<br>5Y▷<br>⓽ | Trade<br>/年<br>ⓞ | 頑強性<br>過学習 |'
+)
+_METRIC_COLS_SEP = '---:|---:|---:|---:|:---:|---:|---:|---:|---:|:---:'
+
 # 1パラメータ sweep (例: b6 — N のみ)
-# v1.4: 列順変更 — IS-OOS gap CAGR を CAGR_OOS の右隣へ移動 / 4行折り返しで列幅を更に縮小
 MD_HEADER_1P = (
-    '| Param | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
-    '|:------|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
+    f'| Param |{_METRIC_COLS_HEADER}',
+    f'|:------|{_METRIC_COLS_SEP}|',
 )
 
 # 2パラメータ sweep (例: b3/b4/b5/b7/b8 — N × k_lt)
 MD_HEADER_2P = (
-    '| N | k_lt | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
-    '|--:|-----:|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
+    f'| N | k_lt |{_METRIC_COLS_HEADER}',
+    f'|--:|-----:|{_METRIC_COLS_SEP}|',
 )
 
-# 戦略横並び比較表（複数戦略を1行ずつ並べる: e2_hybrid / STRATEGY_COMPARISON 等）
-# 列順・列幅は MD_HEADER_1P/2P と完全に一致させる（§3.12 v1.4）
+# 戦略横並び比較表
 MD_HEADER_STRAT = (
-    '| Strategy | CAGR<br>⓽<br>_<br>OOS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
-    '|:---------|-------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
+    f'| Strategy |{_METRIC_COLS_HEADER}',
+    f'|:---------|{_METRIC_COLS_SEP}|',
 )
 
-# WFA 未計算注記（スイープ MDテーブル下に挿入）
+# 統合比較表（旧11列から新10列標準に統一）
+MD_HEADER_INTEGRATED = (
+    f'| Strategy |{_METRIC_COLS_HEADER}',
+    f'|:---------|{_METRIC_COLS_SEP}|',
+)
+
+# WFA 未計算注記
 MD_WFA_NOTE = (
-    '*CI95_lo / Overfit(WFE): `—` は WFA 未計算（`§3.12` 促進ゲート待ち）。'
-    '計算後は `src/g2_wfa_shortlist.py` で自動補完予定。*  \n'
-    '*進格条件: **CI95_lo > 0**（期待リターンがプラス）/ **0.5 ≤ WFE ≤ 2.0**（過学習なし）。'
-    'Sharpe マーカ: ◎ = Sharpe_OOS > +0.770 / ★ = > +0.885。'
+    '*頑強性・過学習セル: `—` は WFA 未計算。'
+    '計算後は `src/g2_wfa_shortlist.py` で補完予定。*  \n'
+    '*進格条件: **WFA_CI95_lo > 0**（期待リターンがプラス）/ **0.5 ≤ WFE ≤ 2.0**（過学習なし）'
+    '/ **|IS-OOS gap| ≤ 3pp**。'
+    'Sharpe マーカ: ◎ = Sharpe_Full > +0.934 / ★ = > +1.100（フル期間基準）。'
+    '◎閾値=E4 Active実算出値+0.9341 / ★閾値=B3a_k365実算出値+1.1023（2026-06-19確定）。'
     '列名 `Worst10Y★` の ★ は最悪10年CAGRの重要指標記号（Sharpe マーカとは別意味）。*'
 )
 
-# 戦略比較ファイル用 凡例1行（テーブル直下に挿入: e2_hybrid / B9_COMPARISON 等）
+# 戦略比較用凡例
 MD_METRIC_GLOSSARY = (
-    '*◎ Sharpe_OOS > +0.770（S2ベースライン超過）/ ★ > +0.885（現行ベスト超過）。'
-    '進格: CI95_lo > 0 かつ 0.5 ≤ WFE ≤ 2.0。'
-    'Overfit(WFE): ✅LOW=WFE∈[0.5,2.0] / ⚠MED=WFE>2.0 / ❌HIGH=WFE<0.5。'
-    '列名 `Worst10Y★` の ★ は最悪10年CAGRの重要指標記号（Sharpe マーカの ◎/★ とは別意味）。*'
+    '*◎ Sharpe_Full > +0.934（E4 Active実算出値・2026-06-19確定）/ ★ > +1.100（B3a_k365実算出値・2026-06-19確定）。'
+    'Sharpe は**フル期間**（IS+OOS 全体）日次リターンの年率値（Rf=0）。'
+    '頑強性セル: ✅頑強=WFE∈[0.5,2.0] かつ CI95_lo>0 かつ |gap|≤3pp'
+    ' / ❌過学習疑い=WFE<0.5 or >2 or CI95_lo<0 or |gap|>5pp / ⚠それ以外。'
+    '最悪単日ⓒ: 全期間の最悪1日騰落率と発生日。'
+    '列名 `Worst10Y★` の ★ は最悪10年CAGRの重要指標記号（Sharpe マーカの ◎/★ とは別意味）。'
+    'IS=1974-2021-05-07 / OOS=2021-05-08-現在 / Full=全期間。*'
 )
 
 
 # ---------------------------------------------------------------------------
-# 汎用 data-row ビルダ
+# 汎用 data-row ビルダ (v2.0 — 新10列標準)
 # ---------------------------------------------------------------------------
 
-def fmt_row_2p(n, k_lt, r, ref_s2=0.770, ref_lt2=0.885):
-    """N × k_lt 型の1行を返す (b3/b4/b5/b7/b8 共通) — v1.4: IS-OOS gap CAGR を 2列目に"""
-    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+def fmt_row_2p(n, k_lt, r, ref_s2=0.934, ref_lt2=1.100):
+    """N × k_lt 型の1行を返す (b3/b4/b5/b7/b8 共通) — v2.0: 新10列標準"""
+    sf = r.get('Sharpe_FULL', float('nan'))
+    if isinstance(sf, float) and np.isnan(sf):
+        mark = ''
+    else:
+        mark = ' ★' if sf > ref_lt2 else (' ◎' if sf > ref_s2 else '')
     return (
         f'| {n:>4d} | {k_lt:.1f} '
+        f'| {_fp1(r.get("CAGR_IS"))} '
         f'| {_fp1(r["CAGR_OOS"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
-        f'| {_ff2(r["Sharpe_OOS"])}{mark} '
+        f'| {_ff2(sf)}{mark} '
         f'| {_fp1(r["MaxDD_FULL"])} '
+        f'| {_worst1d(r.get("Worst1D"), r.get("Worst1D_date"))} '
         f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r.get("Worst5Y"))} '
         f'| {_fp1(r["P10_5Y"])} '
         f'| {_tr(r.get("Trades_yr"))} '
-        f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
-        f'| {_wfa(r.get("WFA_CI95_lo"))} |'
+        f'| {_robustness_cell(r)} |'
     )
 
 
-def fmt_row_1p(param_label, r, ref_s2=0.770, ref_lt2=0.885):
-    """1パラメータ型の1行を返す (b6 等) — v1.4: IS-OOS gap CAGR を 2列目に"""
-    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+def fmt_row_1p(param_label, r, ref_s2=0.934, ref_lt2=1.100):
+    """1パラメータ型の1行を返す (b6 等) — v2.0: 新10列標準"""
+    sf = r.get('Sharpe_FULL', float('nan'))
+    if isinstance(sf, float) and np.isnan(sf):
+        mark = ''
+    else:
+        mark = ' ★' if sf > ref_lt2 else (' ◎' if sf > ref_s2 else '')
     return (
         f'| {param_label} '
+        f'| {_fp1(r.get("CAGR_IS"))} '
         f'| {_fp1(r["CAGR_OOS"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
-        f'| {_ff2(r["Sharpe_OOS"])}{mark} '
+        f'| {_ff2(sf)}{mark} '
         f'| {_fp1(r["MaxDD_FULL"])} '
+        f'| {_worst1d(r.get("Worst1D"), r.get("Worst1D_date"))} '
         f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r.get("Worst5Y"))} '
         f'| {_fp1(r["P10_5Y"])} '
         f'| {_tr(r.get("Trades_yr"))} '
-        f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
-        f'| {_wfa(r.get("WFA_CI95_lo"))} |'
+        f'| {_robustness_cell(r)} |'
     )
 
 
-def fmt_row_strat(label, r, ref_s2=0.770, ref_lt2=0.885,
+def fmt_row_strat(label, r, ref_s2=0.934, ref_lt2=1.100,
                   sharpe_ref_mark=None, maxdd_ref_mark=None):
-    """戦略横並び比較表の1戦略1行を返す (MD_HEADER_STRAT と対で使う)。
-
-    Parameters
-    ----------
-    label : str
-        戦略名。Markdown 装飾（**...**）と §1.3 参考値マーカ（‡）は呼び出し側で付与する。
-    r : dict
-        必須キー: CAGR_OOS, Sharpe_OOS, MaxDD_FULL, Worst10Y_star,
-                  P10_5Y, IS_OOS_gap, Trades_yr, WFA_CI95_lo, WFA_WFE
-        Overfit(WFE) 列は WFA_WFE から自動算出
-        (0.5 ≤ WFE ≤ 2.0: LOW / WFE > 2.0: MED / WFE < 0.5: HIGH)
-    sharpe_ref_mark : str | None
-        Sharpe 値の直後に付けるマーカ。§1.3 参考値戦略には '‡' を渡す。
-    maxdd_ref_mark : str | None
-        MaxDD 値の直後に付けるマーカ。§1.3 参考値戦略には '‡' を渡す。
-    """
-    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+    """戦略横並び比較表の1行 — v2.0: 新10列標準"""
+    sf = r.get('Sharpe_FULL', float('nan'))
+    if isinstance(sf, float) and np.isnan(sf):
+        mark = ''
+    else:
+        mark = ' ★' if sf > ref_lt2 else (' ◎' if sf > ref_s2 else '')
     s_sfx = sharpe_ref_mark or ''
     m_sfx = maxdd_ref_mark  or ''
-    # v1.4: IS-OOS gap CAGR を CAGR_OOS の右隣（2列目）に配置
     return (
         f'| {label} '
+        f'| {_fp1(r.get("CAGR_IS"))} '
         f'| {_fp1(r["CAGR_OOS"])} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
-        f'| {_ff2(r["Sharpe_OOS"])}{mark}{s_sfx} '
+        f'| {_ff2(sf)}{mark}{s_sfx} '
         f'| {_fp1(r["MaxDD_FULL"])}{m_sfx} '
+        f'| {_worst1d(r.get("Worst1D"), r.get("Worst1D_date"))} '
         f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r.get("Worst5Y"))} '
         f'| {_fp1(r["P10_5Y"])} '
         f'| {_tr(r.get("Trades_yr"))} '
-        f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
-        f'| {_wfa(r.get("WFA_CI95_lo"))} |'
+        f'| {_robustness_cell(r)} |'
     )
 
 
-# ---------------------------------------------------------------------------
-# 統合比較レポート v6.1 / v4.2 — 11列フォーマッタ（採用判断・戦略横並び）
-# 列順: Strategy | CAGR⓽_OOS | 累積CAGR⓽ OOS/IS | IS-OOS gap |
-#        Sharpe ⓒ | MaxDD ⓒ | Worst10Y★⓽ | P10⓽ 5Y▷ | Trade ⓞ | Overfit ⓞ | CI95 ⓡ
-# docs/rules/09_integrated-report-standard.md 参照
-# ---------------------------------------------------------------------------
-
-def _cum_cagr_cell(cagr_oos, cagr_is):
-    """累積CAGR⓽ OOS/IS セル: 'OOS: +xx%<br>IS: +xx%'"""
-    oos_str = _fp1(cagr_oos)
-    if cagr_is is None or (isinstance(cagr_is, float) and np.isnan(cagr_is)):
-        is_str = '  —  '
-    else:
-        is_str = _fp1(cagr_is)
-    return f'OOS: {oos_str}<br>IS: {is_str}'
-
-
-# 統合比較表ヘッダ (v6.1 / v4.2 — 累積CAGR⓽ 列含む 11 列)
-MD_HEADER_INTEGRATED = (
-    '| Strategy | CAGR<br>⓽<br>_<br>OOS | 累積<br>CAGR<br>⓽<br>OOS/IS | IS-OOS<br>gap<br>CAGR | Sharpe<br>ⓒ<br>_OOS | MaxDD<br>ⓒ | Worst<br>10Y★<br>⓽<br>CAGR | P10<br>⓽<br>5Y▷<br>CAGR | Trade<br>ⓞ<br>(回/<br>年) | Overfit<br>ⓞ<br>(WFE) | CI95<br>ⓡ<br>_lo |',
-    '|:---------|-------------:|:------------------:|-------------:|---------------:|------:|----------------------:|-------------------:|------------------:|:----------------:|-----------:|',
-)
-
-
-def fmt_row_integrated(label, r, ref_s2=0.770, ref_lt2=0.885,
+def fmt_row_integrated(label, r, ref_s2=0.934, ref_lt2=1.100,
                        sharpe_ref_mark=None, maxdd_ref_mark=None):
-    """統合比較表の 1 行（11列 / MD_HEADER_INTEGRATED 対応）。
-
-    Parameters
-    ----------
-    label : str
-        戦略名（Markdown 装飾は呼び出し側で付与）
-    r : dict
-        必須キー: CAGR_OOS, IS_OOS_gap, Sharpe_OOS, MaxDD_FULL,
-                  Worst10Y_star, P10_5Y, Trades_yr, WFA_WFE, WFA_CI95_lo
-        任意キー: CAGR_IS（ない場合は累積CAGR IS セルが '—'）
-    """
-    mark = ' ★' if r['Sharpe_OOS'] > ref_lt2 else (' ◎' if r['Sharpe_OOS'] > ref_s2 else '')
+    """統合比較表の1行 — v2.0: 新10列標準（旧11列の累積CAGRセルを廃止）"""
+    sf = r.get('Sharpe_FULL', float('nan'))
+    if isinstance(sf, float) and np.isnan(sf):
+        mark = ''
+    else:
+        mark = ' ★' if sf > ref_lt2 else (' ◎' if sf > ref_s2 else '')
     s_sfx = sharpe_ref_mark or ''
     m_sfx = maxdd_ref_mark  or ''
     return (
         f'| {label} '
+        f'| {_fp1(r.get("CAGR_IS"))} '
         f'| {_fp1(r["CAGR_OOS"])} '
-        f'| {_cum_cagr_cell(r["CAGR_OOS"], r.get("CAGR_IS"))} '
-        f'| {_gap_pp(r["IS_OOS_gap"])} '
-        f'| {_ff2(r["Sharpe_OOS"])}{mark}{s_sfx} '
+        f'| {_ff2(sf)}{mark}{s_sfx} '
         f'| {_fp1(r["MaxDD_FULL"])}{m_sfx} '
+        f'| {_worst1d(r.get("Worst1D"), r.get("Worst1D_date"))} '
         f'| {_fp1(r["Worst10Y_star"])} '
+        f'| {_fp1(r.get("Worst5Y"))} '
         f'| {_fp1(r["P10_5Y"])} '
         f'| {_tr(r.get("Trades_yr"))} '
-        f'| {_ovfit_wfe(r.get("WFA_WFE"))} '
-        f'| {_wfa(r.get("WFA_CI95_lo"))} |'
+        f'| {_robustness_cell(r)} |'
     )
 
 

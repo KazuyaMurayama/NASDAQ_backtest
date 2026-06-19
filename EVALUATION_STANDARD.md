@@ -4,8 +4,8 @@
 > **新しい戦略検証・改良・比較を行う前に、必ず §0 を読み、各セクションの定義に従ってください。**
 > **本書と矛盾する実装・レポートは「非標準」として §1.3 / §6 の参考値ルールが適用されます。**
 
-- バージョン: **v1.9**
-- 発行日: 2026-05-22（最終改訂 2026-06-18: §1.5 >3xレバ証拠金コスト前提 — **v1.9 最終是正: 証拠金は担保で継続的CAGRドラッグを生まない（v2 ×SOFR −0.9pp・v3 現金取り置き −3.42pp とも却下）。URL根拠付き**）
+- バージョン: **v2.0**
+- 発行日: 2026-05-22（最終改訂 2026-06-19: **§3.12 統一指標を v2.0（10指標）へ刷新** — CAGR_IS追加・IS-OOS gap削除・Sharpeフル期間化・最悪単日(テール)追加・Worst5Y追加・旧Overfit+CI95を「頑強性/過学習」1列に統合・◎/★をフルSharpe実測で再較正(◎+0.934/★+1.100)。前回 v1.9: §1.5 >3xレバ証拠金は担保で継続的CAGRドラッグを生まない）
 - 管理者: 男座員也（Kazuya Oza）
 - 一次関連ファイル: [`CURRENT_BEST_STRATEGY.md`](CURRENT_BEST_STRATEGY.md), [`src/product_costs.py`](src/product_costs.py), [`tasks.md`](tasks.md), [`FILE_INDEX.md`](FILE_INDEX.md)
 
@@ -43,7 +43,7 @@
 - [ ] DELAY=2 を使用したか
 - [ ] §5 のレポートテンプレに沿ったか
 - [ ] CURRENT_BEST_STRATEGY.md と整合確認したか
-- [ ] **9指標チェック**: CAGR/Sharpe/MaxDD/Worst10Y★/P10_5Y▷/IS-OOS gap/Trades/yr を全て出したか
+- [ ] **10指標チェック（§3.12 v2.0）**: CAGR_IS・CAGR_OOS・Sharpe(Full)・MaxDD・最悪単日・Worst10Y★・Worst5Y・P10_5Y▷・Trades/yr・頑強性(過学習) を全て出したか（IS-OOS gap列は削除＝2CAGR列から導出）
 - [ ] **禁止指標不使用**: Stable_Sharpe/WinRate_yr/WorstK5_mean_CAGR/IR_vs_BH を使っていないか
 - [ ] **WFA実施時**: WFA_CI95_lo (§3.9) と WFA_WFE (§3.10) を追加したか
 - [ ] **実効レバ>3x の戦略**: §1.5（v1.9）のコスト前提を適用したか — (a)証拠金は担保でCAGRドラッグを生まないと認識、(b)金利相当額（≈SOFR+スプレッド）をコストモデルに計上、(c)CAGRから「証拠金取り置きドラッグ」を別途引いていない（二重控除禁止）、(d)高レバのリスクをテールリスク（強制ロスカット）として提示、(e)リスク低減はレバ水準（de-lever）で評価
@@ -296,27 +296,32 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 
 新しい指標を追加する場合は、本書 §3 に式・コード参照・注意事項を追記してから採用する。
 
-### §3.12 統一指標セット（9指標）とレポート標準（v1.4 確定 2026-06-02）
+### §3.12 統一指標セット（10指標）とレポート標準（v2.0 確定 2026-06-19）
 
-すべての sweep / grid / 戦略比較レポートは以下の **9指標**を標準セットとして使用する。
+すべての sweep / grid / 戦略比較レポートは以下の **10指標**を標準セットとして使用する。期間基準（IS=インサンプル / OOS=アウトオブサンプル / Full=全期間）を列に明示する。
 
-| # | 指標 | 種別 | 列ヘッダ（短縮）| MD表示（4行折り返し）| 列順 |
+| # | 指標 | 期間 | 種別 | MD表示（3-4行折返） | 列順 |
 |---|---|---|---|---|---|
-| 1 | CAGR_OOS | 一次 | `CAGR⓽_OOS` | `CAGR<br>⓽<br>_<br>OOS` | 1 |
-| 2 | **IS-OOS gap CAGR** | 一次 | `IS-OOS gap CAGR` | `IS-OOS<br>gap<br>CAGR` | **2 (v1.4 で移動)** |
-| 3 | Sharpe_OOS | 一次 | `Sharpeⓒ_OOS` | `Sharpe<br>ⓒ<br>_OOS` | 3 |
-| 4 | MaxDD(FULL) | 一次 | `MaxDDⓒ` | `MaxDD<br>ⓒ` | 4 |
-| 5 | Worst10Y★ CAGR | 一次 | `Worst10Y★⓽CAGR` | `Worst<br>10Y★<br>⓽<br>CAGR` | 5 |
-| 6 | P10_5Y▷ CAGR | 一次 | `P10⓽5Y▷CAGR` | `P10<br>⓽<br>5Y▷<br>CAGR` | 6 |
-| 7 | Trades/yr | 一次 | `Tradeⓞ(回/年)` | `Trade<br>ⓞ<br>(回/<br>年)` | 7 |
-| 8 | Overfit(WFE) | WFA補助 | `Overfitⓞ(WFE)` | `Overfit<br>ⓞ<br>(WFE)` | 8 |
-| 9 | WFA_CI95_lo | WFA補助 | `CI95ⓡ_lo` | `CI95<br>ⓡ<br>_lo` | 9 |
+| 1 | In-sample CAGR | IS | ⓽税後 | `CAGR<br>IS<br>⓽` | 1 |
+| 2 | Out-of-sample CAGR | OOS | ⓽ | `CAGR<br>OOS<br>⓽` | 2 |
+| 3 | Sharpe（フル期間） | Full | ⓒ税引前 | `Sharpe<br>Full<br>ⓒ` | 3 |
+| 4 | MaxDD | Full | ⓒ | `Max<br>DD<br>ⓒ` | 4 |
+| 5 | **最悪単日（テール）** | Full | ⓒ | `最悪<br>単日<br>ⓒ` | **5（新規・MaxDD直後）** |
+| 6 | Worst10Y★ CAGR | Full | ⓽ | `Worst<br>10Y★<br>⓽` | 6 |
+| 7 | **Worst5Y CAGR** | Full | ⓽ | `Worst<br>5Y<br>⓽` | **7（新規）** |
+| 8 | P10_5Y▷ CAGR | Full | ⓽ | `P10<br>5Y▷<br>⓽` | 8 |
+| 9 | Trades/yr | — | ⓞ | `Trade<br>/年<br>ⓞ` | 9 |
+| 10 | **頑強性・過学習（統合）** | — | 判定+証拠 | `頑強性<br>過学習` | **10（旧 Overfit+CI95 を統合）** |
 
-**v1.4 変更点**:
-1. **IS-OOS gap CAGR を CAGR_OOS の右隣（第2列）へ移動**（v1.3 では第6列だった）
-2. **「IS-OOS gap」→「IS-OOS gap CAGR」へ列名変更**（CAGR 単位を明示）
-3. **列ヘッダを 4行折り返し（v1.3 は 2-3行）** — 列幅を更に縮小、状態凡例マーカ ⓽/ⓒ/ⓞ/ⓡ を独立行に
-4. **取引コスト評価は日次レベル必須**（年率近似 `Trades_yr × spread × L_avg × κ` は高頻度・低Δ戦略を過大評価する）
+**v2.0 変更点（v1.4→v2.0）**:
+1. **CAGR_IS を第1列に追加**（CAGR_OOS と並べ、min(IS,OOS) と gap が一目で読める）。これに伴い v1.1 の「CAGR は OOS 1列のみ」ルールを**廃止**。
+2. **IS-OOS gap 列を削除**（CAGR_IS − CAGR_OOS で導出可・情報ロスなし。gap は #10 頑強性判定の内部材料として存続）。
+3. **Sharpe を OOS → フル期間に変更**（52年で統計的に頑健・他リスク指標が全てFull基準で整合）。旧 OOS Sharpe 値は「OOS(旧)」と明記して残す。
+4. **最悪単日（テール）を MaxDD 直後に追加**（高レバの強制ロスカット引き金＝単日急落を捕捉。セルに発生日を小書き）。
+5. **Worst5Y を追加**（5年保有最悪。Worst10Y/P10_5Y と並ぶ）。
+6. **旧 Overfit(WFE)+CI95_lo を「#10 頑強性・過学習」1列に統合**（判定＋証拠2-3行。WFE/CI95_lo/CPCV/t_p/Regime を集約）。
+7. **◎/★ Sharpe マーカをフル期間Sharpeで再較正**: ◎=**+0.934**（E4現Active 実測Sharpe_FULL）/ ★=**+1.100**（B3aベスト 実測）。旧 OOS基準 0.770/0.885 は廃止。
+8. **取引コスト評価は日次レベル必須**（年率近似は高頻度・低Δ戦略を過大評価）。
 
 **取引コスト評価ルール（v1.4 必須）**:
 - 全戦略の `CAGR_IS` / `CAGR_OOS` は **日次レベルで取引コストを反映**してから算出すること
@@ -327,55 +332,50 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 - 表内に yr_cost (年率取引コスト概算) を表示することは**禁止**（CAGR に反映済みで二重表示になる）
 
 **状態凡例マーカ**:
-- **⓽** = 税後（手取り）: CAGR_OOS, Worst10Y★ CAGR, P10_5Y▷ CAGR
-- **ⓒ** = コスト後（税引き前）: Sharpe_OOS, MaxDD
-- **ⓞ** = 原値（コスト・税で不変）: Trades/yr, Overfit(WFE)
-- **ⓡ** = 実測値（WFA計算）+ 税調整: CI95_lo
+- **⓽** = 税後（手取り）: CAGR_IS, CAGR_OOS, Worst10Y★, Worst5Y, P10_5Y▷
+- **ⓒ** = コスト後（税引き前）: Sharpe(Full), MaxDD, 最悪単日
+- **ⓞ** = 原値（コスト・税で不変）: Trades/yr
+- **期間基準**: CAGR は IS/OOS、Sharpe・MaxDD・最悪単日・Worst10Y/5Y・P10 は **Full（全期間）**、#10 頑強性は WFA/CPCV 由来。
 
-**列ヘッダの4行折り返し**: MD テーブルでは `<br>` を3つ使って長い列名を4行に折り返し、列幅を最小化する。全指標がスクロールなしに収まることを確認する（§5.6 参照）。
+**◎/★ Sharpe マーカ（フル期間・v2.0 再較正・2026-06-19）**: ◎ = Sharpe_FULL > **+0.934**（E4 現Active 水準）/ ★ = > **+1.100**（B3a ベスト水準）。実測 Sharpe_FULL から確定（取得元: E4 +0.934 / B3a +1.102 / P09_C1 +1.128 / scale1.35強map +1.079、`src/audit/unified_metrics.py::compute_10metrics`）。**Worst10Y★ の ★ は別意味**（最悪10年CAGRの記号）。
 
-**Overfit(WFE)（過学習リスクスコア v1.3）**: `WFA_WFE` 値に基づく評価。OvFit列とWFE列を1列に統合。
-- `✅ LOW`  : `0.5 ≤ WFE ≤ 2.0`（正常域。IS/OOS の汎化効率が適正）
-- `⚠ MED`  : `WFE > 2.0`（OOS 期間が IS より過大に有利。レジーム変化の可能性）
-- `❌ HIGH` : `WFE < 0.5`（IS 過学習の強い兆候。OOS で IS の半分以下）
-- `—`      : `WFA_WFE` が NaN（WFA 未計算）
+**列ヘッダの3-4行折り返し**: MD テーブルでは `<br>` で各列名を3-4行に折り返し列幅を最小化する。全指標がスクロールなしに収まることを確認（§5.6 参照）。
 
-値フォーマット: ラベル + WFE値（小数1桁）を2行表示。例: `✅ LOW<br>(1.1)`。実装は `src/_sweep_format.py::_ovfit_wfe()`。
+**#10 頑強性・過学習（統合列・v2.0）**: 戦略の妥当性（過学習リスクの低さ・頑強性/汎化）を1セルで示す。評価者が知りたい「過学習リスクはどの程度か／頑強性はどの程度か」に直接答える列。**判定ラベル＋証拠2-3行**。
+- **判定ルール（再現可能・実装 `src/_sweep_format.py::_robustness_cell()`）**:
+  - `❌過学習疑い`: `WFA_WFE>2.0 or <0.5` または `WFA_CI95_lo<0` または `|IS_OOS_gap|>5pp` のいずれか該当。
+  - `✅頑強`: `0.5≤WFE≤2.0` ∧ `CI95_lo>0` ∧ `|gap|≤3pp` ∧（`CPCV_p10>0` 算出時）∧（`t_p<0.05` 算出時）∧（`Regime_min>−10%` 算出時）。
+  - `⚠条件付`: 上記の中間（gap 3-5pp 等）。**未算出ゲートがあれば末尾に `(部分)`**。
+- **証拠行**（算出済のみ・NaNは省略）: `WFE{x} CI95lo{y}` / `CPCV{z} t_p{w}` / `Reg{v}`。例: `✅頑強<br>WFE0.99 CI95lo+23%<br>CPCV+16% t_p≈0<br>Reg−2.9%`。
+- 判定材料: `WFA_WFE`, `WFA_CI95_lo`, `IS_OOS_gap_pp`（CAGR_IS−CAGR_OOSから）, 任意 `CPCV_p10`/`t_p`/`Regime_min`。WFA未計算なら `—`。
 
-**v1.2 との変更**: v1.2 は IS-OOS gap絶対値でOvFit評価 + WFE別列だった。v1.3 からはWFEベース判定で1列統合（IS-OOS gap は依然 Gap 列で表示）。
-
-**CSV 列順序**（標準）: パラメータ列の後に以下の順:
-`CAGR_IS, CAGR_OOS, Sharpe_OOS, MaxDD_FULL, Worst10Y_star, P10_5Y, Worst5Y, IS_OOS_gap, Trades_yr, WFA_CI95_lo, WFA_WFE`
-（Overfit(WFE) は WFA_WFE から自動算出のため CSV には保存しない。MD 表示時に `_ovfit_wfe()` で計算）
+**CSV 列順序**（標準・v2.0）: パラメータ列の後に:
+`CAGR_IS, CAGR_OOS, CAGR_FULL, Sharpe_FULL, Sharpe_OOS, MaxDD_FULL, Worst1D, Worst1D_date, Worst10Y_star, Worst5Y, P10_5Y, Trades_yr, WFA_CI95_lo, WFA_WFE, IS_OOS_gap_pp`（任意: `CPCV_p10, t_p, Regime_min`）。
+（#10 頑強性ラベルは CSV に保存せず、MD表示時に `_robustness_cell()` で算出。`Sharpe_OOS` は旧基準併記用に CSV 保持。）
 
 **WFA 計算ポリシー（sweep スクリプト）**:
 1. 各セルの一次指標（#1〜7）はインラインで必ず計算する。
 2. `WFA_CI95_lo` / `WFA_WFE` は CSV に `NaN`、MD に `—` として出力（計算未実施マーカ）。
-3. 促進ゲート `Sharpe_OOS > 0.800 AND IS_OOS_gap < 5pp AND CAGR_OOS > 0` を満たすセルは `wfa_queue.csv` に追記する。
+3. 促進ゲート `Sharpe_FULL > +0.80 AND |IS_OOS_gap| < 5pp AND CAGR_OOS > 0` を満たすセルは `wfa_queue.csv` に追記する（v2.0: Sharpe基準を Full に変更）。
 4. `src/g2_wfa_shortlist.py` が `wfa_queue.csv` を読み WFA を計算し対象 CSV を更新する。
 
-**MD テーブル列構成（厳格ルール・v1.3 明文化）**:
+**MD テーブル列構成（厳格ルール・v2.0）**:
 
-1. **MD ヘッダは Strategy/Param + 9指標 = 10列**（v1.3 で Overfit(WFE) 1列に統合）。
-2. **CAGR は `CAGR_OOS` の1列のみ**。`CAGR_IS` / `CAGR_FULL` を MD ヘッダに含めることは **v1.1 違反**（CSV には保存可、本文中の言及も可）。
-3. **MD ヘッダは必ず `src/_sweep_format.py` の `MD_HEADER_1P` / `MD_HEADER_2P` / `MD_HEADER_STRAT` を import して使用**。手書きヘッダは禁止。
-4. **§5.3 必須指標テーブル（IS/OOS/FULL 縦長3列構造）は単体戦略レポート専用**。sweep / grid / 戦略横並び比較表には適用しない。横並び表は §3.12 の9指標標準に従う。
-5. 戦略横並び比較レポートは `MD_HEADER_STRAT` / `fmt_row_strat` を使用する。§1.3 参考値戦略は `sharpe_ref_mark='‡'` / `maxdd_ref_mark='‡'` を付与する。
+1. **MD ヘッダは Strategy/Param + 10指標 = 11列**（v2.0: 旧 Overfit+CI95 を #10 頑強性に統合・CAGR_IS追加・gap削除で正味10指標）。
+2. **CAGR は IS / OOS の2列を併記**（v2.0 で v1.1「OOS1列のみ」を廃止）。**IS-OOS gap 列は出力しない**（2列から導出可・#10頑強性の内部材料）。
+3. **Sharpe は フル期間**（`Sharpe_FULL`）。旧 OOS Sharpe で算出した過去表は「OOS(旧)」と明記して残す。
+4. **MD ヘッダは必ず `src/_sweep_format.py` の `MD_HEADER_1P/2P/STRAT/INTEGRATED` を import して使用**。手書きヘッダ禁止。
+5. **§5.3 必須指標テーブル（IS/OOS/FULL 縦長3列）は単体戦略レポート専用**。横並び比較表は本 §3.12 の10指標標準に従う。
+6. 戦略横並び比較は `MD_HEADER_STRAT` / `fmt_row_strat`。§1.3 参考値戦略は `sharpe_ref_mark='‡'` / `maxdd_ref_mark='‡'`。
 
-**Sweep スクリプト実装チェックリスト**（PR前必須）:
-- [ ] `row` dict に `Trades_yr`, `WFA_CI95_lo`, `WFA_WFE` が含まれている（Overfit(WFE) は WFA_WFE から自動算出）
-- [ ] MD テーブルが `src/_sweep_format.py` の `MD_HEADER_2P` / `MD_HEADER_1P` を使用している（10列ヘッダ）
-- [ ] `<br>` 折り返しヘッダを使用している
-- [ ] **MD ヘッダに `CAGR_IS` / `CAGR_FULL` 列を含めていない**（v1.1 違反）
-- [ ] 促進ゲート通過セルを `wfa_queue.csv` に追記している
-
-**戦略横並び比較スクリプト / 手書き比較レポート実装チェックリスト**（PR前必須）:
-- [ ] MD テーブルが `MD_HEADER_STRAT` を使用している（手書きヘッダ禁止、11列）
-- [ ] CAGR_OOS の1列のみで、`CAGR<br>IS` / `CAGR<br>FULL` が MD ヘッダに無い
-- [ ] `OvFit` 列が全行にある（LOW/MED/HIGH/— のいずれか）
-- [ ] §1.3 参考値戦略は Sharpe / MaxDD 値の右に `‡` を付与している
-- [ ] WFA 未計算戦略は `CI95_lo` / `WFE` を `—` 表示している
-- [ ] CSV 側は `CAGR_IS` / `CAGR_FULL` を保持しており参照可能（§3.12 CSV 列順序）
+**実装チェックリスト（PR前必須・v2.0）**:
+- [ ] `row` dict に `CAGR_IS, CAGR_OOS, Sharpe_FULL, MaxDD_FULL, Worst1D(+Worst1D_date), Worst10Y_star, Worst5Y, P10_5Y, Trades_yr, WFA_CI95_lo, WFA_WFE` が含まれる（#10頑強性は自動算出・任意 `CPCV_p10/t_p/Regime_min`）
+- [ ] MD テーブルが `src/_sweep_format.py` の `MD_HEADER_*` を使用（11列・手書き禁止）
+- [ ] **CAGR は IS/OOS の2列**・**IS-OOS gap 列は出力しない**・**Sharpe は Full**
+- [ ] 最悪単日セルに発生日を小書き／#10 頑強性は判定＋証拠（未算出ゲートは末尾 `(部分)`）
+- [ ] ◎/★ は フル期間Sharpe閾値（◎ +0.934 / ★ +1.100）で付与
+- [ ] §1.3 参考値戦略は Sharpe/MaxDD に `‡`
+- [ ] WFA 未計算戦略は #10 頑強性を `—`（or 部分表示）／促進ゲート通過セルを `wfa_queue.csv` に追記
 
 ### §3.13 標準化された保守的 CAGR 指標 — min(IS, OOS) CAGR (v4.5 確定 2026-06-05 / v4.9 改訂 2026-06-08)
 
@@ -395,7 +395,7 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 #### 用途
 - §0' 累積 CAGR 列の表示: **OOS / IS / min を 3 段表示**
 - 戦略間比較の主要指標として使用 (OOS 単独評価より優先)
-- 標準 9 指標 (§3.12) と併記して総合評価
+- 標準 10 指標 (§3.12 v2.0) と併記して総合評価
 
 #### WFE 補助判定 (regime luck 警告)
 
@@ -410,9 +410,9 @@ WFA_WFE = mean(CAGR of windows where start_date >= OOS_START)
 v4.5 当初は **「3 軸 (min + Worst10Y + P10_5Y) すべて baseline 以上」を Active 候補昇格の必須条件**としていたが、過度に restrictive と判断され**この強制条件は削除**:
 - ✅ 残存: **min(IS, OOS) CAGR の標準化** (保守的期待リターン指標として使用)
 - ✅ 残存: WFE 補助判定 (regime luck 警告)
-- ❌ 削除: 「3 軸すべて baseline 以上」必須条件 (Worst10Y / P10_5Y は §3.12 の 9 指標として参照するが強制ではない)
+- ❌ 削除: 「3 軸すべて baseline 以上」必須条件 (Worst10Y / P10_5Y は §3.12 の 10 指標として参照するが強制ではない)
 
-**過去の判定 (AH/AT/HL 棄却等) は当時のルールに基づくため変更しない** が、今後の評価は **min(IS, OOS) + 9 指標の総合判断** で進める。
+**過去の判定 (AH/AT/HL 棄却等) は当時のルールに基づくため変更しない** が、今後の評価は **min(IS, OOS) + 10 指標の総合判断** で進める。
 
 #### 環境別 Active 候補 (v4.5)
 
@@ -456,7 +456,7 @@ v4.5 当初は **「3 軸 (min + Worst10Y + P10_5Y) すべて baseline 以上」
 - IS-OOS gap > +10 pp
 - MaxDD < -80%
 - Worst10Y★ < 0%
-- Sharpe_OOS < 0.5
+- Sharpe_FULL < 0.5（v2.0: フル期間基準。旧基準は Sharpe_OOS < 0.5）
 
 ---
 
@@ -475,7 +475,7 @@ v4.5 当初は **「3 軸 (min + Worst10Y + P10_5Y) すべて baseline 以上」
 # <Strategy Name> 検証レポート
 
 - レポート日: YYYY-MM-DD
-- EVALUATION_STANDARD バージョン: v1.0
+- EVALUATION_STANDARD バージョン: v2.0（執筆時の最新版を記載）
 - コスト Scenario: **D**（src/product_costs.py 2026-05-12 基準）
 - 期間: IS 1974-01-02〜2021-05-07 / OOS 2021-05-08〜YYYY-MM-DD / FULL 1974-01-02〜YYYY-MM-DD
 - DELAY: 2 営業日
@@ -561,7 +561,7 @@ START
   │     ├─ YES ─► 【参考値】§1.3-3 該当
   │     └─ NO
   │           │
-  └─► 【正値】(EVALUATION_STANDARD v1.0 準拠)
+  └─► 【正値】(EVALUATION_STANDARD v2.0 準拠)
 ```
 
 **運用ルール**:
@@ -586,6 +586,7 @@ START
 | **v1.7** | **2026-06-17** | **§1.5 新設: レバレッジ>3x（取引所CFD・証拠金取引）の証拠金取り置きコスト前提を標準化**。>3x戦略は「証拠金率8%（最小4.24%の2倍）を無利息で取り置き＋資金制約＋四半期ロールコスト」で評価必須、証拠金ゼロ前提は非標準（参考値）。`src/product_costs.py` に K365_* 定数追加。§0サマリ・PRチェックリストに反映。一次根拠 MARGIN_CAPACITY_STRESS_RESULTS_20260617.md（※当時の現実ドラッグ scale1.35 ≈−0.9pp は v1.8 で撤回）。 |
 | v1.8 | 2026-06-17 | **（v1.9で撤回）** §1.5 で機会損失を「現金取り置き×(戦略リターン−SOFR)」とし、リスク較正バッファ f_cal で scale1.35強map −3.42pp(→+20.41%) 等と計算。→ これは「過少投資（運用額の一部を遊休現金にする）」のモデルで、証拠金の仕組み上は不要な任意の保守姿勢＝強制コストでないため v1.9 で却下。 |
 | **v1.9** | **2026-06-18** | **§1.5 最終是正（最重要）: 証拠金は「ポジションを裏付ける自己資金＝担保」で、損益は建玉全額に発生する（eToro）→ 証拠金は継続的なCAGRドラッグを生まない**。∴ バックテストの税後CAGR（金利相当額控除済）は到達可能（例 scale1.35強map +23.83%。M6で強制清算は1975-77に3回・各13-19%AUMだがCAGR影響+0.08pp・min⓽不変、5大危機はOUTで清算0）。**v2(×SOFR −0.9pp)・v3(現金取り置き −3.42pp)とも却下**。唯一の継続コストは金利相当額（≈SOFR+スプレッド・コストモデル計上済）、円建てでFX無し。高レバの実コストはCAGRドラッグでなく**テールリスク（強制ロスカット）**で、低減はレバ水準で。コスト前提の本体・URL根拠は [PRODUCT_COST_COMPARISON §10](PRODUCT_COST_COMPARISON_2026-06-10.md)。独立QC（前提攻撃型・URL本文確認）APPROVE_WITH_CAVEATS。 |
+| **v2.0** | **2026-06-19** | **§3.12 統一指標を 9指標 → 10指標へ刷新（メジャー）**。変更: ①CAGR_IS を第1列追加（v1.1「OOS1列のみ」廃止・min/gapが一目）②IS-OOS gap 列削除（2CAGR列から導出・頑強性の内部材料化）③Sharpe を OOS→**フル期間**（統計頑健・他リスク指標とFull整合・旧OOS値は「OOS(旧)」明記）④**最悪単日（テール）を MaxDD直後に追加**（強制ロスカット引き金・発生日小書き）⑤**Worst5Y 追加** ⑥旧 Overfit(WFE)+CI95_lo を**「頑強性・過学習」1列に統合**（判定+証拠2-3行: WFE/CI95/CPCV/t_p/Regime）⑦◎/★を**フルSharpe実測で再較正**（◎+0.934=E4現Active / ★+1.100=B3aベスト・旧0.770/0.885廃止）。実装: `src/audit/unified_metrics.py`（Sharpe_FULL/Worst1D追加）・`src/_sweep_format.py` v2.0（ヘッダ4本/fmt_row4本/`_worst1d`/`_robustness_cell`、テスト 4+24 PASS）。回帰サニティ: 既存min⓽/MaxDD 完全再現。Sharpe_FULL/最悪単日は実NAVで実算出（推定不採用）。 |
 
 ### 今後の改訂方針
 
