@@ -124,6 +124,22 @@ HARD_VETO_WFE    = 1.5
 HARD_VETO_W10Y   = 0.0
 HARD_VETO_REGIME = -0.10
 
+# --- Causality constants for action signals (I-1, I-2 fixes) -----------------
+# Every canonical NAV builder lags lev_mod_065 by _DELAY business days before
+# using it (src/audit/strategy_runners.py: _DELAY = 2, applied via .shift(_DELAY)
+# in _build_nav_*_realistic). A5's out_strength is derived from lev_mod_065 and
+# MUST be lagged by the SAME delay, else the cash-sizing knob look-aheads ~2 days.
+_LEVMOD_DELAY = 2          # == strategy_runners._DELAY applied to lev_mod_065
+_EXIT_THR     = 0.3        # DH-W1 W1 exit threshold (EXIT_THR_W1); out_strength
+                           # is 1.0 at deepest OUT (lev_mod=0) and 0.0 at exit.
+# A6 causal high-vol action signal: realized-vol window matches the regime
+# labeler's "vol" axis (regime_labeler_20260611.VOL_WIN=63, annualized by
+# sqrt(252)). The labeler's threshold is a FULL-SAMPLE median (ex-post, for
+# stratification only -- see its docstring lines 17-19). For an ACTION signal we
+# replace that with a point-in-time expanding median, shifted by 1 (past-only).
+_A6_VOL_WIN          = 63   # = regime_labeler VOL_WIN (match labeler rv exactly)
+_A6_EXPMED_MINPER    = 252  # min periods before the expanding median is defined
+
 # Canonical P09_C1 after-tax reference (from leverup_b1c1_20260612.csv / CURRENT_BEST §v8)
 P09C1_CANON = {
     "CAGR_IS_at":  0.198838,   # +19.88%
@@ -256,9 +272,14 @@ def main():
     bond_on = np.where(np.isnan(bond_m252_raw), False, bond_m252_raw > 0)
     sofr_arr = np.asarray(a["sofr"], float)
 
-    # out_strength: 1.0 at deepest OUT (lev_mod=0), 0.0 near the exit threshold
-    lev_mod = np.nan_to_num(np.asarray(a["lev_mod_065"], float), nan=0.0)
-    out_strength = np.clip((0.3 - lev_mod) / 0.3, 0.0, 1.0)
+    # out_strength: 1.0 at deepest OUT (lev_mod=0), 0.0 near the W1 exit threshold.
+    # I-1 FIX: lag lev_mod_065 by _LEVMOD_DELAY (== strategy_runners._DELAY=2)
+    # BEFORE deriving the cash-sizing knob. The canonical NAV builders all apply
+    # .shift(_DELAY) to lev_mod_065; reading the same-day value here would be a
+    # ~2-day look-ahead. _EXIT_THR (0.3) is the DH-W1 W1 exit threshold.
+    lev_mod_raw = np.nan_to_num(np.asarray(a["lev_mod_065"], float), nan=0.0)
+    lev_mod = pd.Series(lev_mod_raw).shift(_LEVMOD_DELAY).fillna(0.0).values
+    out_strength = np.clip((_EXIT_THR - lev_mod) / _EXIT_THR, 0.0, 1.0)
 
     # =========================================================================
     # IN-leg base return for the OUT-fill variant builder
@@ -269,16 +290,31 @@ def main():
         excess_extra=P09C1_EXCESS_EXTRA)
 
     def build_variant(wg_, wb_, bond_on_, alloc_fn, extra_ctx=None, in_brake=False):
-        nav_arr, r, eff = _build_out_fill_variant(
+        # return_weights=True so we can surface the intra-sleeve (Gold/Bond
+        # re-weighting) turnover that _count_fund_transitions (OUT<->IN flips
+        # only) cannot see. The (w_gold, w_bond, w_cash) returned are the SAME
+        # arrays used to build r -- no re-running of alloc_fn (I-3 diagnostic).
+        nav_arr, r, eff, w_gold, w_bond, w_cash = _build_out_fill_variant(
             r_base_in, ret_gold, ret_bond, fund_active, wg_, wb_, bond_on_, sofr_arr,
-            alloc_fn=alloc_fn, **(extra_ctx or {}))
+            alloc_fn=alloc_fn, return_weights=True, **(extra_ctx or {}))
         if in_brake:
             r = apply_in_leg_vol_brake(r, fund_active, sofr_arr,
                                        target_vol=0.30, window=63)
             nav_arr = np.cumprod(1.0 + r)
         nav_dt = pd.Series(nav_arr, index=dates_dt)
         tpy = tpy_base + _count_fund_transitions(eff) / n_years
-        return nav_dt, r, tpy
+
+        # --- I-3: OUT-sleeve turnover diagnostic (UNCHARGED, reported only) ---
+        # sum of |Δw_gold| + |Δw_bond| over active (OUT) days / n_years. Exposes
+        # the daily re-weighting churn of A2/A4/A5/A7 that the OUT<->IN flip count
+        # misses. NOTE: for A7 (in_brake) the extra churn is on the IN leg, NOT
+        # this OUT sleeve; its OUT sleeve == base, so A7's sleeve_turnover_yr ~=
+        # A0's. A7's IN-leg churn is a separate (unmeasured) cost.
+        dwg = np.abs(np.diff(w_gold, prepend=w_gold[0]))
+        dwb = np.abs(np.diff(w_bond, prepend=w_bond[0]))
+        active = fund_active.astype(float)
+        sleeve_turnover_yr = float(np.sum((dwg + dwb) * active) / n_years)
+        return nav_dt, r, tpy, sleeve_turnover_yr
 
     # =========================================================================
     # SANITY GATE: A0 must reproduce canonical P09_C1 (direct _build_full_c1)
@@ -300,8 +336,8 @@ def main():
     canon_maxdd    = canon_pre["MaxDD_FULL"]
     canon_sharpe   = canon_pre["Sharpe_FULL"]
 
-    # A0 via the OUT-fill builder
-    a0_nav, a0_r, a0_tpy = build_variant(wg, wb, bond_on, alloc_base)
+    # A0 via the OUT-fill builder (4th element = sleeve-turnover diagnostic)
+    a0_nav, a0_r, a0_tpy, _a0_sto = build_variant(wg, wb, bond_on, alloc_base)
     a0_pre = compute_10metrics(a0_nav, a0_tpy)
     a0_aft = _apply_aftertax(a0_pre)
     a0_cagr_oos = a0_aft["CAGR_OOS"]
@@ -351,9 +387,30 @@ def main():
     regimes = build_regime_labels(a["close"], a["sofr"], dates_dt)
     stress  = stress_masks(dates_dt)
 
-    highvol_mask = (regimes["vol"].values == "highvol")
-    print("  highvol days: %d of %d (%.1f%%)"
-          % (int(highvol_mask.sum()), n, 100.0 * highvol_mask.sum() / n))
+    # EX-POST high-vol mask (full-sample median threshold). LEGITIMATE for
+    # _eval_one stratification of ALL rows (descriptive, not a trading signal),
+    # so it stays the `regimes` object. It must NOT drive any allocation.
+    highvol_mask_expost = (regimes["vol"].values == "highvol")
+    print("  highvol days (ex-post, stratification): %d of %d (%.1f%%)"
+          % (int(highvol_mask_expost.sum()), n,
+             100.0 * highvol_mask_expost.sum() / n))
+
+    # I-2 FIX: CAUSAL high-vol ACTION signal for A6's gold tilt (point-in-time).
+    # The regime labeler computes rv = close.pct_change rolling(63).std(ddof=1)
+    # *sqrt(252), then labels highvol via a FULL-SAMPLE median -- ex-post, only
+    # valid for stratification (labeler docstring lines 17-19). A6 TRADES on the
+    # high-vol flag, so a full-sample median = look-ahead. We replicate the
+    # labeler's rv EXACTLY (a["ret"] == close.pct_change().fillna(0), VOL_WIN=63,
+    # *sqrt(252)) but replace the threshold with an EXPANDING median shifted by 1
+    # so today's tilt decision uses only past data.
+    rv_a6 = (pd.Series(np.asarray(a["ret"], float))
+             .rolling(_A6_VOL_WIN, min_periods=_A6_VOL_WIN).std(ddof=1)
+             * np.sqrt(TRADING_DAYS))
+    causal_med = rv_a6.expanding(min_periods=_A6_EXPMED_MINPER).median().shift(1)
+    highvol_mask_causal = (rv_a6 > causal_med).fillna(False).values
+    print("  highvol days (causal, A6 action signal): %d of %d (%.1f%%)"
+          % (int(highvol_mask_causal.sum()), n,
+             100.0 * highvol_mask_causal.sum() / n))
 
     # =========================================================================
     # Build alternate weights / gates for variations
@@ -373,9 +430,11 @@ def main():
         ("A5_CONVICTION",   lambda: build_variant(wg63, wb63, bond_on,
                                                   make_alloc_conviction_cash(0.5),
                                                   extra_ctx={"out_strength": out_strength})),
+        # A6 TRADES on the high-vol flag -> use the CAUSAL (point-in-time)
+        # mask, NOT the ex-post regimes["vol"] median (I-2 fix).
         ("A6_GOLD_TILT",    lambda: build_variant(wg63, wb63, bond_on,
                                                   make_alloc_gold_tilt(0.75),
-                                                  extra_ctx={"highvol_mask": highvol_mask})),
+                                                  extra_ctx={"highvol_mask": highvol_mask_causal})),
         ("A7_IN_VOL_BRAKE", lambda: build_variant(wg63, wb63, bond_on, alloc_base,
                                                   in_brake=True)),
     ]
@@ -390,10 +449,11 @@ def main():
     results = []
     for label, builder in VARIATIONS:
         print("\n  [%s] building NAV ..." % label)
-        nav_dt, r, tpy = builder()
+        nav_dt, r, tpy, sleeve_turnover_yr = builder()
         print("    Running WFA + CPCV + regime + stress + bootstrap ...")
         s1 = _stage1_full_gate(label, nav_dt, r, tpy, regimes, stress,
                                is_mask, oos_mask, r_v7, r_b3a)
+        s1["sleeve_turnover_yr"] = round(sleeve_turnover_yr, 4)
 
         veto_reasons = []
         if s1["s1_veto_maxdd"]: veto_reasons.append("MaxDD<-50%%")
@@ -412,6 +472,8 @@ def main():
         print("    boot vs V7:  P_min=%.3f CI95_min=%+.2f%% P_maxdd=%.3f P_w10y=%.3f P_sharpe=%.3f"
               % (s1["mm_v7_P_min"], s1["mm_v7_CI95_min"], s1["mm_v7_P_maxdd"],
                  s1["mm_v7_P_w10y"], s1["mm_v7_P_sharpe"]))
+        print("    sleeve_turnover_yr (OUT-sleeve |dw_g|+|dw_b|, uncharged diag): %.3f"
+              % s1["sleeve_turnover_yr"])
 
         results.append({"label": label, "s1": s1})
 
@@ -458,6 +520,7 @@ def main():
             "P10_5Y_at":      round(s1["P10_5Y_at"], 6),
             "Worst5Y_at":     round(s1["Worst5Y_at"], 6),
             "Trades_yr":      round(s1["Trades_yr"], 2),
+            "sleeve_turnover_yr": round(s1["sleeve_turnover_yr"], 4),
             "Worst1D":        round(s1["Worst1D"] if s1["Worst1D"] is not None else float("nan"), 6),
             "Worst1D_date":   s1["Worst1D_date"] if s1["Worst1D_date"] else "",
             "wfa_WFE":        round(s1["wfa_WFE"], 6),
@@ -527,6 +590,7 @@ def main():
                 "MaxDD_pct":       round(e["s1"]["MaxDD_FULL"] * 100, 4),
                 "Worst10Y_at_pct": round(e["s1"]["Worst10Y_at"] * 100, 4),
                 "Trades_yr":       round(e["s1"]["Trades_yr"], 2),
+                "sleeve_turnover_yr": round(e["s1"]["sleeve_turnover_yr"], 4),
                 "wfa_WFE":         round(e["s1"]["wfa_WFE"], 4),
                 "wfa_CI95_lo_pct": round(e["s1"]["wfa_CI95_lo"] * 100, 4),
                 "regime_min_at_pct": round(e["s1"]["regime_min_at"] * 100, 4),

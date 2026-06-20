@@ -24,7 +24,7 @@ def alloc_base(ctx) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
                             w_g, w_b, bond_on, sofr_arr, *, alloc_fn,
-                            **extra_ctx):
+                            return_weights=False, **extra_ctx):
     """Same signature/return as _build_p09_nav_c1 but split via alloc_fn.
 
     alloc_fn(ctx) returns (w_gold, w_bond, w_cash) arrays (len n). Cash earns
@@ -34,6 +34,13 @@ def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
     extra_ctx: any additional keys (e.g. out_strength, highvol_mask) are merged
     into ctx right before alloc_fn is called, so conviction/tilt alloc factories
     can read regime/strength signals supplied by the caller.
+
+    return_weights: default False -> 3-tuple (nav, r, eff_active) preserved for
+    all existing callers/tests. When True, additionally return the per-day OUT
+    sleeve weight arrays the alloc_fn produced:
+        (nav, r, eff_active, w_gold, w_bond, w_cash)
+    so callers can compute an intra-sleeve turnover diagnostic without re-running
+    the alloc_fn (it is the SAME (w_gold, w_bond, w_cash) used to build r).
     """
     bond_on = np.asarray(bond_on, dtype=bool)
     sofr_arr = np.asarray(sofr_arr, float)
@@ -56,6 +63,10 @@ def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
     r = np.clip(r, -0.999, None)
     nav = np.cumprod(1.0 + r)
     eff_active = np.asarray(fund_active, dtype=bool).copy()
+    if return_weights:
+        return (nav, r, eff_active,
+                np.asarray(w_gold, float), np.asarray(w_bond, float),
+                np.asarray(w_cash, float))
     return nav, r, eff_active
 
 

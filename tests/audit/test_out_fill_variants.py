@@ -36,6 +36,34 @@ def test_extra_ctx_reaches_alloc_fn():
     assert seen["k"] is True
 
 
+def test_return_weights_shape():
+    """return_weights=True yields a 6-tuple with weight arrays the same length
+    as the inputs; return_weights=False (default) keeps the legacy 3-tuple and
+    returns the IDENTICAL nav/r/eff so existing callers are unaffected."""
+    args = _toy_inputs()
+    n = len(args[0])
+
+    out3 = _build_out_fill_variant(*args, alloc_fn=alloc_base)
+    assert len(out3) == 3  # default: 3-tuple unchanged
+    nav3, r3, eff3 = out3
+
+    out6 = _build_out_fill_variant(*args, alloc_fn=alloc_base, return_weights=True)
+    assert len(out6) == 6  # nav, r, eff, w_gold, w_bond, w_cash
+    nav6, r6, eff6, w_gold, w_bond, w_cash = out6
+
+    # the 3 weight arrays exist and match the input length
+    for w in (w_gold, w_bond, w_cash):
+        assert w.shape == (n,)
+
+    # nav/r/eff are byte-for-byte identical whether or not weights are returned
+    assert np.array_equal(nav3, nav6)
+    assert np.array_equal(r3, r6)
+    assert np.array_equal(eff3, eff6)
+
+    # for alloc_base the OUT sleeve sums to w_g + w_b == 1.0 every day
+    assert np.allclose(w_gold + w_bond + w_cash, 1.0, atol=1e-12)
+
+
 from src.audit.out_fill_variants_20260620 import inverse_vol_weights_cadence
 from src.audit.run_p01_backtest_20260611 import _inverse_vol_weights
 
