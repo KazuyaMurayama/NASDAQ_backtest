@@ -225,14 +225,39 @@ def test_in_leg_vol_brake_skips_out_days():
 
 
 def test_in_leg_vol_brake_no_lookahead():
-    """Perturbing the LAST day's return must not change any earlier braked
-    value (sigma is shift(1), so day t's brake uses only past returns)."""
+    """Day t's brake must use sigma over returns strictly BEFORE t. With
+    shift(1), sig[t] = std(r[t-window .. t-1]); perturbing r[t] itself must NOT
+    change the braked value at day t. A broken (no-shift) impl WOULD change it,
+    because sig[t] would then include r[t]."""
     n = 300
     rng = np.random.default_rng(3)
     r_a = rng.normal(0.0008, 0.03, n)
-    r_b = r_a.copy(); r_b[-1] += 1.0       # huge perturbation on last day only
-    fund_active = np.zeros(n, dtype=bool)
+    r_b = r_a.copy()
+    r_b[200] += 2.0                       # perturb ONLY day 200's own return
+    fund_active = np.zeros(n, dtype=bool)  # all IN
     sofr = np.full(n, 0.04 / 252)
     ra = apply_in_leg_vol_brake(r_a, fund_active, sofr, 0.30, 63)
     rb = apply_in_leg_vol_brake(r_b, fund_active, sofr, 0.30, 63)
-    assert np.allclose(ra[:-1], rb[:-1], atol=1e-12)  # all earlier days identical
+    # With shift(1): sig[200] uses r[137:200] (excludes r[200]), so day 200's
+    # brake fraction is identical; the only difference in the OUTPUT at index
+    # 200 is the direct r value passed through the (unchanged) blend. To isolate
+    # the brake-fraction (the thing that must not see the future), compare the
+    # frac applied: easiest is to check days AFTER 200 where the perturbation
+    # legitimately DOES enter sig, AND day 200's fraction is unchanged.
+    #
+    # Direct check: reconstruct frac at day 200 from output is hard, so assert
+    # the brake FRACTION at 200 is unchanged by checking that the mapping from
+    # input to output at 200 is the same linear blend in both runs. Since only
+    # r[200] changed, if the fraction f200 is identical, then:
+    #   ra[200] = (1-f)*r_a[200] + f*sofr ; rb[200] = (1-f)*r_b[200] + f*sofr
+    # => (rb[200]-ra[200]) == (1-f)*(r_b[200]-r_a[200]).
+    # A no-shift impl would change f at 200 (since sig[200] would include the
+    # +2.0 spike -> larger sig -> larger f), making the implied (1-f) differ.
+    implied_one_minus_f = (rb[200] - ra[200]) / (r_b[200] - r_a[200])
+    # recompute the correct fraction independently (shift(1), past-only sigma)
+    import pandas as pd
+    sig200 = (pd.Series(r_a).rolling(63, min_periods=63).std(ddof=1)
+              * np.sqrt(252)).shift(1).values[200]
+    f_correct = max(0.0, min(0.5, 1.0 - 0.30 / sig200)) if (np.isfinite(sig200) and sig200 > 0.30) else 0.0
+    assert np.isclose(implied_one_minus_f, 1.0 - f_correct, atol=1e-9), (
+        "shift(1) violated: day 200 brake fraction depends on day 200's own return")
