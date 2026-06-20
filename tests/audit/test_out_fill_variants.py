@@ -24,3 +24,28 @@ def test_base_variant_matches_legacy_c1():
     assert np.allclose(r_new, r_legacy, atol=1e-12, equal_nan=True)
     assert np.allclose(nav_new, nav_legacy, atol=1e-9, equal_nan=True)
     assert np.array_equal(eff_new, eff_legacy)
+
+
+from src.audit.out_fill_variants_20260620 import inverse_vol_weights_cadence
+from src.audit.run_p01_backtest_20260611 import _inverse_vol_weights
+
+
+def test_cadence_helper_matches_legacy_at_5bd():
+    rng = np.random.default_rng(1)
+    rg = rng.normal(0, 0.01, 500)
+    rb = rng.normal(0, 0.006, 500)
+    wg_legacy, _ = _inverse_vol_weights(rg, rb, 63)
+    wg_new, _ = inverse_vol_weights_cadence(rg, rb, 63, update_bd=5)
+    assert np.allclose(wg_legacy, wg_new, atol=1e-12)
+
+
+def test_cadence_daily_differs_from_weekly():
+    rng = np.random.default_rng(7)
+    rg = rng.normal(0, 0.012, 400)
+    rb = rng.normal(0, 0.006, 400)
+    wg_daily, _ = inverse_vol_weights_cadence(rg, rb, 63, update_bd=1)
+    wg_weekly, _ = inverse_vol_weights_cadence(rg, rb, 63, update_bd=5)
+    # daily updates strictly more often -> at least some days differ
+    assert not np.allclose(wg_daily, wg_weekly, atol=1e-9)
+    # both still within clamp
+    assert wg_daily.min() >= 0.25 - 1e-9 and wg_daily.max() <= 0.75 + 1e-9

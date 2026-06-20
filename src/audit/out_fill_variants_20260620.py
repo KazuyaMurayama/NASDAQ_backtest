@@ -6,6 +6,7 @@ alloc_base() reproduces the legacy C1 fill bit-for-bit (proven by test).
 """
 from __future__ import annotations
 import numpy as np
+import pandas as pd
 
 from src.audit.run_p02_p09_backtest_20260611 import FEE_GOLD, FEE_BOND, TRADING_DAYS
 
@@ -50,3 +51,42 @@ def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
     nav = np.cumprod(1.0 + r)
     eff_active = np.asarray(fund_active, dtype=bool).copy()
     return nav, r, eff_active
+
+
+def inverse_vol_weights_cadence(ret_gold, ret_bond, window, update_bd,
+                                clamp=(0.25, 0.75)):
+    """Inverse-vol gold/bond weights, recomputed every `update_bd` business
+    days (1=daily, 5=weekly). Mirrors run_p01._inverse_vol_weights logic with a
+    parameterized cadence. Returns (w_g, w_b). At update_bd=5, window=63 this
+    reduces to the legacy _inverse_vol_weights exactly.
+
+    Legacy details matched:
+      - rolling std: ddof=1, annualized * sqrt(252), min_periods=window
+      - warm-start: last = 0.5 (before first valid window)
+      - clamp: [0.25, 0.75]
+      - cadence: t % update_bd == 0 (update_bd=5 => legacy WEIGHT_UPDATE_BD)
+      - output array initialized with np.full(n, np.nan) but last is always
+        assigned, so no NaNs in output
+    """
+    rg = pd.Series(np.asarray(ret_gold, float))
+    rb = pd.Series(np.asarray(ret_bond, float))
+    sig_g = (rg.rolling(window, min_periods=window).std(ddof=1)
+             * np.sqrt(TRADING_DAYS)).values
+    sig_b = (rb.rolling(window, min_periods=window).std(ddof=1)
+             * np.sqrt(TRADING_DAYS)).values
+    n = len(rg)
+    lo, hi = clamp
+    w_g = np.full(n, np.nan)
+    last = 0.5  # warm-start default before first valid window
+    for t in range(n):
+        if t % update_bd == 0:
+            sg, sb = sig_g[t], sig_b[t]
+            if np.isfinite(sg) and np.isfinite(sb) and sg > 0 and sb > 0:
+                inv_g = 1.0 / sg
+                inv_b = 1.0 / sb
+                wg = inv_g / (inv_g + inv_b)
+                wg = float(np.clip(wg, lo, hi))
+                last = wg
+            # else: keep previous `last` (warm-start / ffill)
+        w_g[t] = last
+    return w_g, 1.0 - w_g
