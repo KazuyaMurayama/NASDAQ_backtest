@@ -119,7 +119,7 @@ def test_vol_target_no_lookahead():
     assert np.allclose(g_a, g_b, atol=1e-12)  # last day too: shift(1) => no same-day use
 
 
-from src.audit.out_fill_variants_20260620 import make_alloc_conviction_cash
+from src.audit.out_fill_variants_20260620 import make_alloc_conviction_cash, make_alloc_gold_tilt
 
 
 def test_conviction_cash_more_cash_when_strong():
@@ -154,4 +154,42 @@ def test_conviction_cash_fallback_without_strength():
     w_gold, w_bond, w_cash = alloc(ctx)
     # falls back to base: gold=0.6, bond=0.4 (bond_on), cash=0
     assert np.allclose(w_gold, 0.6) and np.allclose(w_bond, 0.4)
+    assert np.allclose(w_cash, 0.0)
+
+
+def test_conviction_cash_rejects_bad_max_cash():
+    import pytest
+    with pytest.raises(ValueError):
+        make_alloc_conviction_cash(max_cash=1.5)
+
+
+def test_gold_tilt_in_highvol():
+    n = 20
+    ctx = {
+        "ret_gold": np.zeros(n), "ret_bond": np.zeros(n),
+        "w_g": np.full(n, 0.5), "w_b": np.full(n, 0.5),
+        "bond_on": np.ones(n, dtype=bool),
+        "sofr_arr": np.full(n, 0.04 / 252),
+        "fund_active": np.ones(n, dtype=bool),
+        "highvol_mask": np.array([False] * 10 + [True] * 10),
+    }
+    alloc = make_alloc_gold_tilt(gold_floor_highvol=0.75)
+    w_gold, w_bond, w_cash = alloc(ctx)
+    assert abs(w_gold[0] - 0.5) < 1e-9      # calm day: base
+    assert w_gold[15] >= 0.75 - 1e-9        # highvol day: gold tilted up
+    assert np.allclose(w_gold + w_bond + w_cash, 1.0, atol=1e-9)
+
+
+def test_gold_tilt_fallback_without_mask():
+    n = 5
+    ctx = {
+        "ret_gold": np.zeros(n), "ret_bond": np.zeros(n),
+        "w_g": np.full(n, 0.5), "w_b": np.full(n, 0.5),
+        "bond_on": np.ones(n, dtype=bool),
+        "sofr_arr": np.full(n, 0.04 / 252),
+        "fund_active": np.ones(n, dtype=bool),
+    }
+    alloc = make_alloc_gold_tilt(0.75)
+    w_gold, w_bond, w_cash = alloc(ctx)
+    assert np.allclose(w_gold, 0.5) and np.allclose(w_bond, 0.5)
     assert np.allclose(w_cash, 0.0)

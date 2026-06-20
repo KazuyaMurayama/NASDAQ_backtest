@@ -147,6 +147,8 @@ def make_alloc_conviction_cash(max_cash=0.5):
     threshold) and scales the base Gold/Bond/base-cash split down to fill the
     rest, preserving their ratios. out_strength in [0,1] read from ctx; if
     absent, returns the unmodified base split."""
+    if not (0.0 < max_cash <= 1.0):
+        raise ValueError(f"max_cash must be in (0, 1], got {max_cash!r}")
     def alloc(ctx):
         w_g, w_b, bond_on = ctx["w_g"], ctx["w_b"], ctx["bond_on"]
         strength = ctx.get("out_strength")
@@ -161,5 +163,36 @@ def make_alloc_conviction_cash(max_cash=0.5):
         w_gold = w_g / base_total * risk_frac
         w_bond = w_bond_base / base_total * risk_frac
         w_cash = w_cash_base / base_total * risk_frac + extra_cash
+        return w_gold, w_bond, w_cash
+    return alloc
+
+
+def make_alloc_gold_tilt(gold_floor_highvol=0.75):
+    """Factory: alloc_fn = base split on calm days; on highvol_mask days raise
+    Gold to at least gold_floor_highvol, taking the increment from Bond first
+    then Cash. Preserves sum==1.0. If highvol_mask absent from ctx, base split.
+
+    Edge case: if gold_floor_highvol <= w_g (base gold already meets floor),
+    need=0 so this is a no-op for those days (correct behavior, sum preserved).
+    If floor exceeds available bond+cash, gold ends at w_g+w_bond+w_cash (=1.0)
+    which preserves sum==1.0.
+    """
+    def alloc(ctx):
+        w_g, w_b, bond_on = ctx["w_g"], ctx["w_b"], ctx["bond_on"]
+        hv = ctx.get("highvol_mask")
+        w_gold = w_g.copy()
+        w_bond = np.where(bond_on, w_b, 0.0)
+        w_cash = np.where(bond_on, 0.0, w_b)
+        if hv is None:
+            return w_gold, w_bond, w_cash
+        hv = np.asarray(hv, dtype=bool)
+        need = np.maximum(0.0, gold_floor_highvol - w_gold)
+        need = np.where(hv, need, 0.0)
+        take_bond = np.minimum(need, w_bond)
+        w_bond = w_bond - take_bond
+        rem = need - take_bond
+        take_cash = np.minimum(rem, w_cash)
+        w_cash = w_cash - take_cash
+        w_gold = w_gold + take_bond + take_cash
         return w_gold, w_bond, w_cash
     return alloc
