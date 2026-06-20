@@ -114,3 +114,28 @@ def bond_gate_hysteresis(bond_mom252, on_thr=0.05, off_thr=-0.05):
         # else: hold previous state
         on[t] = state
     return on
+
+
+def make_alloc_vol_target(target_vol=0.10, window=63, max_scale=1.0):
+    """Factory: alloc_fn that scales the Gold+Bond sleeve so the blend's
+    realized annualized vol ~= target_vol, routing the de-scaled remainder to
+    SOFR cash. The vol estimate uses returns STRICTLY before day t (shift(1))
+    to avoid look-ahead. scale capped at max_scale (sleeve never levered).
+    Weights sum to exactly 1.0 (cash absorbs de-scale)."""
+    def alloc(ctx):
+        rg, rb = ctx["ret_gold"], ctx["ret_bond"]
+        w_g, w_b, bond_on = ctx["w_g"], ctx["w_b"], ctx["bond_on"]
+        w_bond_raw = np.where(bond_on, w_b, 0.0)
+        blend = w_g * rg + w_bond_raw * rb
+        # rolling realized vol of the blend, then SHIFT(1): day t uses [.. t-1]
+        sig = (pd.Series(blend).rolling(window, min_periods=window).std(ddof=1)
+               * np.sqrt(TRADING_DAYS)).shift(1).values
+        scale = np.where((np.isfinite(sig)) & (sig > 0),
+                         target_vol / sig, 1.0)
+        scale = np.clip(scale, 0.0, max_scale)
+        scale = np.where(np.isnan(sig), 1.0, scale)  # warmup -> full exposure
+        w_gold = w_g * scale
+        w_bond = w_bond_raw * scale
+        w_cash = 1.0 - w_gold - w_bond
+        return w_gold, w_bond, w_cash
+    return alloc

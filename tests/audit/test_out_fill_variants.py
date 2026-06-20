@@ -73,3 +73,47 @@ def test_bond_gate_hysteresis_nan_forces_off():
     mom = np.array([0.10, np.nan, 0.01])  # on, then NaN forces off, then in-band holds off
     on = bond_gate_hysteresis(mom)
     assert on.tolist() == [True, False, False]
+
+
+from src.audit.out_fill_variants_20260620 import make_alloc_vol_target
+
+
+def _ctx_highvol(n=400, seed=2):
+    rng = np.random.default_rng(seed)
+    return {
+        "ret_gold": rng.normal(0, 0.025, n),   # ~40% annualized vol (high)
+        "ret_bond": rng.normal(0, 0.020, n),
+        "w_g": np.full(n, 0.6),
+        "w_b": np.full(n, 0.4),
+        "bond_on": np.ones(n, dtype=bool),
+        "sofr_arr": np.full(n, 0.04 / 252),
+        "fund_active": np.ones(n, dtype=bool),
+    }
+
+
+def test_vol_target_scales_down_high_vol():
+    ctx = _ctx_highvol()
+    alloc = make_alloc_vol_target(target_vol=0.10, window=63)
+    w_gold, w_bond, w_cash = alloc(ctx)
+    assert w_cash[200] > 0.0
+    assert (w_gold[200] + w_bond[200]) < 1.0
+    assert np.all(w_gold >= 0) and np.all(w_bond >= 0) and np.all(w_cash >= 0)
+    assert np.all(w_gold + w_bond + w_cash <= 1.0 + 1e-9)
+    # cash fully absorbs the de-scale -> weights sum to exactly 1.0
+    assert np.allclose(w_gold + w_bond + w_cash, 1.0, atol=1e-9)
+
+
+def test_vol_target_no_lookahead():
+    """The scale on day t must not depend on day t's own return.
+    Changing ONLY the last day's gold return must not change any weight
+    on days < n-1 (because sigma is shifted by 1, day t uses past only)."""
+    ctx_a = _ctx_highvol()
+    ctx_b = {k: (v.copy() if hasattr(v, "copy") else v) for k, v in ctx_a.items()}
+    ctx_b["ret_gold"][-1] += 0.5  # perturb only the LAST day's return
+    a = make_alloc_vol_target(0.10, 63)
+    g_a, b_a, c_a = a(ctx_a)
+    g_b, b_b, c_b = a(ctx_b)
+    # all weights for days 0..n-2 identical; only the last day MAY differ if it
+    # used same-day return (it must NOT, so even last-day weight is unchanged).
+    assert np.allclose(g_a[:-1], g_b[:-1], atol=1e-12)
+    assert np.allclose(g_a, g_b, atol=1e-12)  # last day too: shift(1) => no same-day use
