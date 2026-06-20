@@ -193,3 +193,46 @@ def test_gold_tilt_fallback_without_mask():
     w_gold, w_bond, w_cash = alloc(ctx)
     assert np.allclose(w_gold, 0.5) and np.allclose(w_bond, 0.5)
     assert np.allclose(w_cash, 0.0)
+
+
+from src.audit.out_fill_variants_20260620 import apply_in_leg_vol_brake
+
+
+def test_in_leg_vol_brake_blends_to_cash():
+    n = 300
+    rng = np.random.default_rng(3)
+    r = rng.normal(0.0008, 0.03, n)        # IN-leg full-lev returns, ~48% vol
+    fund_active = np.zeros(n, dtype=bool)  # all IN
+    sofr = np.full(n, 0.04 / 252)
+    r_braked = apply_in_leg_vol_brake(r, fund_active, sofr,
+                                      target_vol=0.30, window=63)
+    # on a high-vol IN day, braked return is a convex mix of r and (small) sofr,
+    # so it is pulled toward sofr: |r_braked - sofr| <= |r - sofr| for that day
+    hi = 200
+    assert abs(r_braked[hi] - sofr[hi]) <= abs(r[hi] - sofr[hi]) + 1e-12
+    # warmup days (no sigma yet) unchanged
+    assert np.allclose(r_braked[:63], r[:63], atol=1e-12)
+
+
+def test_in_leg_vol_brake_skips_out_days():
+    n = 200
+    rng = np.random.default_rng(11)
+    r = rng.normal(0.0008, 0.03, n)
+    fund_active = np.ones(n, dtype=bool)   # all OUT -> brake never applies
+    sofr = np.full(n, 0.04 / 252)
+    r_braked = apply_in_leg_vol_brake(r, fund_active, sofr, 0.30, 63)
+    assert np.allclose(r_braked, r, atol=1e-12)
+
+
+def test_in_leg_vol_brake_no_lookahead():
+    """Perturbing the LAST day's return must not change any earlier braked
+    value (sigma is shift(1), so day t's brake uses only past returns)."""
+    n = 300
+    rng = np.random.default_rng(3)
+    r_a = rng.normal(0.0008, 0.03, n)
+    r_b = r_a.copy(); r_b[-1] += 1.0       # huge perturbation on last day only
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    ra = apply_in_leg_vol_brake(r_a, fund_active, sofr, 0.30, 63)
+    rb = apply_in_leg_vol_brake(r_b, fund_active, sofr, 0.30, 63)
+    assert np.allclose(ra[:-1], rb[:-1], atol=1e-12)  # all earlier days identical

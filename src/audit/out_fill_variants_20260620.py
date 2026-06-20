@@ -196,3 +196,26 @@ def make_alloc_gold_tilt(gold_floor_highvol=0.75):
         w_gold = w_gold + take_bond + take_cash
         return w_gold, w_bond, w_cash
     return alloc
+
+
+def apply_in_leg_vol_brake(r, fund_active, sofr_arr, target_vol=0.30,
+                           window=63, max_frac_cash=0.5):
+    """Post-process the full-strategy return array: on IN days (~fund_active)
+    whose trailing realized vol exceeds target_vol, blend a fraction of the
+    day's return into SOFR cash (de-risk by holding cash, not de-levering).
+    frac_cash = clip(1 - target_vol/sig, 0, max_frac_cash). The vol estimate
+    uses returns STRICTLY before day t (shift(1)) -> no look-ahead. OUT days
+    untouched. Returns a NEW return array; recompute NAV downstream."""
+    r = np.asarray(r, float).copy()
+    fund_active = np.asarray(fund_active, dtype=bool)
+    sofr_arr = np.asarray(sofr_arr, float)
+    sig = (pd.Series(r).rolling(window, min_periods=window).std(ddof=1)
+           * np.sqrt(TRADING_DAYS)).shift(1).values
+    frac_cash = np.where((np.isfinite(sig)) & (sig > target_vol),
+                         1.0 - target_vol / sig, 0.0)
+    frac_cash = np.clip(frac_cash, 0.0, max_frac_cash)
+    in_day = ~fund_active
+    apply = in_day & (frac_cash > 0)
+    r[apply] = ((1.0 - frac_cash[apply]) * r[apply]
+                + frac_cash[apply] * sofr_arr[apply])
+    return r
