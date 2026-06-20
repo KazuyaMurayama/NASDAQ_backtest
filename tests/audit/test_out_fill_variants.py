@@ -49,3 +49,9 @@ def test_cadence_daily_differs_from_weekly():
     assert not np.allclose(wg_daily, wg_weekly, atol=1e-9)
     # both still within clamp
     assert wg_daily.min() >= 0.25 - 1e-9 and wg_daily.max() <= 0.75 + 1e-9
+
+
+def test_cadence_rejects_zero_update_bd():
+    import pytest
+    with pytest.raises(ValueError):
+        inverse_vol_weights_cadence(np.zeros(10), np.zeros(10), 5, update_bd=0)

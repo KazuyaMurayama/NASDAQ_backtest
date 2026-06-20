@@ -68,6 +68,8 @@ def inverse_vol_weights_cadence(ret_gold, ret_bond, window, update_bd,
       - output array initialized with np.full(n, np.nan) but last is always
         assigned, so no NaNs in output
     """
+    if update_bd < 1:
+        raise ValueError(f"update_bd must be >= 1, got {update_bd!r}")
     rg = pd.Series(np.asarray(ret_gold, float))
     rb = pd.Series(np.asarray(ret_bond, float))
     sig_g = (rg.rolling(window, min_periods=window).std(ddof=1)
