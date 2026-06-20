@@ -139,3 +139,27 @@ def make_alloc_vol_target(target_vol=0.10, window=63, max_scale=1.0):
         w_cash = 1.0 - w_gold - w_bond
         return w_gold, w_bond, w_cash
     return alloc
+
+
+def make_alloc_conviction_cash(max_cash=0.5):
+    """Factory: alloc_fn that routes out_strength*max_cash of the OUT sleeve to
+    SOFR cash (more cash on strong/deep OUT, less on weak OUT near the exit
+    threshold) and scales the base Gold/Bond/base-cash split down to fill the
+    rest, preserving their ratios. out_strength in [0,1] read from ctx; if
+    absent, returns the unmodified base split."""
+    def alloc(ctx):
+        w_g, w_b, bond_on = ctx["w_g"], ctx["w_b"], ctx["bond_on"]
+        strength = ctx.get("out_strength")
+        w_bond_base = np.where(bond_on, w_b, 0.0)
+        w_cash_base = np.where(bond_on, 0.0, w_b)
+        if strength is None:
+            return w_g.copy(), w_bond_base, w_cash_base
+        s = np.clip(np.asarray(strength, float), 0.0, 1.0)
+        extra_cash = s * max_cash
+        risk_frac = 1.0 - extra_cash
+        base_total = w_g + w_bond_base + w_cash_base  # == 1.0
+        w_gold = w_g / base_total * risk_frac
+        w_bond = w_bond_base / base_total * risk_frac
+        w_cash = w_cash_base / base_total * risk_frac + extra_cash
+        return w_gold, w_bond, w_cash
+    return alloc

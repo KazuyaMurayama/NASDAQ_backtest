@@ -117,3 +117,41 @@ def test_vol_target_no_lookahead():
     # used same-day return (it must NOT, so even last-day weight is unchanged).
     assert np.allclose(g_a[:-1], g_b[:-1], atol=1e-12)
     assert np.allclose(g_a, g_b, atol=1e-12)  # last day too: shift(1) => no same-day use
+
+
+from src.audit.out_fill_variants_20260620 import make_alloc_conviction_cash
+
+
+def test_conviction_cash_more_cash_when_strong():
+    n = 50
+    ctx = {
+        "ret_gold": np.zeros(n), "ret_bond": np.zeros(n),
+        "w_g": np.full(n, 0.6), "w_b": np.full(n, 0.4),
+        "bond_on": np.ones(n, dtype=bool),
+        "sofr_arr": np.full(n, 0.04 / 252),
+        "fund_active": np.ones(n, dtype=bool),
+        "out_strength": np.linspace(0.0, 1.0, n),  # 0=weak OUT, 1=strong OUT
+    }
+    alloc = make_alloc_conviction_cash(max_cash=0.5)
+    w_gold, w_bond, w_cash = alloc(ctx)
+    assert w_cash[-1] > w_cash[0]
+    assert abs(w_cash[0]) < 1e-9          # weakest OUT -> no extra cash (bond_on so base-cash=0)
+    assert abs(w_cash[-1] - 0.5) < 1e-9   # strongest OUT -> max_cash
+    assert np.allclose(w_gold + w_bond + w_cash, 1.0, atol=1e-9)
+
+
+def test_conviction_cash_fallback_without_strength():
+    n = 10
+    ctx = {
+        "ret_gold": np.zeros(n), "ret_bond": np.zeros(n),
+        "w_g": np.full(n, 0.6), "w_b": np.full(n, 0.4),
+        "bond_on": np.ones(n, dtype=bool),
+        "sofr_arr": np.full(n, 0.04 / 252),
+        "fund_active": np.ones(n, dtype=bool),
+        # no out_strength key
+    }
+    alloc = make_alloc_conviction_cash(max_cash=0.5)
+    w_gold, w_bond, w_cash = alloc(ctx)
+    # falls back to base: gold=0.6, bond=0.4 (bond_on), cash=0
+    assert np.allclose(w_gold, 0.6) and np.allclose(w_bond, 0.4)
+    assert np.allclose(w_cash, 0.0)
