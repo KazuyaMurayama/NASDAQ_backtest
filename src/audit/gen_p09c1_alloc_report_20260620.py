@@ -211,6 +211,15 @@ def build_md():
     out = []
     w = out.append
 
+    # ---- bootstrap P-value ranges (computed from stage1 CSV, all 8 rows) ----
+    all_labels = list(stage1.keys())
+    v7lo  = min(float(stage1[l]["mm_v7_P_min"])   for l in all_labels)
+    v7hi  = max(float(stage1[l]["mm_v7_P_min"])   for l in all_labels)
+    b3alo = min(float(stage1[l]["mm_b3a_P_min"])  for l in all_labels)
+    b3ahi = max(float(stage1[l]["mm_b3a_P_min"])  for l in all_labels)
+    shlo  = min(float(stage1[l]["mm_v7_P_sharpe"]) for l in all_labels)
+    shhi  = max(float(stage1[l]["mm_v7_P_sharpe"]) for l in all_labels)
+
     # ---- ヘッダ ----
     w("# P09_C1 配分バリエーション検証レポート")
     w("")
@@ -222,6 +231,27 @@ def build_md():
     w("> A0 = P09_C1 ベースライン（_build_full_c1 と CAGR_OOS 一致 diff 0.0e+00 で検証済"
       "＝商品・IN脚不変の証明）。")
     w("> 全数値: コスト後・譲渡益税後 ×0.8273。評価=標準10指標 v2.0 + Stage-1 フルゲート。")
+    w("")
+    # ADDITION 1: headline conclusion blockquote (QC addition)
+    # A7 deltas vs A0 (computed from CSV)
+    _a0 = stage1["A0_P09_C1_BASE"]
+    _a7 = stage1["A7_IN_VOL_BRAKE"]
+    _a7_d_cagr_hl = (float(_a7["CAGR_OOS_at"]) - float(_a0["CAGR_OOS_at"])) * 100.0
+    _a7_d_maxdd_hl = (float(_a7["MaxDD_FULL"]) - float(_a0["MaxDD_FULL"])) * 100.0
+    _a7_d_w1d_hl = (float(_a7["Worst1D"]) - float(_a0["Worst1D"])) * 100.0
+    _a0_maxdd_pct = float(_a0["MaxDD_FULL"]) * 100.0
+    _a7_maxdd_pct = float(_a7["MaxDD_FULL"]) * 100.0
+    _a0_w1d_pct   = float(_a0["Worst1D"]) * 100.0
+    _a7_w1d_pct   = float(_a7["Worst1D"]) * 100.0
+    w(f"> **🔑 結論（先出し）: OUTスリーブ配分の変更(A1-A6)は A0 を統計的に上回らない。** "
+      f"multi-metric bootstrap で A1-A7 のいずれも A0／基準(V7・B3a)と**有意差なし**"
+      f"（mm_v7_P_min {v7lo:.2f}-{v7hi:.2f}, mm_b3a_P_min {b3alo:.2f}-{b3ahi:.2f}, "
+      f"P_sharpe {shlo:.2f}-{shhi:.2f} — すべて NS）。A1/A2/A4/A5 の CAGR_OOS +0.02〜+0.23pp は"
+      f"**ノイズ域**で実質改善ではない（OUT期は全体の約47%の日にしか効かず、配分微調整は二次的）。"
+      f"唯一の構造的効果は **A7(IN脚ボラブレーキ)**: CAGR_OOS {_signed(_a7_d_cagr_hl,2)}pp と引き換えに "
+      f"MaxDD {_signed(_a0_maxdd_pct,2)}%→{_signed(_a7_maxdd_pct,2)}%（{_signed(_a7_d_maxdd_hl,2)}pp）・"
+      f"最悪単日 {_signed(_a0_w1d_pct,2)}%→{_signed(_a7_w1d_pct,2)}%（{_signed(_a7_d_w1d_hl,2)}pp）。"
+      f"§5の「ADOPT候補」ラベルは機械ルール(OR条件)の産物で統計的優越を意味しない（§5脚注参照）。")
     w("")
 
     # ===================================================================
@@ -267,12 +297,28 @@ def build_md():
         p10 = pct_from_frac(float(r["P10_5Y_at"]))
         trades = f"{float(r['Trades_yr']):.1f}"
         slv = f"{float(r['sleeve_turnover_yr']):.1f}"
-        _, robcell = robustness_cell(r)
+        rob_glyph, robcell = robustness_cell(r)
+        # ADDITION 2a: A6/GOLD_TILT robustness glyph gets asterisk to tie to footnote
+        if l == "A6_GOLD_TILT" and rob_glyph == "✅頑健":
+            robcell = robcell.replace("✅頑健", "✅頑健*", 1)
         w(f"| {name} | {cagr_is} | {cagr_oos} | {sharpe} | {maxdd} | "
           f"{worstday} | {w10y} | {w5y} | {p10} | {trades} | {slv} | {robcell} |")
     w("")
     w("> **ス内回転/年** = スリーブ内日次再配分の回転（Trades/yr=29.2 固定には現れない）。"
       "A2/A4/A5 は Trades/yr が示すより内部回転が多い（取引コスト未計上のため実効でやや割引が必要）。")
+    # ADDITION 2b: A6 robustness footnote (QC addition)
+    _a6 = stage1["A6_GOLD_TILT"]
+    _a6_regime_min_pct = float(_a6["regime_min_at"]) * 100.0
+    _a0_regime_min_pct = float(stage1["A0_P09_C1_BASE"]["regime_min_at"]) * 100.0
+    _a6_maxdd_pct = float(_a6["MaxDD_FULL"]) * 100.0
+    _a0_maxdd_pct2 = float(stage1["A0_P09_C1_BASE"]["MaxDD_FULL"]) * 100.0
+    _a6_d_maxdd_pct = _a6_maxdd_pct - _a0_maxdd_pct2
+    _a6_v7_p_min = float(_a6["mm_v7_P_min"])
+    w(f"> **\\*A6(GOLD_TILT)の✅頑健について**: ルーブリック上は regime_min {_signed(_a6_regime_min_pct,2)}% > −10% で✅だが、"
+      f"因果的highvolマスク修正後 regime_min が A0 比 {_signed(_a0_regime_min_pct,2)}%→{_signed(_a6_regime_min_pct,2)}%（**全案中最悪**）・"
+      f"MaxDD {_signed(_a6_d_maxdd_pct,2)}pp 悪化（{_signed(_a0_maxdd_pct2,2)}%→{_signed(_a6_maxdd_pct,2)}%）。+0.58pp の CAGR優位は**テールリスク悪化と引き換え**で、"
+      f"bootstrap でも対基準有意差なし（mm_v7_P_min={_a6_v7_p_min:.2f}）。修正前の良績はルックアヘッド人工物だった。"
+      "✅は「採用安全」を意味しない。")
     w("")
 
     # ===================================================================
@@ -382,6 +428,15 @@ def build_md():
         w(f"| {tag} {VAR_DEFS[l][0]} | {_signed(d_cagr,2)}pp | {_signed(d_sharpe,3)} | "
           f"{_signed(d_maxdd,2)}pp | {_signed(d_w1d,2)}pp | {glyph} | {veto} | "
           f"{_signed(d_slv,2)} | **{verdict}** |")
+    w("")
+    # ADDITION 3: §5 ADOPT-candidate disclaimer (QC addition)
+    w("> **⚠ 「ADOPT候補」は統計的優越を意味しない。** 上表のラベルは機械ルール"
+      f"（OR条件: ΔCAGR_OOS≥0 で発火）の結果にすぎない。multi-metric bootstrap では A1-A7 の"
+      f"**いずれも** A0／基準(V7・B3a)と**有意差なし**（mm_v7_P_min {v7lo:.2f}-{v7hi:.2f}, "
+      f"mm_b3a_P_min {b3alo:.2f}-{b3ahi:.2f}, P_sharpe {shlo:.2f}-{shhi:.2f} — すべて P>0.05 = NS）。"
+      f"A1/A2/A4/A5 の +0.02〜+0.23pp はノイズ域で、A0 に対する実質的改善ではない。"
+      f"「6/7 が ADOPT候補」を「多くの案が A0 を上回る」と読んではならない（§6 結論参照）。"
+      f"意思決定上の実質的選択肢は **A7（リスク低減を CAGR と引き換えに取るか）** の一点のみ。")
     w("")
 
     # 各案の判定根拠テキスト
