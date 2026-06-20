@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from src.audit.leverup_b1c1_20260612 import _build_p09_nav_c1
 from src.audit.out_fill_variants_20260620 import _build_out_fill_variant, alloc_base
 
@@ -20,7 +19,8 @@ def _toy_inputs(n=300, seed=0):
 
 def test_base_variant_matches_legacy_c1():
     args = _toy_inputs()
-    nav_legacy, r_legacy, _ = _build_p09_nav_c1(*args)
-    nav_new, r_new, _ = _build_out_fill_variant(*args, alloc_fn=alloc_base)
+    nav_legacy, r_legacy, eff_legacy = _build_p09_nav_c1(*args)
+    nav_new, r_new, eff_new = _build_out_fill_variant(*args, alloc_fn=alloc_base)
     assert np.allclose(r_new, r_legacy, atol=1e-12, equal_nan=True)
     assert np.allclose(nav_new, nav_legacy, atol=1e-9, equal_nan=True)
+    assert np.array_equal(eff_new, eff_legacy)

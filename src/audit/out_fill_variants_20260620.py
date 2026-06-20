@@ -7,9 +7,7 @@ alloc_base() reproduces the legacy C1 fill bit-for-bit (proven by test).
 from __future__ import annotations
 import numpy as np
 
-from src.audit.run_p02_p09_backtest_20260611 import FEE_GOLD, FEE_BOND
-
-TRADING_DAYS = 252
+from src.audit.run_p02_p09_backtest_20260611 import FEE_GOLD, FEE_BOND, TRADING_DAYS
 
 
 def alloc_base(ctx) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -28,19 +26,19 @@ def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
     """Same signature/return as _build_p09_nav_c1 but split via alloc_fn.
 
     alloc_fn(ctx) returns (w_gold, w_bond, w_cash) arrays (len n). Cash earns
-    SOFR. Fees charged only on active Gold/Bond legs. Sleeve weights need not
-    sum to 1.0; any residual is implicitly held flat (0%-yield).
+    SOFR. Fees charged only on active Gold/Bond legs.
+    Sleeve weights need not sum to 1.0; any gap to 1.0 is implicitly cash at 0% (not SOFR).
     """
     bond_on = np.asarray(bond_on, dtype=bool)
     sofr_arr = np.asarray(sofr_arr, float)
     ctx = {
-        "ret_gold": np.asarray(ret_gold, float),
-        "ret_bond": np.asarray(ret_bond, float),
-        "w_g": np.asarray(w_g, float),
-        "w_b": np.asarray(w_b, float),
-        "bond_on": bond_on,
-        "sofr_arr": sofr_arr,
-        "fund_active": np.asarray(fund_active, dtype=bool),
+        "ret_gold": np.array(ret_gold, float),
+        "ret_bond": np.array(ret_bond, float),
+        "w_g": np.array(w_g, float),
+        "w_b": np.array(w_b, float),
+        "bond_on": np.array(bond_on, dtype=bool),
+        "sofr_arr": np.array(sofr_arr, float),
+        "fund_active": np.array(fund_active, dtype=bool),
     }
     w_gold, w_bond, w_cash = alloc_fn(ctx)
     fee_daily = (w_gold * FEE_GOLD + w_bond * FEE_BOND) / TRADING_DAYS
