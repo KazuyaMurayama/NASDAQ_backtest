@@ -23,12 +23,17 @@ def alloc_base(ctx) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 
 def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
-                            w_g, w_b, bond_on, sofr_arr, *, alloc_fn):
+                            w_g, w_b, bond_on, sofr_arr, *, alloc_fn,
+                            **extra_ctx):
     """Same signature/return as _build_p09_nav_c1 but split via alloc_fn.
 
     alloc_fn(ctx) returns (w_gold, w_bond, w_cash) arrays (len n). Cash earns
     SOFR. Fees charged only on active Gold/Bond legs.
     Sleeve weights need not sum to 1.0; any gap to 1.0 is implicitly cash at 0% (not SOFR).
+
+    extra_ctx: any additional keys (e.g. out_strength, highvol_mask) are merged
+    into ctx right before alloc_fn is called, so conviction/tilt alloc factories
+    can read regime/strength signals supplied by the caller.
     """
     bond_on = np.asarray(bond_on, dtype=bool)
     sofr_arr = np.asarray(sofr_arr, float)
@@ -41,6 +46,7 @@ def _build_out_fill_variant(r_base, ret_gold, ret_bond, fund_active,
         "sofr_arr": np.array(sofr_arr, float),
         "fund_active": np.array(fund_active, dtype=bool),
     }
+    ctx.update(extra_ctx)
     w_gold, w_bond, w_cash = alloc_fn(ctx)
     fee_daily = (w_gold * FEE_GOLD + w_bond * FEE_BOND) / TRADING_DAYS
     cash_yield = w_cash * sofr_arr

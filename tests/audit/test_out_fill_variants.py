@@ -26,6 +26,16 @@ def test_base_variant_matches_legacy_c1():
     assert np.array_equal(eff_new, eff_legacy)
 
 
+def test_extra_ctx_reaches_alloc_fn():
+    args = _toy_inputs()
+    seen = {}
+    def spy(ctx):
+        seen["k"] = "out_strength" in ctx
+        return alloc_base(ctx)
+    _build_out_fill_variant(*args, alloc_fn=spy, out_strength=np.zeros(len(args[0])))
+    assert seen["k"] is True
+
+
 from src.audit.out_fill_variants_20260620 import inverse_vol_weights_cadence
 from src.audit.run_p01_backtest_20260611 import _inverse_vol_weights
 
