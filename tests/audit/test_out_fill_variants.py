@@ -55,3 +55,21 @@ def test_cadence_rejects_zero_update_bd():
     import pytest
     with pytest.raises(ValueError):
         inverse_vol_weights_cadence(np.zeros(10), np.zeros(10), 5, update_bd=0)
+
+
+from src.audit.out_fill_variants_20260620 import bond_gate_hysteresis
+
+
+def test_bond_gate_hysteresis():
+    mom = np.array([np.nan, -0.10, 0.02, 0.06, 0.01, -0.02, -0.06, 0.00])
+    on = bond_gate_hysteresis(mom, on_thr=0.05, off_thr=-0.05)
+    # NaN->off; -0.10 off; 0.02 in-band prev off->off; 0.06->on;
+    # 0.01 in-band prev on->on; -0.02 in-band prev on->on; -0.06->off;
+    # 0.00 in-band prev off->off
+    assert on.tolist() == [False, False, False, True, True, True, False, False]
+
+
+def test_bond_gate_hysteresis_nan_forces_off():
+    mom = np.array([0.10, np.nan, 0.01])  # on, then NaN forces off, then in-band holds off
+    on = bond_gate_hysteresis(mom)
+    assert on.tolist() == [True, False, False]

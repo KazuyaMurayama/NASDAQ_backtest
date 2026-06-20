@@ -92,3 +92,25 @@ def inverse_vol_weights_cadence(ret_gold, ret_bond, window, update_bd,
             # else: keep previous `last` (warm-start / ffill)
         w_g[t] = last
     return w_g, 1.0 - w_g
+
+
+def bond_gate_hysteresis(bond_mom252, on_thr=0.05, off_thr=-0.05):
+    """Hysteresis bond gate. ON when mom>on_thr, OFF when mom<off_thr, hold
+    previous state in between. NaN -> OFF. Returns bool array.
+
+    Replaces the binary `bond_mom252 > 0` gate; reduces flip-flopping near 0."""
+    mom = np.asarray(bond_mom252, float)
+    n = len(mom)
+    on = np.zeros(n, dtype=bool)
+    state = False
+    for t in range(n):
+        m = mom[t]
+        if np.isnan(m):
+            state = False
+        elif m > on_thr:
+            state = True
+        elif m < off_thr:
+            state = False
+        # else: hold previous state
+        on[t] = state
+    return on
