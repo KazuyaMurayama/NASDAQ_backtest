@@ -26,6 +26,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 STAGE1_CSV = os.path.join(REPO_ROOT, "audit_results", "a7dd_stage1_20260621.csv")
 ANNUAL_CSV = os.path.join(REPO_ROOT, "audit_results", "a7dd_annual_20260621.csv")
+# Stage-2 (独立QC 2026-06-21): 経路頑健な暴落窓時機検定 + B1 等退避リテスト
+CRISIS_CSV = os.path.join(REPO_ROOT, "audit_results",
+                          "a7dd_stage2_crisis_timing_20260621.csv")
+B1EQ_CSV = os.path.join(REPO_ROOT, "audit_results",
+                        "a7dd_stage2_b1_equalfbar_20260621.csv")
 OUT_MD = os.path.join(REPO_ROOT, "A7_DD_REDUCTION_VARIATIONS_20260621.md")
 
 AFTER_TAX = 0.8273  # 譲渡益税後係数 (CSVの年次はすでに税後%・stage1も税後)
@@ -219,6 +224,174 @@ def series_stats(series_pct):
 
 
 # ---------------------------------------------------------------------------
+# Stage-2 CSV 読み込み (utf-8-sig)
+# ---------------------------------------------------------------------------
+def read_crisis():
+    """crisis-window timing CSV を読む。
+    返り値: (per_brake, per_window)
+      per_brake[label] = dict(fbar, n_windows, n_shallower, binom_p,
+                              mean_dd_edge_pp, crisis_verdict)  ※ブレーキ順保持
+      per_window[label] = list of dict(window, brake_maxdd, twin_maxdd, dd_edge_pp)
+    """
+    per_brake = OrderedDict()
+    per_window = OrderedDict()
+    with open(CRISIS_CSV, "r", encoding="utf-8-sig", newline="") as f:
+        for r in csv.DictReader(f):
+            lbl = r.get("label")
+            if not lbl:
+                continue
+            if lbl not in per_brake:
+                per_brake[lbl] = dict(
+                    fbar=float(r["fbar"]),
+                    n_windows=int(float(r["n_windows"])),
+                    n_shallower=int(float(r["n_shallower"])),
+                    binom_p=float(r["binom_p_onesided"]),
+                    mean_dd_edge_pp=float(r["mean_dd_edge_pp"]),
+                    crisis_verdict=r["crisis_verdict"],
+                )
+                per_window[lbl] = []
+            per_window[lbl].append(dict(
+                window=r["window"],
+                brake_maxdd=float(r["brake_maxdd"]),
+                twin_maxdd=float(r["twin_maxdd"]),
+                dd_edge_pp=float(r["dd_edge_pp"]),
+            ))
+    return per_brake, per_window
+
+
+def read_b1_equalfbar():
+    """B1 等退避リテスト CSV を読む。行リスト + a7基準値を返す。"""
+    rows = []
+    a7_ref = None
+    with open(B1EQ_CSV, "r", encoding="utf-8-sig", newline="") as f:
+        for r in csv.DictReader(f):
+            if not r.get("target_dvol"):
+                continue
+            rows.append(dict(
+                target_dvol=float(r["target_dvol"]),
+                fbar=float(r["fbar"]),
+                MaxDD_FULL=float(r["MaxDD_FULL"]),
+                CAGR_OOS_at=float(r["CAGR_OOS_at"]),
+                fbar_minus_a7=float(r["fbar_minus_a7"]),
+                maxdd_minus_a7=float(r["maxdd_minus_a7"]),
+            ))
+            if a7_ref is None:
+                a7_ref = dict(
+                    a7_fbar=float(r["a7_fbar"]),
+                    a7_maxdd=float(r["a7_maxdd"]),
+                    a7_cagr_oos=float(r["a7_cagr_oos"]),
+                )
+    return rows, a7_ref
+
+
+# ---------------------------------------------------------------------------
+# §8 経路頑健な時機検定 (block=21 無効性の是正)
+# ---------------------------------------------------------------------------
+def build_section8(w):
+    per_brake, per_window = read_crisis()
+
+    w("## §8 経路頑健な時機検定（block=21無効性の是正・独立QC 2026-06-21）")
+    w("")
+    w("§5 の `timing_P_maxdd` は block=21 で全系列MaxDDをブートストラップしたが、"
+      "**MaxDDは数ヶ月〜数年の連続下落で決まる経路極値**であり、月ブロックのシャッフルは"
+      "暴落シーケンスを破壊して P を真の時機と無関係に0.5付近へ固定する"
+      "（リポ自身の `multimetric_bootstrap` docstring が Worst10Y について同型の無効性を明記、"
+      "block=252推奨）。よって §5 の「DELEVER_ONLY」判定は**手法のアーティファクト**。"
+      "本節は経路を壊さない**無傷の暴落窓**でブレーキ vs 同一平均退避の双子の窓内MaxDDを"
+      "比較した経路頑健な再検定。")
+    w("")
+
+    # --- per-brake サマリ表 ---
+    w("| 戦略 | 退避率f̄ | 双子より浅い回数 | 平均DD優位(pp) | binom片側p | 判定 |")
+    w("|------|---------|------------------|----------------|-----------|------|")
+    for lbl, d in per_brake.items():
+        tag = lbl.split("_")[0]
+        w(f"| {tag} | {d['fbar']*100:.2f}% | "
+          f"{d['n_shallower']}/{d['n_windows']} | "
+          f"{_signed(d['mean_dd_edge_pp'], 3)} | "
+          f"{d['binom_p']:.3f} | {d['crisis_verdict']} |")
+    w("")
+
+    # --- A7 / B1 の窓別詳細 ---
+    for lbl in ("A7_REPRODUCE", "B1_DOWNSIDE_DEV"):
+        if lbl not in per_window:
+            continue
+        tag = lbl.split("_")[0]
+        w(f"**{tag} 窓別詳細**（窓内MaxDD: ブレーキ / 双子 / 優位）:")
+        w("")
+        w("| 暴落窓 | MaxDD(ブレーキ) | MaxDD(双子) | DD優位(pp) |")
+        w("|--------|-----------------|-------------|------------|")
+        for wd in per_window[lbl]:
+            w(f"| {wd['window']} | {pct_from_frac(wd['brake_maxdd'])} | "
+              f"{pct_from_frac(wd['twin_maxdd'])} | "
+              f"{_signed(wd['dd_edge_pp'], 3)} |")
+        w("")
+
+    # --- MECHANISM callout (固定文) ---
+    a7 = per_brake.get("A7_REPRODUCE", {})
+    b1 = per_brake.get("B1_DOWNSIDE_DEV", {})
+    w(f"> **結果: 全ブレーキが TIMING_WEAK**。A7・B1とも暴落窓で双子より浅い回数は"
+      f"{a7.get('n_shallower','?')}/{a7.get('n_windows','?')}・"
+      f"{b1.get('n_shallower','?')}/{b1.get('n_windows','?')}。"
+      f"dotcom_2000/gfc_2008/covid_2020/bear_2022 では brake と twin の窓内MaxDDが"
+      f"完全一致（edge 0）＝**DH-W1がこれら危機中は既に94-100% OUT(現金/Gold/Bond)で、"
+      f"IN脚ブレーキに作用対象がない**。危機はOUT-fillが既に処理済。"
+      f"よって §5 の実現パス『双子比 MaxDD +5-6pp浅い』は**危機で稼いだものではなく"
+      f"単一パスのsequencing偶然**＝時機スキルではない。")
+    w("")
+
+    # --- CAVEAT (固定文) ---
+    w("> ⚠ 暴落窓 n=5 は小サンプル、かつ4窓は戦略OUTで構造的に情報量ゼロ"
+      "（実質1窓=tri_2015のみブレーキが作用）。これは『時機が確実にない』証明ではなく"
+      "『block=21の無効判定を経路頑健に置換し、時機効果を支持する証拠が無い』こと。"
+      "結論の方向（DD削減は時機でなくデレバ）は §9・実現パス・equal-fbar と整合。")
+    w("")
+
+
+# ---------------------------------------------------------------------------
+# §9 B1 等退避リテスト
+# ---------------------------------------------------------------------------
+def build_section9(w, a7_cagr_oos, b1_cagr_oos):
+    rows, a7_ref = read_b1_equalfbar()
+    a7_fbar = a7_ref["a7_fbar"]
+
+    b1_vs_a7_cagr = (b1_cagr_oos - a7_cagr_oos) * 100.0   # pp
+
+    w("## §9 B1 等退避リテスト（賢い信号か・弱いブレーキか）")
+    w("")
+    w(f"§3 でB1がA7比 CAGR {_signed(b1_vs_a7_cagr, 2)}pp"
+      f"（うち74%が1999単年, 2020では逆に負け）。これは『下方偏差が賢い』のか"
+      f"『単にブレーキが弱い』のか。B1 fbar={rows[0]['fbar']*100:.2f}% は "
+      f"A7 fbar={a7_fbar*100:.2f}% の{rows[0]['fbar']/a7_fbar*100:.0f}%＝弱い。"
+      f"target_dvol を下げて fbar をA7に揃えて等退避でMaxDDを比較する。")
+    w("")
+
+    w("| target_dvol | fbar | fbar−A7(pp) | MaxDD | MaxDD−A7(pp) | CAGR_OOS |")
+    w("|-------------|------|-------------|-------|--------------|----------|")
+    for r in rows:
+        w(f"| {r['target_dvol']:.3f} | {r['fbar']*100:.2f}% | "
+          f"{_signed(r['fbar_minus_a7']*100, 2)} | "
+          f"{pct_from_frac(r['MaxDD_FULL'])} | "
+          f"{_signed(r['maxdd_minus_a7']*100, 2)} | "
+          f"{pct_from_frac(r['CAGR_OOS_at'])} |")
+    w("")
+
+    # 等退避点 = |fbar - A7| 最小行 (機械的に選択)
+    eq = min(rows, key=lambda r: abs(r["fbar_minus_a7"]))
+    eq_maxdd_pp = eq["maxdd_minus_a7"] * 100.0   # 負=A7より深い
+    deeper_pp = abs(eq_maxdd_pp)
+    w(f"等退避点 = |fbar−A7| 最小の行（target_dvol={eq['target_dvol']:.3f}, "
+      f"fbar={eq['fbar']*100:.2f}%, fbar−A7={_signed(eq['fbar_minus_a7']*100,2)}pp）。"
+      f"そこで B1 MaxDD−A7 = {_signed(eq_maxdd_pp, 2)}pp。")
+    w("")
+    w(f"**結論**: 等退避(f̄≈A7)では B1 MaxDD は A7 より {deeper_pp:.2f}pp **深い**"
+      f"＝B1は賢い信号でなく**弱いブレーキ**。B1のCAGR優位は『少なくブレーキ』の帰結。"
+      f"B1で実際にA7よりMaxDDを下げるには dvol を下げて強くブレーキする必要があり、"
+      f"その時CAGRを大きく払う（スイープは単調）。")
+    w("")
+
+
+# ---------------------------------------------------------------------------
 # MD 生成
 # ---------------------------------------------------------------------------
 def build_md():
@@ -276,12 +449,21 @@ def build_md():
     w("作成日: 2026-06-21")
     w("最終更新日: 2026-06-21")
     w("")
+    w("> 改訂: 2026-06-21 v2 (独立QC: block=21時機検定の無効性是正, §8/§9追加)")
+    w("")
     w("> ベース = A7 (P09_C1 + IN脚ボラブレーキ)。A7をさらにDD削減する4系統"
       "(B1 下方偏差/B2 DD状態スロットル/B3 非対称退避復帰/B4 閾値掃引)を検証。")
     w("> A0 = P09_C1 (ブレーキなし)。A7_REPRODUCE = 前回A7再現 "
       f"(MaxDD {pct_from_frac(a7_maxdd)} 一致で新モジュール検証済)。")
     w("> 全数値: コスト後・譲渡益税後 ×0.8273。"
       "評価=標準10指標 v2.0 + Stage-1 フルゲート + 「時機 vs デレバ」切り分け。")
+    w("")
+
+    # ---- 訂正バナー (QC是正・先頭) ----
+    w("> **【2026-06-21 QC是正】§5の時機判定(block=21 MaxDDブートストラップ)は"
+      "経路依存MaxDDに無効と判明。経路頑健な再検定(§8)＋B1等退避リテスト(§9)を追加。"
+      "結論: 全ブレーキ時機スキル無し(危機はOUT-fillが処理済)、B1は弱いブレーキ、"
+      "DD削減はCAGRとのトレードオフ・ダイヤル。詳細§8/§9。**")
     w("")
 
     # ---- 先出し blockquote (KEY finding, CSV から計算) ----
@@ -409,6 +591,8 @@ def build_md():
     w("")
     w("各ブレーキを「実現平均退避率 f̄ を全IN日に一律適用した双子（時機情報ゼロ）」と比較する。")
     w("")
+    w("> ※ 下表 timing_P_maxdd は無効な検定（§8で是正）。参考表示。")
+    w("")
     w("| 戦略 | MaxDD(ブレーキ) | MaxDD(一律デレバ双子) | ΔMaxDD vs 双子(pp) | "
       "退避率f̄ | timing_P_maxdd | timing_verdict |")
     w("|------|----------------|----------------------|--------------------|"
@@ -425,34 +609,15 @@ def build_md():
         w(f"| {name} | {pct_from_frac(maxdd)} | {pct_from_frac(uni_maxdd)} | "
           f"{_signed(d_pp,2)} | {fbar_v*100:.2f}% | {tpm:.3f} | {verdict} |")
     w("")
-    # 判定ルール + 解釈
+    # 判定ルール + 解釈 (QC是正版: block=21 は無効、§8参照)
     a7_uni_maxdd = float(a7["uni_MaxDD"])
-    w(f"判定: timing_P_maxdd ≥ 0.90 ⇒ 時機効果あり; < 0.90 ⇒ デレバ寄与のみ。"
-      f"**結果: 全ブレーキ(A7含む)が DELEVER_ONLY**"
-      f"（timing_P_maxdd {tpm_lo:.2f}-{tpm_hi:.2f}, 全て<0.90）。"
-      f"各ブレーキのMaxDD改善（例 A7 {pct_from_frac(a7_maxdd)} vs 双子 {pct_from_frac(a7_uni_maxdd)}）は、"
-      f"同じ平均退避率を一律デレバした双子で既に得られる=時機スキルではない。"
-      f"これは G5 vix オーバーレイ（時機 p=0.40 非有意, 改善の本質は一律デレバ）と同じ結論の再現。"
-      f"**MaxDDを下げたいだけなら exotic ブレーキでなく一律デレバ(=レバ水準ダイヤル, 例B4)で十分。**")
-    w("")
-    # CAGR corollary: twins beat brakes on CAGR_OOS too (verified from CSV)
-    _cagr_show = ("A7_REPRODUCE", "B1_DOWNSIDE_DEV", "B2_DD_THROTTLE",
-                  "B3_ASYM_BRAKE", "B4_VOL020_CAP50")
-    _frag_parts = []
-    for lbl in _cagr_show:
-        if lbl not in stage1:
-            continue
-        b = float(stage1[lbl]["CAGR_OOS_at"]) * 100.0
-        u = float(stage1[lbl]["uni_CAGR_OOS"]) * 100.0
-        _frag_parts.append(
-            f"{lbl.split('_')[0]} {b:+.2f}% vs 双子 {u:+.2f}%（双子{u - b:+.2f}pp）")
-    _frag = " / ".join(_frag_parts)
-    w(f"> **さらに決定的: 一律デレバ双子は CAGR_OOS でもブレーキを上回る。** "
-      f"各ブレーキ vs その双子の CAGR_OOS: {_frag}。"
-      f"**全ブレーキで双子の方が CAGR が高い**＝exotic ブレーキは MaxDD でも CAGR でも"
-      f"一律デレバに勝てない（時機が効かない以上、ブレーキの複雑性は純粋に損）。"
-      f"「同じ平均退避率なら、いつ退避するかを賢く選ぶより、一律に薄く退避する方が良い」"
-      f"という強い結論。")
+    w(f"判定（**訂正済・独立QC 2026-06-21**）: §5 の timing_P_maxdd"
+      f"（block=21 全系列MaxDDブートストラップ）は経路依存のMaxDDに**無効**（→§8）。"
+      f"**「DELEVER_ONLY」は手法のアーティファクトであり、是正版の判定は §8"
+      f"（経路頑健な暴落窓検定）を参照。** "
+      f"実現パスで全ブレーキが双子比 MaxDD +2〜6pp 浅い（下表ΔMaxDD vs双子, 多くが正）が、"
+      f"§8 の通りこれは暴落窓で稼いだものではなく、双子のCAGRが高いのは MaxDD を深くする"
+      f"見返り＝**MaxDD↔CAGR フロンティア上の別点であって支配ではない**。")
     w("")
     w("> ※ 一律デレバ双子は各ブレーキの実現平均IN脚退避率 f̄ を全IN日に一律適用(時機情報ゼロ)。"
       "f̄ 計測は denom≈0 日(戦略リターン≈SOFR, 確率~4e-8/日)を除外するが影響は<<1bp。"
@@ -498,6 +663,10 @@ def build_md():
       f"ADOPT候補は{'存在しない' if not adopt_any else '限定的'}。** "
       f"MaxDD/最悪単日の改善は一律デレバ双子で再現でき、時機スキルとは認められない。")
     w("")
+    w("> **注（QC是正）: §6 の timing_verdict ゲートは無効な block=21 検定に基づく。"
+      "経路頑健な §8 では全ブレーキ TIMING_WEAK（時機効果の証拠なし）。** "
+      "いずれにせよ ADOPT候補は存在しない。")
+    w("")
     # B1 の別枠分類
     b1_w1d_vs_a7 = (b1_w1d - a7_w1d) * 100.0
     w(f"### B1(下方偏差)の別枠評価")
@@ -508,29 +677,43 @@ def build_md():
       f"ただしB1は最悪単日を削れない（{pct_from_frac(b1_w1d)}維持 vs A7 {pct_from_frac(a7_w1d)}, "
       f"{_signed(b1_w1d_vs_a7,2)}pp）。")
     w("")
+    w("§9 の等退避リテストで B1 は A7 比『賢い信号』ではなく『弱いブレーキ』と判明"
+      "（等f̄でMaxDD深い）。B1のCAGR優位は1999単年依存・braking-less由来で、"
+      "頑健な優位ではない。")
+    w("")
 
     # ===================================================================
-    # §7 結論
+    # §7 結論 (QC是正版)
     # ===================================================================
     w("## §7 結論")
     w("")
-    # 最悪単日を最も削る総ボラ系の代表値 (A7/B3/B4) — A7 vs A0 で記述
-    a0_w1d = float(a0["Worst1D"])
+    a0_maxdd = float(a0["MaxDD_FULL"])
+    a7_maxdd_disp = pct_from_frac(a7_maxdd)
     para = (
-        f"ユーザー要望(CAGR≈維持・MaxDD削減)に対し: "
-        f"(1) MaxDD削減そのものは時機スキルでなく一律デレバ=レバ水準ダイヤルで達成すべき(B4/scale)。"
-        f"exotic ブレーキ(B1/B2/B3)はDD削減で一律デレバを統計的に上回らない"
-        f"（全 {n_delever}/{len(brake_labels)} DELEVER_ONLY, timing_P_maxdd {tpm_lo:.2f}-{tpm_hi:.2f}）。"
-        f"(2) A7を採用する前提なら B1(下方偏差) が CAGR効率最良"
-        f"（{_signed(b1_vs_a7_cagr,2)}pp, MaxDD同等 {_signed(b1_vs_a7_maxdd,2)}pp）。"
-        f"(3) 最悪単日(テール1日)を削りたいなら総ボラ系(A7/B3/B4)が "
-        f"{pct_from_frac(a0_w1d)}→{pct_from_frac(a7_w1d)}に削るが、これも双子比では時機非有意。"
-        f"**正直な結論: DD削減は\"ダイヤル\"であり、"
-        f"どの水準のCAGR-DDトレードオフを選ぶかの問題。"
-        f"B1はそのフロンティア上でCAGR寄りの良点。**"
+        f"**結論（QC是正版）**: "
+        f"(1) §5 の block=21 時機検定は無効だったが、経路頑健な §8（暴落窓）でも"
+        f"全ブレーキ TIMING_WEAK＝**DD削減に時機スキルは無い**"
+        f"（理由: 危機はDH-W1のOUT-fillが既に処理済、IN脚ブレーキは作用余地が小さい）。"
+        f"(2) DD削減は **MaxDD↔CAGR のトレードオフ（ダイヤル）**。"
+        f"CAGRを概ね線形に払えばMaxDDは下がる（一律デレバ/B4で十分、exoticブレーキの優位なし）。"
+        f"**CAGR完全維持で MaxDD削減はどの構成でも達成不能。** "
+        f"(3) B1は§9で『弱いブレーキ』と判明＝A7の置換にならない。"
+        f"(4) ユーザー要望への誠実な答え: フロンティア上でCAGR-DDのどの点を選ぶか。"
+        f"現行A0(MaxDD{pct_from_frac(a0_maxdd)}, CAGR最高)維持、"
+        f"または許容CAGR低下に応じB4でデレバ水準を選ぶ。"
     )
     w(para)
     w("")
+
+    # ===================================================================
+    # §8 経路頑健な時機検定 (crisis-window / Stage-2 CSV から機械生成)
+    # ===================================================================
+    build_section8(w)
+
+    # ===================================================================
+    # §9 B1 等退避リテスト (Stage-2 CSV から機械生成)
+    # ===================================================================
+    build_section9(w, a7_cagr_oos, b1_cagr_oos)
 
     return "\n".join(out) + "\n"
 
