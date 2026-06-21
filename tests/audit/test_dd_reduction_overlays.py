@@ -4,6 +4,7 @@ from src.audit.out_fill_variants_20260620 import apply_in_leg_vol_brake
 from src.audit.dd_reduction_overlays_20260621 import (
     apply_downside_dev_brake, apply_dd_throttle, apply_asym_vol_brake,
 )
+from src.audit.dd_reduction_overlays_20260621 import _blend_to_cash
 
 
 def _toy(n=400, seed=5):
@@ -209,3 +210,66 @@ def test_param_vol_brake_lower_target_brakes_more():
     n_hi = np.sum(~np.isclose(hi, r))
     n_lo = np.sum(~np.isclose(lo, r))
     assert n_lo >= n_hi              # lower target -> brake fires on more days
+
+
+# ---------------------------------------------------------------------------
+# Part D: measure_mean_in_leg_frac + build_uniform_delever
+# ---------------------------------------------------------------------------
+
+from src.audit.dd_reduction_overlays_20260621 import (
+    measure_mean_in_leg_frac, build_uniform_delever)
+
+
+def _blend_known_frac(r, fund_active, sofr, frac):
+    """Test helper: apply a known per-day frac via the module's blend."""
+    return _blend_to_cash(r, fund_active, sofr, frac)
+
+
+def test_measure_mean_frac_recovers_applied_fraction():
+    """measure_mean_in_leg_frac inverts the blend to recover the avg IN-day
+    cash fraction that was applied."""
+    n = 200
+    rng = np.random.default_rng(6)
+    r_raw = rng.normal(0.0008, 0.02, n)
+    fund_active = np.zeros(n, dtype=bool)
+    fund_active[::3] = True                  # ~1/3 OUT
+    sofr = np.full(n, 0.04 / 252)
+    frac = np.zeros(n); frac[63:] = 0.4      # retreat 40% on every IN day after warmup
+    r_braked = _blend_known_frac(r_raw, fund_active, sofr, frac)
+    fbar = measure_mean_in_leg_frac(r_raw, r_braked, fund_active, sofr)
+    # expected: mean of the per-day applied frac over IN days = 0.4 * (in-days with
+    # frac>0)/(all in-days)
+    in_day = ~fund_active
+    expected = 0.4 * (np.sum(in_day[63:]) / np.sum(in_day))
+    assert abs(fbar - expected) < 0.02
+
+
+def test_build_uniform_delever_applies_constant_and_skips_out():
+    n = 150
+    rng = np.random.default_rng(7)
+    r_raw = rng.normal(0.0006, 0.02, n)
+    fund_active = np.zeros(n, dtype=bool)
+    fund_active[::4] = True                  # some OUT days
+    sofr = np.full(n, 0.04 / 252)
+    uni = build_uniform_delever(r_raw, fund_active, sofr, 0.3)
+    # OUT days unchanged
+    assert np.allclose(uni[fund_active], r_raw[fund_active], atol=1e-12)
+    # IN days are the constant blend (1-0.3)*r + 0.3*sofr
+    in_day = ~fund_active
+    expected_in = 0.7 * r_raw[in_day] + 0.3 * sofr[in_day]
+    assert np.allclose(uni[in_day], expected_in, atol=1e-12)
+
+
+def test_uniform_delever_matches_measured_frac_roundtrip():
+    """A brake's uniform twin built from its measured fbar has ~that avg frac."""
+    n = 300
+    rng = np.random.default_rng(11)
+    r_raw = rng.normal(0.0008, 0.02, n)
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    frac = np.zeros(n); frac[100:] = 0.25
+    r_braked = _blend_known_frac(r_raw, fund_active, sofr, frac)
+    fbar = measure_mean_in_leg_frac(r_raw, r_braked, fund_active, sofr)
+    uni = build_uniform_delever(r_raw, fund_active, sofr, fbar)
+    fbar_uni = measure_mean_in_leg_frac(r_raw, uni, fund_active, sofr)
+    assert abs(fbar - fbar_uni) < 1e-6       # uniform twin's avg frac == fbar

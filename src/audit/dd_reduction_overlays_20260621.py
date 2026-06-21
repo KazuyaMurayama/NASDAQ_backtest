@@ -119,3 +119,34 @@ def apply_param_vol_brake(r, fund_active, sofr_arr, target_vol=0.30,
                         1.0 - target_vol / vol, 0.0)
     frac = np.clip(frac, 0.0, max_frac_cash)
     return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
+
+
+def measure_mean_in_leg_frac(r_raw, r_braked, fund_active, sofr_arr):
+    """Recover the average cash-retreat fraction applied on IN days, by
+    inverting the blend r_braked = (1-f)*r_raw + f*sofr on IN days:
+        f_t = (r_raw_t - r_braked_t) / (r_raw_t - sofr_t)   (where denom != 0).
+    Returns the mean f over IN days with usable (non-degenerate) denominator.
+    This quantifies how much average exposure a brake removed, so a matching
+    uniform-delever control can be built (timing-vs-delever decomposition)."""
+    r_raw = np.asarray(r_raw, float)
+    r_braked = np.asarray(r_braked, float)
+    sofr_arr = np.asarray(sofr_arr, float)
+    in_day = ~np.asarray(fund_active, dtype=bool)
+    denom = r_raw - sofr_arr
+    usable = in_day & (np.abs(denom) > 1e-9)
+    if usable.sum() == 0:
+        return 0.0
+    f = (r_raw[usable] - r_braked[usable]) / denom[usable]
+    f = np.clip(f, 0.0, 1.0)
+    return float(f.mean())
+
+
+def build_uniform_delever(r_raw, fund_active, sofr_arr, frac):
+    """Apply a CONSTANT cash-retreat fraction `frac` to EVERY IN day (no timing
+    info). This is the 'de-lever only' control: same average exposure cut as a
+    brake, but blind to WHEN. OUT days untouched. Used to isolate a brake's
+    timing contribution from plain de-lever (G5 lesson)."""
+    r_raw = np.asarray(r_raw, float)
+    n = len(r_raw)
+    frac_arr = np.full(n, float(frac))
+    return _blend_to_cash(r_raw, fund_active, sofr_arr, frac_arr)
