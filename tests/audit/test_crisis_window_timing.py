@@ -41,6 +41,8 @@ def test_sign_test_counts_and_binomial():
     assert res["n_shallower"] == 4
     assert res["n_deeper"] == 1
     assert 0.0 <= res["binom_p_onesided"] <= 1.0
+    # one-sided binom P(X>=4 | n=5, 0.5) = (C(5,4)+C(5,5))*0.5^5 = 6/32 = 0.1875
+    assert abs(res["binom_p_onesided"] - 0.1875) < 1e-9
     # mean of dd_edge_pp = (10+10-2+7+10)/5 = 7.0
     assert abs(res["mean_dd_edge_pp"] - 7.0) < 1e-9
 
