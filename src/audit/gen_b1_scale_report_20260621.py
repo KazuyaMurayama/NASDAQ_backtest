@@ -603,7 +603,22 @@ def build_md():
       f"MaxDD {pct_from_frac(b1_20_d2)}）は P09_STR_S1.4（CAGR {pct_from_frac(p14_c)} / "
       f"MaxDD {pct_from_frac(p14_d)}）を支配するか？ — CAGR差 {_signed(b1_vs_p14,2)}pp・"
       f"MaxDDほぼ同帯。"
-      f"{'＝ほぼ同等で、B1×2.0 のブレーキは実効的に P09×1.4 相当（ブレーキ＝低スケール化装置）。支配ではない。' if abs(b1_vs_p14) < 1.0 else ('＝B1がやや優位。' if b1_vs_p14 > 0 else '＝P09低スケールがやや優位。')}")
+      f"{'＝ほぼ同等で、B1×2.0 のブレーキは実効的に P09×1.4 相当（ブレーキ＝低スケール化装置）。支配ではない。' if abs(b1_vs_p14) < 1.0 else ('＝B1がやや優位。' if b1_vs_p14 > 0 else '＝P09低スケールがやや優位。')}"
+      f"**むしろ厳密には P09_STR_S1.4 が両軸(CAGR・MaxDD)で B1_STR_S2.0 をわずかに上回る**"
+      f"＝B1高スケールは P09低スケールに劣後しこそすれ勝らない。")
+    w("")
+    # QC: overfit flag on the top B1 frontier points (gaps read from stage1 CSV)
+    def _gap_pp(lbl):
+        r = b1[lbl]
+        return (float(r["CAGR_IS_at"]) - float(r["CAGR_OOS_at"])) * 100.0
+    w(f"> **⚠ 重要(QC): 比較の上端 B1点は過学習フラグ付き。** "
+      f"B1_STR_S2.0(IS-OOSギャップ{_gap_pp('B1_STR_S2.0'):.2f}pp)・"
+      f"B1_STR_S1.8({_gap_pp('B1_STR_S1.8'):.2f}pp)・"
+      f"B1_DEF_S1.8({_gap_pp('B1_DEF_S1.8'):.2f}pp)・"
+      f"B1_DEF_S2.0({_gap_pp('B1_DEF_S2.0'):.2f}pp) は §2 で "
+      f"**❌過学習疑い**（ギャップ>5pp等）。＝高スケールB1のOOS CAGRはISより大きく劣化＝"
+      f"**最も信頼できない比較アンカー**。これは「B1がP09を支配しない」結論を**強める**"
+      f"（信頼できる領域はギャップの小さい B1_STR_S1.4/S1.6＝CAGR+20.8〜22.3%/MaxDD−39〜43%）。")
     w("")
     w(f"**(4) ブレーキの時機は実在だが危機保険ではない:** §4 control でブレーキは等fbar双子より "
       f"+{tw_dd_lo:.1f}〜+{tw_dd_hi:.1f}pp 浅い（時機実在）が、CAGRを "
@@ -614,9 +629,11 @@ def build_md():
       f"CAGR {pct_from_frac(b1_18_c)}〜{pct_from_frac(b1_20_c2)} @ MaxDD "
       f"{pct_from_frac(b1_18_d)}/{pct_from_frac(b1_20_d2)}（−50%以内）に到達でき、これは"
       f"ブレーキ無しP09が同scaleで到達不能（P09は同域で {pct_from_frac(p09_18_d)}/{pct_from_frac(p09_20_d)}）。"
-      f"ただしそれが「P09を低スケールで回す」より良いかは §7 のフロンティア比較が答え"
-      f"（{('ほぼ同等＝過大評価禁物' if abs(b1_vs_p14) < 1.0 else '差は§7参照')}）。"
-      f"**過大評価せず、フロンティア表に判断を委ねる。**")
+      f"**ただし(a) その scale 1.8/2.0 のB1点は過学習フラグ付き((3)参照)で OOS信頼性が低い、"
+      f"(b) 同MaxDD帯では P09×1.4 がわずかに勝る＝「P09を低スケールで回す」方が同等以上**（§7）。"
+      f"信頼できるB1域は scale 1.4〜1.6（❌でない）で、CAGR +20.8〜22.3%/MaxDD −39〜43%。"
+      f"**過大評価せず、フロンティア表に判断を委ねる。"
+      f"結論: B1×scaleは『P09の低スケール化＋中規模DD平滑化』であり、P09×低スケールを置換する優位は無い。**")
     w("")
 
     return "\n".join(out) + "\n"
