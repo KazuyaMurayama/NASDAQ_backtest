@@ -341,8 +341,9 @@ def main():
     print("compare MaxDD + after-tax CAGR_OOS. maxdd_brake_minus_twin_pp > 0 => timing helps.")
     print("=" * 120)
 
+    CONTROL_SERIES = [("B1_DEF_S1.0", DEFAULT_MAP, 1.0)] + SERIES8
     ctrl_rows = []
-    for label, vmap, scale in SERIES8:
+    for label, vmap, scale in CONTROL_SERIES:
         r_strat_s, r_b1_s, eff_s, tpy_base_s = build_b1_components(vmap, scale)
         tpy = tpy_base_s + _count_fund_transitions(eff_s) / n_years
         fbar = measure_mean_in_leg_frac(r_strat_s, r_b1_s, fund_active, sofr_arr)
