@@ -56,12 +56,51 @@ def apply_dd_throttle(r, fund_active, sofr_arr,
     that avoids a feedback loop (we do NOT re-derive dd from the post-brake NAV;
     a fully self-consistent post-throttle dd would need iteration, out of scope).
     The report must disclose this."""
+    st = sorted(tiers)
+    if any(st[i][1] > st[i + 1][1] for i in range(len(st) - 1)):
+        raise ValueError(
+            f"tiers must have non-decreasing frac_cash with depth, got {tiers}"
+        )
     r_arr = np.asarray(r, float)
     nav = np.cumprod(1.0 + r_arr)
     peak = np.maximum.accumulate(nav)
     dd = 1.0 - nav / peak                     # current drawdown (>=0)
     dd_lag = pd.Series(dd).shift(1).fillna(0.0).values   # causal
     frac = np.zeros_like(r_arr)
-    for thr, fc in sorted(tiers):             # ascending; last (deepest) match wins
+    for thr, fc in st:                        # ascending; last (deepest) match wins
         frac = np.where(dd_lag >= thr, fc, frac)
+    return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
+
+
+def apply_asym_vol_brake(r, fund_active, sofr_arr, target_vol=0.30,
+                         window=63, max_frac_cash=0.5, release_days=5):
+    """B3: same realized-vol trigger as A7 but ASYMMETRIC entry/exit. The brake
+    turns ON the day vol(shift1) exceeds target_vol, and stays ON (holding the
+    last engaged frac_cash) until vol has been BELOW target for `release_days`
+    consecutive days. Fast to retreat, slow to re-risk. frac magnitude when on =
+    clip(1 - target_vol/vol, 0, max_frac_cash) using the latest above-threshold
+    vol seen, decaying only on release. IN days only, causal."""
+    r_arr = np.asarray(r, float)
+    vol = (pd.Series(r_arr).rolling(window, min_periods=window).std(ddof=1)
+           * np.sqrt(TRADING_DAYS)).shift(1).values
+    n = len(r_arr)
+    frac = np.zeros(n)
+    state_on = False
+    below = 0
+    cur = 0.0
+    for t in range(n):
+        v = vol[t]
+        if np.isfinite(v) and v > target_vol:
+            state_on = True
+            below = 0
+            cur = min(max_frac_cash, 1.0 - target_vol / v)
+        elif state_on:
+            if np.isfinite(v) and v <= target_vol:
+                below += 1
+                if below >= release_days:
+                    state_on = False
+                    cur = 0.0
+            else:                              # NaN vol while on -> hold
+                below = 0
+        frac[t] = cur if state_on else 0.0
     return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)

@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
 from src.audit.out_fill_variants_20260620 import apply_in_leg_vol_brake
-from src.audit.dd_reduction_overlays_20260621 import apply_downside_dev_brake, apply_dd_throttle
+from src.audit.dd_reduction_overlays_20260621 import (
+    apply_downside_dev_brake, apply_dd_throttle, apply_asym_vol_brake,
+)
 
 
 def _toy(n=400, seed=5):
@@ -88,7 +90,9 @@ def test_dd_throttle_no_lookahead():
 
 
 def test_dd_throttle_tiers_monotone():
-    """Deeper drawdown -> higher cash fraction (the 0.25 tier engages 0.50)."""
+    """Deeper drawdown -> higher cash fraction (the 0.25 tier engages 0.50).
+    Day 110: dd_lag~0.183 -> shallow tier frac=0.25. Day 195: dd_lag~0.853 ->
+    deep tier frac=0.50. Both must be in DIFFERENT tiers."""
     n = 400
     r = np.full(n, 0.0005)
     r[100:200] = -0.02                        # progressively deeper DD
@@ -99,7 +103,55 @@ def test_dd_throttle_tiers_monotone():
     def frac_at(t):
         denom = r[t] - sofr[t]
         return (r[t] - out[t]) / denom if abs(denom) > 1e-12 else 0.0
-    # find a shallow-DD day (early in the down run) and a deep-DD day (late)
-    shallow = frac_at(115)
+    # day 110: dd_lag~0.183 -> shallow tier [0.15,0.25) -> frac=0.25
+    # day 195: dd_lag~0.853 -> deep tier [0.25,inf) -> frac=0.50
+    shallow = frac_at(110)
     deep = frac_at(195)
     assert deep >= shallow - 1e-9
+    assert shallow < deep - 1e-9 or (abs(shallow - 0.25) < 1e-6 and abs(deep - 0.50) < 1e-6)
+
+
+# ---------------------------------------------------------------------------
+# Part C: B2 non-monotone tier guard
+# ---------------------------------------------------------------------------
+
+def test_dd_throttle_rejects_nonmonotone_tiers():
+    import pytest
+    with pytest.raises(ValueError):
+        apply_dd_throttle(np.zeros(10), np.zeros(10, dtype=bool),
+                          np.full(10, 0.04 / 252), tiers=((0.15, 0.50), (0.25, 0.25)))
+
+
+# ---------------------------------------------------------------------------
+# Part A: B3 asymmetric vol brake
+# ---------------------------------------------------------------------------
+
+def test_asym_brake_slow_to_release():
+    """After vol drops below target, the brake persists for release_days
+    consecutive sub-threshold days before releasing. A symmetric A7 releases
+    immediately, so asym stays braked LONGER after a spike."""
+    n = 200
+    r = np.full(n, 0.002)
+    r[80:90] = -0.06                          # vol spike window
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    out_asym = apply_asym_vol_brake(r, fund_active, sofr, target_vol=0.30,
+                                    window=63, max_frac_cash=0.5, release_days=5)
+    out_a7 = apply_in_leg_vol_brake(r, fund_active, sofr, target_vol=0.30,
+                                    window=63)
+    post = slice(140, 175)
+    a7_released = np.isclose(out_a7[post], r[post])
+    asym_braked = ~np.isclose(out_asym[post], r[post])
+    assert (a7_released & asym_braked).any(), "asym should hold brake longer than A7"
+
+
+def test_asym_brake_no_lookahead():
+    n = 260
+    rng = np.random.default_rng(4)
+    ra = rng.normal(0.0, 0.025, n)
+    rb = ra.copy(); rb[130] += 0.6
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    oa = apply_asym_vol_brake(ra, fund_active, sofr, 0.30, 63, 0.5, 5)
+    ob = apply_asym_vol_brake(rb, fund_active, sofr, 0.30, 63, 0.5, 5)
+    assert np.allclose(oa[:130], ob[:130], atol=1e-12)
