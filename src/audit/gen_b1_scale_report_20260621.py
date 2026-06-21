@@ -50,6 +50,7 @@ P09_ANNUAL_COL = {1.4: "sc1.40_strong_pct", 1.6: "sc1.60_strong_pct",
                   1.8: "sc1.80_strong_pct", 2.0: "sc2.00_strong_pct"}
 
 MINUS = "−"  # − (U+2212)
+AFTER_TAX = 0.8273  # 譲渡益税後係数 (1 − 20.315%)
 
 
 # ---------------------------------------------------------------------------
@@ -465,12 +466,14 @@ def build_md():
             cells.append(pct_from_pct(rec.get(c)))
         prec = p09_ann_by_y.get(rec["year"])
         for sc in SCALES:
+            # prior P09 annual CSV is PRE-tax; ×AFTER_TAX to match B1's after-tax basis
             v = prec.get(P09_ANNUAL_COL[sc]) if prec else None
-            cells.append(pct_from_pct(v))
+            cells.append(pct_from_pct(v * AFTER_TAX if v is not None else None))
         cells.append(pct_from_pct(rec.get("NASDAQ_1x_BH_pct")))
         w("| " + " | ".join(cells) + " |")
     w("")
     w(f"> 年数チェック: {len(ann)} 行（1975-2025 = 51年）。")
+    w(f"> ※ 前回P09×scale の年次は元CSV(pre-tax)に ×0.8273 を適用して税後化（B1系列・B&Hと税基準を統一）。")
     w("")
 
     # ===================================================================
@@ -491,8 +494,9 @@ def build_md():
     for sc in SCALES:
         stat_series[f"B1_STR_S{sc:.1f}"] = [rec[STR[sc]] for rec in ann]
     for sc in SCALES:
+        # prior P09 annual CSV is PRE-tax; ×AFTER_TAX to match B1's after-tax basis
         stat_series[f"P09_STR_S{sc:.1f}"] = [
-            p09_ann_by_y[rec["year"]][P09_ANNUAL_COL[sc]] for rec in ann]
+            p09_ann_by_y[rec["year"]][P09_ANNUAL_COL[sc]] * AFTER_TAX for rec in ann]
     stat_series["NASDAQ_1x_B&H"] = [rec["NASDAQ_1x_BH_pct"] for rec in ann]
     for name, ser in stat_series.items():
         st = series_stats(ser)
@@ -502,6 +506,7 @@ def build_md():
     w("")
     w("> ⚠ NASDAQ 1倍B&H は売却時まで課税繰延のため年次×0.8273は過剰課税。"
       "実手取りはより高く税前に近い。高回転戦略は年次×0.8273が妥当。")
+    w("> ※ 前回P09×scale の年次は元CSV(pre-tax)に ×0.8273 を適用して税後化（B1系列・B&Hと税基準を統一）。")
     w("")
 
     # ===================================================================
