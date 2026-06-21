@@ -189,3 +189,23 @@ def test_asym_brake_no_lookahead():
     frac_t0 = cur if state_on else 0.0
     assert np.isclose(implied, 1.0 - frac_t0, atol=1e-9), \
         "asym brake look-ahead: frac[t0] depends on r[t0]'s own value"
+
+
+def test_param_vol_brake_matches_a7_at_defaults():
+    from src.audit.dd_reduction_overlays_20260621 import apply_param_vol_brake
+    r, fund_active, sofr = _toy()
+    a7 = apply_in_leg_vol_brake(r, fund_active, sofr, target_vol=0.30, window=63,
+                                max_frac_cash=0.5)
+    b0 = apply_param_vol_brake(r, fund_active, sofr, target_vol=0.30, window=63,
+                               max_frac_cash=0.5)
+    assert np.allclose(a7, b0, atol=1e-12)
+
+
+def test_param_vol_brake_lower_target_brakes_more():
+    from src.audit.dd_reduction_overlays_20260621 import apply_param_vol_brake
+    r, fund_active, sofr = _toy(seed=8)
+    hi = apply_param_vol_brake(r, fund_active, sofr, 0.30, 63, 0.5)
+    lo = apply_param_vol_brake(r, fund_active, sofr, 0.20, 63, 0.5)
+    n_hi = np.sum(~np.isclose(hi, r))
+    n_lo = np.sum(~np.isclose(lo, r))
+    assert n_lo >= n_hi              # lower target -> brake fires on more days

@@ -104,3 +104,18 @@ def apply_asym_vol_brake(r, fund_active, sofr_arr, target_vol=0.30,
                 below = 0
         frac[t] = cur if state_on else 0.0
     return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
+
+
+def apply_param_vol_brake(r, fund_active, sofr_arr, target_vol=0.30,
+                          window=63, max_frac_cash=0.5):
+    """B4/B0: A7's total-realized-vol brake, parameterized for sweeping
+    (target_vol, max_frac_cash). At (0.30, 63, 0.5) this is bit-identical to
+    apply_in_leg_vol_brake (A7). Causal (shift(1)), IN days only."""
+    r_arr = np.asarray(r, float)
+    vol = (pd.Series(r_arr).rolling(window, min_periods=window).std(ddof=1)
+           * np.sqrt(TRADING_DAYS)).shift(1).values
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frac = np.where((np.isfinite(vol)) & (vol > target_vol),
+                        1.0 - target_vol / vol, 0.0)
+    frac = np.clip(frac, 0.0, max_frac_cash)
+    return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
