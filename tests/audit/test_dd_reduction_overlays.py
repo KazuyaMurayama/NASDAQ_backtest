@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from src.audit.out_fill_variants_20260620 import apply_in_leg_vol_brake
-from src.audit.dd_reduction_overlays_20260621 import apply_downside_dev_brake
+from src.audit.dd_reduction_overlays_20260621 import apply_downside_dev_brake, apply_dd_throttle
 
 
 def _toy(n=400, seed=5):
@@ -58,3 +58,48 @@ def test_downside_dev_no_lookahead():
     if np.isfinite(dvol150) and dvol150 > 0.20:
         f = min(0.5, 1.0 - 0.20 / dvol150)
     assert np.isclose(implied, 1.0 - f, atol=1e-9), "downside brake look-ahead"
+
+
+def test_dd_throttle_engages_in_drawdown():
+    n = 300
+    r = np.full(n, 0.001)
+    r[100:140] = -0.03                       # build a deep drawdown
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    out = apply_dd_throttle(r, fund_active, sofr,
+                            tiers=((0.15, 0.25), (0.25, 0.50)))
+    changed = ~np.isclose(out[120:140], r[120:140])
+    assert changed.any()                     # deep in drawdown -> brake engages
+    assert np.isclose(out[50], r[50])        # before any drawdown -> no brake
+
+
+def test_dd_throttle_no_lookahead():
+    n = 250
+    rng = np.random.default_rng(9)
+    ra = rng.normal(-0.002, 0.02, n)
+    rb = ra.copy(); rb[120] -= 0.4
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    oa = apply_dd_throttle(ra, fund_active, sofr, tiers=((0.15, 0.25), (0.25, 0.50)))
+    ob = apply_dd_throttle(rb, fund_active, sofr, tiers=((0.15, 0.25), (0.25, 0.50)))
+    implied = (ob[120] - oa[120]) / (rb[120] - ra[120])
+    assert np.allclose(oa[:120], ob[:120], atol=1e-12)     # past unaffected
+    assert 0.5 - 1e-9 <= implied <= 1.0 + 1e-9             # day120 frac (1-f), f in [0,0.5]
+
+
+def test_dd_throttle_tiers_monotone():
+    """Deeper drawdown -> higher cash fraction (the 0.25 tier engages 0.50)."""
+    n = 400
+    r = np.full(n, 0.0005)
+    r[100:200] = -0.02                        # progressively deeper DD
+    fund_active = np.zeros(n, dtype=bool)
+    sofr = np.full(n, 0.04 / 252)
+    out = apply_dd_throttle(r, fund_active, sofr, tiers=((0.15, 0.25), (0.25, 0.50)))
+    # reconstruct applied frac on a deep day vs a shallow day
+    def frac_at(t):
+        denom = r[t] - sofr[t]
+        return (r[t] - out[t]) / denom if abs(denom) > 1e-12 else 0.0
+    # find a shallow-DD day (early in the down run) and a deep-DD day (late)
+    shallow = frac_at(115)
+    deep = frac_at(195)
+    assert deep >= shallow - 1e-9

@@ -37,7 +37,31 @@ def apply_downside_dev_brake(r, fund_active, sofr_arr, target_dvol=0.20,
     neg = np.where(r_arr < 0.0, r_arr, 0.0)
     dvol = (pd.Series(neg).rolling(window, min_periods=window).std(ddof=1)
             * np.sqrt(TRADING_DAYS)).shift(1).values
-    frac = np.where((np.isfinite(dvol)) & (dvol > target_dvol),
-                    1.0 - target_dvol / dvol, 0.0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frac = np.where((np.isfinite(dvol)) & (dvol > target_dvol),
+                        1.0 - target_dvol / dvol, 0.0)
     frac = np.clip(frac, 0.0, max_frac_cash)
+    return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
+
+
+def apply_dd_throttle(r, fund_active, sofr_arr,
+                      tiers=((0.15, 0.25), (0.25, 0.50))):
+    """B2: throttle by CURRENT drawdown. Build the strategy NAV from r, compute
+    running peak and current drawdown dd_t = 1 - nav_t/peak_t, SHIFT by 1 so
+    day t uses dd through t-1 (causal). tiers = ascending ((dd_thr, frac_cash),
+    ...): the largest tier whose dd_thr <= dd_{t-1} sets frac_cash. IN days only.
+
+    NOTE: dd is computed on the *unbraked* NAV (the strategy's own equity curve
+    as it would stand pre-throttle). This is a deliberate causal simplification
+    that avoids a feedback loop (we do NOT re-derive dd from the post-brake NAV;
+    a fully self-consistent post-throttle dd would need iteration, out of scope).
+    The report must disclose this."""
+    r_arr = np.asarray(r, float)
+    nav = np.cumprod(1.0 + r_arr)
+    peak = np.maximum.accumulate(nav)
+    dd = 1.0 - nav / peak                     # current drawdown (>=0)
+    dd_lag = pd.Series(dd).shift(1).fillna(0.0).values   # causal
+    frac = np.zeros_like(r_arr)
+    for thr, fc in sorted(tiers):             # ascending; last (deepest) match wins
+        frac = np.where(dd_lag >= thr, fc, frac)
     return _blend_to_cash(r_arr, fund_active, sofr_arr, frac)
