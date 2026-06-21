@@ -54,3 +54,15 @@ def test_sign_test_all_shallower_gives_small_p():
     res = sign_test_brake_beats_twin(rows)
     assert res["n_shallower"] == 5
     assert abs(res["binom_p_onesided"] - 0.03125) < 1e-9
+
+
+def test_window_dd_compare_fp_noise_not_shallower():
+    """A brake byte-identical to the twin (strategy OUT all window => no braking)
+    must not be flagged shallower on FP noise."""
+    n = 100
+    r = np.random.default_rng(0).normal(0, 0.01, n)
+    stress = {"w": np.ones(n, dtype=bool)}
+    # brake == twin exactly -> edge 0 -> not shallower
+    rows = crisis_window_dd_compare(r.copy(), r.copy(), stress)
+    assert rows[0]["brake_shallower"] is False
+    assert abs(rows[0]["dd_edge_pp"]) < 1e-9

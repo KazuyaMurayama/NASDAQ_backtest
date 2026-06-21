@@ -33,7 +33,7 @@ def crisis_window_dd_compare(r_brake, r_twin, stress):
             "brake_maxdd": bdd,
             "twin_maxdd": tdd,
             "dd_edge_pp": (bdd - tdd) * 100.0,
-            "brake_shallower": bool(bdd > tdd),
+            "brake_shallower": bool(bdd > tdd + 1e-9),   # require a real edge, not FP noise
         })
     return rows
 
