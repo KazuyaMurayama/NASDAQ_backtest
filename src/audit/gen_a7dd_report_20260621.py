@@ -435,6 +435,25 @@ def build_md():
       f"これは G5 vix オーバーレイ（時機 p=0.40 非有意, 改善の本質は一律デレバ）と同じ結論の再現。"
       f"**MaxDDを下げたいだけなら exotic ブレーキでなく一律デレバ(=レバ水準ダイヤル, 例B4)で十分。**")
     w("")
+    # CAGR corollary: twins beat brakes on CAGR_OOS too (verified from CSV)
+    _cagr_show = ("A7_REPRODUCE", "B1_DOWNSIDE_DEV", "B2_DD_THROTTLE",
+                  "B3_ASYM_BRAKE", "B4_VOL020_CAP50")
+    _frag_parts = []
+    for lbl in _cagr_show:
+        if lbl not in stage1:
+            continue
+        b = float(stage1[lbl]["CAGR_OOS_at"]) * 100.0
+        u = float(stage1[lbl]["uni_CAGR_OOS"]) * 100.0
+        _frag_parts.append(
+            f"{lbl.split('_')[0]} {b:+.2f}% vs 双子 {u:+.2f}%（双子{u - b:+.2f}pp）")
+    _frag = " / ".join(_frag_parts)
+    w(f"> **さらに決定的: 一律デレバ双子は CAGR_OOS でもブレーキを上回る。** "
+      f"各ブレーキ vs その双子の CAGR_OOS: {_frag}。"
+      f"**全ブレーキで双子の方が CAGR が高い**＝exotic ブレーキは MaxDD でも CAGR でも"
+      f"一律デレバに勝てない（時機が効かない以上、ブレーキの複雑性は純粋に損）。"
+      f"「同じ平均退避率なら、いつ退避するかを賢く選ぶより、一律に薄く退避する方が良い」"
+      f"という強い結論。")
+    w("")
     w("> ※ 一律デレバ双子は各ブレーキの実現平均IN脚退避率 f̄ を全IN日に一律適用(時機情報ゼロ)。"
       "f̄ 計測は denom≈0 日(戦略リターン≈SOFR, 確率~4e-8/日)を除外するが影響は<<1bp。"
       "B2のDDは pre-throttle NAVで算出(自己無撞着の簡略化, 過剰throttle方向の保守的バイアス)。")
