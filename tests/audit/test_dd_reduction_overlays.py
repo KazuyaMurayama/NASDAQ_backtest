@@ -146,12 +146,46 @@ def test_asym_brake_slow_to_release():
 
 
 def test_asym_brake_no_lookahead():
+    """frac[t] must use vol over returns strictly BEFORE t (shift(1)).
+    Perturbing r[t]'s OWN value must NOT change frac[t]. We reconstruct the
+    implied (1-frac[t]) from the linear blend: only r[t] changed, so
+    (ob[t]-oa[t]) == (1-frac[t])*(rb[t]-ra[t]) IFF frac[t] is unchanged.
+    A no-shift impl would let r[t]'s spike enter vol[t] and change frac[t].
+
+    Verified: with seed=4, std=0.025, frac_t0 ≈ 0.2876 (brake ON at t0=130).
+    The test is only meaningful when frac_t0 > 0; this configuration ensures it."""
     n = 260
     rng = np.random.default_rng(4)
-    ra = rng.normal(0.0, 0.025, n)
-    rb = ra.copy(); rb[130] += 0.6
+    ra = rng.normal(0.0, 0.025, n)          # ~40% annualized vol -> brake is active
+    rb = ra.copy()
+    t0 = 130
+    rb[t0] += 0.6                            # perturb ONLY day t0's own return
     fund_active = np.zeros(n, dtype=bool)
     sofr = np.full(n, 0.04 / 252)
     oa = apply_asym_vol_brake(ra, fund_active, sofr, 0.30, 63, 0.5, 5)
     ob = apply_asym_vol_brake(rb, fund_active, sofr, 0.30, 63, 0.5, 5)
-    assert np.allclose(oa[:130], ob[:130], atol=1e-12)
+    # past days unaffected (sanity)
+    assert np.allclose(oa[:t0], ob[:t0], atol=1e-12)
+    # implied (1-frac[t0]); only r[t0] differs between a and b
+    implied = (ob[t0] - oa[t0]) / (rb[t0] - ra[t0])
+    # frac[t0] is in [0, 0.5] so (1-frac) in [0.5, 1.0]; with correct shift it is
+    # IDENTICAL in a and b (frac[t0] independent of r[t0]) -> implied == 1-frac_a[t0].
+    # Recompute frac_a[t0] independently from PAST-ONLY vol (shift(1)) replicating
+    # the stateful loop up to t0 on series `ra`:
+    vol = (pd.Series(ra).rolling(63, min_periods=63).std(ddof=1)
+           * np.sqrt(252)).shift(1).values
+    state_on = False; below = 0; cur = 0.0
+    for t in range(t0 + 1):
+        v = vol[t]
+        if np.isfinite(v) and v > 0.30:
+            state_on = True; below = 0; cur = min(0.5, 1.0 - 0.30 / v)
+        elif state_on:
+            if np.isfinite(v) and v <= 0.30:
+                below += 1
+                if below >= 5:
+                    state_on = False; cur = 0.0
+            else:
+                below = 0
+    frac_t0 = cur if state_on else 0.0
+    assert np.isclose(implied, 1.0 - frac_t0, atol=1e-9), \
+        "asym brake look-ahead: frac[t0] depends on r[t0]'s own value"
