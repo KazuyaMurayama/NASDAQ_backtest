@@ -45,6 +45,7 @@ ANNUAL_CSV = os.path.join(_REPO_DIR, "audit_results",
 
 INIT_ASSET = 30_000_000.0
 ANNUAL_SPEND = 5_000_000.0
+HALF_ASSET = 15_000_000.0   # half of initial (1500万) drawdown threshold
 HORIZON = 20
 START_YEARS = list(range(1975, 2006))
 SCALES_ALL = [1.0, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4]
@@ -80,8 +81,15 @@ def simulate(cy_ret_series, start_year, init=INIT_ASSET,
     survived = (ruin_elapsed is None)
     if asset_y10 is None:
         asset_y10 = bal
+    # Did the year-end balance ever drop strictly below half the initial (15M)?
+    # (ruin=0 is below 15M, so ruined paths count here too.)
+    below_half_years = [k + 1 for k, b in enumerate(path) if b < HALF_ASSET]
+    ever_below_half = len(below_half_years) > 0
+    first_below_half = below_half_years[0] if below_half_years else None
     return {"survived": survived, "ruin_year_elapsed": ruin_elapsed,
-            "asset_y10": asset_y10, "asset_y20": path[-1], "path": path}
+            "asset_y10": asset_y10, "asset_y20": path[-1], "path": path,
+            "ever_below_half": ever_below_half,
+            "first_below_half_elapsed": first_below_half}
 
 
 def main():
@@ -146,6 +154,8 @@ def main():
                 "ruin_year_elapsed": res["ruin_year_elapsed"] if res["ruin_year_elapsed"] else "",
                 "asset_y10_yen": round(res["asset_y10"]),
                 "asset_y20_yen": round(res["asset_y20"]),
+                "ever_below_15M": int(res["ever_below_half"]),
+                "first_below_15M_elapsed": res["first_below_half_elapsed"] if res["first_below_half_elapsed"] else "",
             })
     out_dir = os.path.join(_REPO_DIR, "audit_results")
     pd.DataFrame(grid_rows).to_csv(
@@ -175,14 +185,18 @@ def main():
         survs = [results[s][sy]["survived"] for sy in START_YEARS]
         y20s = [results[s][sy]["asset_y20"] for sy in START_YEARS if results[s][sy]["survived"]]
         ruined = [sy for sy in START_YEARS if not results[s][sy]["survived"]]
+        below_half_starts = [sy for sy in START_YEARS if results[s][sy]["ever_below_half"]]
         med = float(np.median(y20s)) if y20s else 0.0
         lo = float(np.min(y20s)) if y20s else 0.0
         hi = float(np.max(y20s)) if y20s else 0.0
         summary[s] = {"survived": int(np.sum(survs)), "y20_median": med,
                       "y20_min": lo, "y20_max": hi, "ruined_starts": ruined,
-                      "ruin_years_elapsed": {sy: results[s][sy]["ruin_year_elapsed"] for sy in ruined}}
-        print("%-14s | %4d/%-3d | %14.0f | %14.0f | %14.0f | %s"
-              % (s, int(np.sum(survs)), len(START_YEARS), med, lo, hi,
+                      "ruin_years_elapsed": {sy: results[s][sy]["ruin_year_elapsed"] for sy in ruined},
+                      "below_15M_count": len(below_half_starts),
+                      "below_15M_starts": below_half_starts}
+        print("%-14s | %4d/%-3d | below15M %2d/%-2d | %14.0f | %14.0f | %14.0f | %s"
+              % (s, int(np.sum(survs)), len(START_YEARS),
+                 len(below_half_starts), len(START_YEARS), med, lo, hi,
                  ",".join(str(x) for x in ruined) if ruined else "(none)"))
 
     block = {
@@ -190,6 +204,7 @@ def main():
         "source_annual_csv": os.path.basename(ANNUAL_CSV),
         "init_asset": INIT_ASSET, "annual_spend": ANNUAL_SPEND, "horizon": HORIZON,
         "sanity_pass": bool(ok),
+        "half_threshold": HALF_ASSET,
         "summary": {s: {
             "survived": summary[s]["survived"], "n_starts": len(START_YEARS),
             "y20_median": round(summary[s]["y20_median"]),
@@ -197,6 +212,8 @@ def main():
             "y20_max": round(summary[s]["y20_max"]),
             "ruined_starts": summary[s]["ruined_starts"],
             "ruin_years_elapsed": summary[s]["ruin_years_elapsed"],
+            "below_15M_count": summary[s]["below_15M_count"],
+            "below_15M_starts": summary[s]["below_15M_starts"],
         } for s in strat_order},
         "grid": grid_rows,
     }
