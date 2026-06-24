@@ -106,6 +106,11 @@ flowchart LR
     B --> C["くりっく株365<br/>NASDAQ-100<br/>リセット付証拠金取引"]
     C --> D["1枚 = 指数 × 10円<br/>例 29,321pt → 約29.3万円"]
     C --> E["レバレッジは資金量で調整<br/>3倍 = 建玉総額 ÷ 3 を入金"]
+    D --> Z1["　　　　　　　　"]
+    E --> Z2["　　　　　　　　"]
+    linkStyle 4,5 stroke-width:0px
+    style Z1 fill:transparent,stroke:transparent,color:transparent
+    style Z2 fill:transparent,stroke:transparent,color:transparent
 ```
 
 ---
@@ -119,6 +124,9 @@ flowchart LR
 ```mermaid
 flowchart LR
     A["① SBI証券 総合口座<br/>（本人確認はここで完了）"] --> B["② 取引所CFD<br/>（くりっく株365）口座<br/>を追加で申込"] --> C["③ CFD口座へ<br/>資金を振替"] --> D["④ 取引開始<br/>（NASDAQ-100を売買）"]
+    D --> Z["　　　　　　　　"]
+    linkStyle 3 stroke-width:0px
+    style Z fill:transparent,stroke:transparent,color:transparent
 ```
 
 - くりっく株365の取引には、総合取引口座とは別に**「取引所CFD（くりっく株365）口座」の開設が必要**です 【出典: [SBI証券 CFD口座開設の流れ](https://www.sbisec.co.jp/ETGate/?OutSide=on&getFlg=on&_ControlID=WPLETmgR001Control&_PageID=WPLETmgR001Mdtl20&_ActionID=DefaultAID&_DataStoreID=DSWPLETmgR001Control&burl=search_cfd&cat1=cfd&cat2=flow&dir=flow&file=cfd_flow.html)】✅。
@@ -185,6 +193,9 @@ flowchart LR
 ```mermaid
 flowchart LR
     S1["1. レート一覧で<br/>NASDAQ-100をタップ"] --> S2["2. 上部の<br/>「通常」タブを選択"] --> S3["3. 「買」を選択<br/>（新規買い建て）"] --> S4["4. 注文種類を選択<br/>成行/指値/逆指値"]
+    S4 --> Z["　　　　　　　　"]
+    linkStyle 3 stroke-width:0px
+    style Z fill:transparent,stroke:transparent,color:transparent
 ```
 
 **後半：STEP 5 → 6 → 7 → 8（前半に続けて）**
@@ -192,6 +203,9 @@ flowchart LR
 ```mermaid
 flowchart LR
     S5["5. 数量（枚数）<br/>を入力"] --> S6["6. 有効期限を選択<br/>DAY/WEEK/GTC"] --> S7["7. 「確認する」で<br/>内容チェック"] --> S8["8. 「注文する」で発注<br/>→ 完了画面"]
+    S8 --> Z["　　　　　　　　"]
+    linkStyle 3 stroke-width:0px
+    style Z fill:transparent,stroke:transparent,color:transparent
 ```
 
 1. プライス（レート）一覧で **NASDAQ-100** をタップ → 注文入力画面へ
@@ -428,6 +442,9 @@ flowchart LR
     A["9月頃<br/>新しい限月の銘柄が登場<br/>（旧と新が並行）"] --> B["11〜12月前半<br/>重複期間に乗り換え<br/>旧決済→新を新規建て"]
     B --> C["12月の取引最終日<br/>未決済は強制リセット決済"]
     C --> D["⏰ リマインダーを<br/>毎年11月にセット推奨"]
+    D --> Z["　　　　　　　　"]
+    linkStyle 3 stroke-width:0px
+    style Z fill:transparent,stroke:transparent,color:transparent
 ```
 
 > 💡 **「12月になったら何もしないと自動決済される」**と覚え、毎年11月にスマホのリマインダーを入れておくと安全です。
