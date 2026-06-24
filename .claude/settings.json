@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r \".tool_input.file_path // .tool_response.filePath // empty\" | { read -r f; case \"$f\" in *.md) if [ -f \"$f\" ] && grep -q \"flowchart\" \"$f\" && ! grep -q \"fill:transparent\" \"$f\"; then printf \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PostToolUse\\\",\\\"additionalContext\\\":\\\"Mermaid可視化ルール違反の可能性: この.mdにflowchartがありますが透明スペーサー(fill:transparent)が見当たりません。GitHub右上ズームUIで右端文字が隠れるのを防ぐため、各LRフローの最右端に透明スペーサー(.claude/visual-rules.md §3)を追加してください。\\\"}}\"; fi ;; esac }; true",
+            "statusMessage": "Mermaid spacer check"
+          }
+        ]
+      }
+    ]
+  }
+}
