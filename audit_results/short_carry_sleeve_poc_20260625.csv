@@ -1,0 +1,4 @@
+﻿leverage,ann_price_pct,ann_carry_pct,ann_short_pretax_pct,ann_short_aftertax_pct,beats_cash
+1.0,4.38,5.13,6.34,5.05,True
+2.0,8.75,10.27,5.46,4.12,True
+3.0,13.13,15.4,-2.62,-2.77,False
