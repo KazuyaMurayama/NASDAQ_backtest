@@ -1,0 +1,5 @@
+DD candidate series export 2026-06-26
+rows=13169  first=1974-01-02  last=2026-03-26
+IS_END=2021-05-07  OOS_START=2021-05-08
+TRADING_DAYS=252  AFTER_TAX=0.8273
+Trades/yr (tpy) per candidate: sc20=35.23, N4=35.23, X4=35.23
