@@ -1,14 +1,20 @@
 """
 src/audit/scale2_promotion_qc_20260626.py
 =========================================
-Scale2.0 (P09_STR strong-map x lev_scale=2.0) BEST-strategy promotion eligibility QC.
+P09_STR strong-map leverage-scale BEST-strategy promotion eligibility QC.
 
-User asked to "make Scale2.0 the best strategy". The canon (P09_STR_SCALE_DIAL_20260623.md,
-fixed 2026-06-23, FRONTIER 4-digit sanity PASS) records Scale2.0 as highest CAGR_OOS +29.11%
-but MaxDD -61.63% / IS-OOS gap +7.57pp / Regime_min -11.41% -- past the "MaxDD<-50% practical
-upper bound (scale1.4)". This script does NOT re-litigate cost premises (EVALUATION_STANDARD
-§1.5 v1.9: margin is collateral, no CAGR drag). It re-derives the decision-critical premises
-from first principles:
+History:
+  - First pass evaluated Scale2.0 as the promotion target (user asked "make Scale2.0
+    the best strategy"). QC concluded MaxDD -61.63% / gap +7.57pp / Regime -11.41% /
+    max eff lev 9.6x; CAGR highest (+29.11%) but Sharpe/WFE lose to scale1.4.
+  - 2026-06-26: after reviewing the QC, the user chose to promote **Scale1.6** (the
+    middle point: CAGR_OOS +26.21% / MaxDD -51.95% / gap +4.90pp / Regime -7.71% /
+    max eff lev 7.68x). scale1.6 was added to SCALES/ANCHORS and re-verified here.
+
+The canon (P09_STR_SCALE_DIAL_20260623.md, fixed 2026-06-23, FRONTIER 4-digit sanity
+PASS) provides the anchors. This script does NOT re-litigate cost premises
+(EVALUATION_STANDARD §1.5 v1.9: margin is collateral, no CAGR drag). It re-derives the
+decision-critical premises from first principles for all scales (1.0/1.4/1.6/2.0):
 
   STAGE 1   reproduce the canon's fixed values independently (anchor match, tol 0.15pp)
   STAGE 2A  MaxDD -61.63% path-robustness: direct-NAV drawdown path + path-AGGREGATE measures
@@ -65,12 +71,14 @@ AFTER_TAX = 0.8273
 STRONG_MAP = {0: 1.60, 1: 1.50, 2: 1.10, 3: 1.00}
 EXCESS_EXTRA = EXCESS_EXTRA_K365_CENTRE  # 0.0025 k365 centre, always-on -> matches FRONTIER
 
-# Scales we evaluate. 2.0 is the target; 1.0/1.4 are reference/alternative.
-SCALES = [1.0, 1.4, 2.0]
+# Scales we evaluate. 1.6 is the promotion TARGET (2026-06-26); 1.0/1.4/2.0 are
+# reference/alternative anchors.
+SCALES = [1.0, 1.4, 1.6, 2.0]
 
 # Canon anchors (P09_STR_SCALE_DIAL_20260623.md / p09_strongmap_scale_dial_20260623.py).
 ANCHORS = {
     1.4: {"CAGR_IS": 0.274877, "CAGR_OOS": 0.243414, "MaxDD": -0.464781},
+    1.6: {"CAGR_IS": 0.302649, "CAGR_OOS": 0.262127, "MaxDD": -0.519521},
     2.0: {"CAGR_IS": 0.353755, "CAGR_OOS": 0.291102, "MaxDD": -0.616342},
 }
 ANCHOR_TOL = 0.0015  # +/-0.15pp
@@ -209,7 +217,7 @@ def main():
     print("\n--- STAGE 1: independent reproduction vs canon anchors (tol %.2fpp) ---"
           % (ANCHOR_TOL * 100))
     stage1_ok = True
-    for sc in (1.4, 2.0):
+    for sc in (1.4, 1.6, 2.0):
         aft = built[sc]["aft"]
         dd = built[sc]["pre"]["MaxDD_FULL"]
         exp = ANCHORS[sc]
