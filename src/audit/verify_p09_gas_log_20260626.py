@@ -1,5 +1,5 @@
 """
-src/audit/verify_p09_gas_log_20260619.py
+src/audit/verify_p09_gas_log_20260626.py
 ========================================
 P09Log (GAS live) vs Python independent recomputation -- 5-day divergence
 check (2026-06-15 .. 2026-06-19, the first parallel-run week).
@@ -7,7 +7,7 @@ check (2026-06-15 .. 2026-06-19, the first parallel-run week).
 Re-derives every field of each P09Log row from FIRST PRINCIPLES (frozen-
 spec formulas + raw spreadsheet inputs) and compares to GAS.
 
-Input: audit_results/p09_gas_log_snapshot_20260619.json captured from the
+Input: audit_results/p09_gas_log_snapshot_20260626.json captured from the
 production spreadsheet (5 P09Log rows + GC=F/TLT tails + same-day Dyn2x3x
 Log new_leverage/vix_z for the hand-off).
 
@@ -28,7 +28,7 @@ import os
 
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_DIR = os.path.dirname(os.path.dirname(_THIS_DIR))
-SNAP = os.path.join(_REPO_DIR, "audit_results", "p09_gas_log_snapshot_20260619.json")
+SNAP = os.path.join(_REPO_DIR, "audit_results", "p09_gas_log_snapshot_20260626.json")
 
 K_LO, K_MID, K_HI, VZ_THR = 0.1, 0.5, 0.8, 0.65
 W1_ENTER, W1_EXIT = 0.7, 0.3
@@ -89,9 +89,13 @@ def main():
     dyn = snap["dyn"]
     # GAS updates w_g only on run_count==1 (first run) and every 5th run.
     # Here run_count = day index+1 over this window -> updates on 1st and 5th day.
-    update_days = {rows[0]["date"]}
-    if len(rows) >= 5:
-        update_days.add(rows[4]["date"])
+    # GAS updates w_g on run_count==1 then every 5th (run 5,10,15,...).
+    # Over this contiguous window run_count = day-index+1.
+    update_days = set()
+    for k, rr in enumerate(rows):
+        rc = k + 1
+        if rc == 1 or rc % 5 == 0:
+            update_days.add(rr["date"])
 
     print("=" * 92)
     print("P09Log (GAS) vs Python recomputation  --  %d days  %s .. %s"
