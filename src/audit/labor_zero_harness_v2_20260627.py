@@ -161,17 +161,22 @@ def simulate_v2(rets, sleeves, start, *, single=None, run0, reserve0,
                 reserve_mode="cash", glide=None, mix=None,
                 init_bucket_years=0, draw_order="run_first",
                 topup_thr=20 * M, topup_amt=None, spend=SPEND, horizon=HORIZON,
-                regime_scale=None):
+                regime_scale=None, rebalance=None, rebalance_band=0.0):
     """Simulate one start. Strict spend every year. Returns labor_years etc.
 
     Order each year k (calendar yr = start+k):
-      1. TOP-UP: if run < topup_thr and reserve > 0 -> move min(reserve, amt) into
-         run (amt=None means ALL remaining reserve).
-      2. SPEND (strict 7.2M): drawn from bucket first (init_bucket cash), then per
-         draw_order from run/reserve. If total (run+reserve+bucket) < spend -> LABOR.
-      3. GROWTH: run sleeve gets the strategy return (mix/glide/single), optionally
-         scaled by regime_scale[k] around cash; reserve gets reserve_mode return;
-         bucket is cash (no growth).
+      1. TOP-UP / REBALANCE:
+         - if rebalance is None: one-way top-up (if run < topup_thr and reserve>0,
+           move min(reserve, amt) into run). This is the prior/round-1 mechanism.
+         - if rebalance is a float w_run in (0,1): TWO-WAY annual rebalance of the
+           (run+reserve) pool to target run fraction = rebalance. After a spike this
+           TRIMS run into reserve (harvest); after a drawdown it tops run up from
+           reserve. rebalance_band: only rebalance if |run_frac - target| > band
+           (0 = rebalance every year). Bucket is excluded from the rebalanced pool.
+      2. SPEND (strict): bucket first, then per draw_order from run/reserve.
+         If total (run+reserve+bucket) < spend -> LABOR year.
+      3. GROWTH: run gets strategy return (mix/glide/single), optionally regime-
+         scaled; reserve gets reserve_mode return; bucket is cash.
     """
     run = float(run0)
     reserve = float(reserve0)
@@ -179,15 +184,25 @@ def simulate_v2(rets, sleeves, start, *, single=None, run0, reserve0,
     sleeve_ret = sleeves[reserve_mode]
     labor_years = 0
     topups = 0
+    rebals = 0
     min_total = run + reserve + bucket
     for k in range(horizon):
         yr = start + k
-        # 1. top-up (reserve -> run)
-        if run < topup_thr and reserve > 1e-6:
-            move = reserve if topup_amt is None else min(topup_amt, reserve)
-            run += move
-            reserve -= move
-            topups += 1
+        # 1. top-up OR rebalance
+        if rebalance is not None:
+            pool = run + reserve
+            if pool > 1e-6:
+                cur = run / pool
+                if abs(cur - rebalance) > rebalance_band:
+                    run = pool * rebalance
+                    reserve = pool * (1.0 - rebalance)
+                    rebals += 1
+        else:
+            if run < topup_thr and reserve > 1e-6:
+                move = reserve if topup_amt is None else min(topup_amt, reserve)
+                run += move
+                reserve -= move
+                topups += 1
         # 2. strict spend
         total = run + reserve + bucket
         if total + 1e-6 < spend:
@@ -195,7 +210,6 @@ def simulate_v2(rets, sleeves, start, *, single=None, run0, reserve0,
             run = reserve = bucket = 0.0
         else:
             need = spend
-            # bucket first
             take = min(bucket, need); bucket -= take; need -= take
             if need > 1e-9:
                 r_this = _strat_year_return(rets, mix, glide, single, yr, k)
@@ -220,7 +234,7 @@ def simulate_v2(rets, sleeves, start, *, single=None, run0, reserve0,
         if total < min_total:
             min_total = total
     ruin = (run + reserve + bucket) <= 1e-6
-    return dict(labor_years=labor_years, topups=topups, ruin=int(ruin),
+    return dict(labor_years=labor_years, topups=topups, rebalances=rebals, ruin=int(ruin),
                 terminal=run + reserve + bucket, min_total=min_total)
 
 

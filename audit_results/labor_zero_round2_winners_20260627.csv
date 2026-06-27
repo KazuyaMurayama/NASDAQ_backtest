@@ -1,0 +1,6 @@
+﻿candidate,strategy,run_M,reserve_M,reserve_asset,topup_thr_M,labor_years_total,ruin,pool_floor_M,terminal_median_M,terminal_min_M,harness_labor,qc_match
+A_sc2.6_run15_res25_bond_thr15,sc2.6,15.0,25.0,bond,15.0,0,0,18.39,12662.0,1052.0,0,1
+B_sc2.6_run14_res26_bond_thr14,sc2.6,14.0,26.0,bond,14.0,0,0,18.12,13833.0,1122.0,0,1
+C_sc2.4_run15_res25_bond_thr15,sc2.4,15.0,25.0,bond,15.0,0,0,17.47,9463.0,861.0,0,1
+E_sc2.2_run15_res25_bond_thr15,sc2.2,15.0,25.0,bond,15.0,0,0,16.24,6740.0,211.0,0,1
+D_sc2.6_run18_res22_sofr_thr18,sc2.6,18.0,22.0,sofr,18.0,0,0,14.57,13985.0,366.0,0,1
