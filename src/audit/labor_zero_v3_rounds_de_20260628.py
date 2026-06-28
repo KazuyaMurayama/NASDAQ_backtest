@@ -334,21 +334,130 @@ def round_F(rets, bond):
     return df, best
 
 
+def sim_G(rets, reserve_series, start, horizon, *, strat, run0, reserve0, thr,
+          floor_yen, top_wr, hold_if_crash=True, data_end=DATA_END):
+    """ROUND G: Round F PLUS two levers the Workflow surfaced --
+      (1) hold-if-crash: skip the all-in reserve refill in a year whose run-strategy
+          return < 0 (don't dump powder one year before a crash);
+      (2) caller chooses run0/reserve0 (run-fraction), which the v2 geometry fixed at 0.35.
+    Guaranteed floor every year; top to 7.2M when FULL/total <= top_wr."""
+    run, res = float(run0), float(reserve0)
+    s = rets[strat]
+    n = min(horizon, data_end - start + 1)
+    fired = False
+    spends = []
+    floor_tot = run + res
+    labor = 0
+    short = 0
+    for k in range(n):
+        yr = start + k
+        r_this = float(s.loc[yr])
+        if (not fired) and run < thr and res > 1e-6 and ((not hold_if_crash) or r_this >= 0):
+            run += res
+            res = 0.0
+            fired = True
+        total = run + res
+        spend = floor_yen
+        if total > 1e-9 and FULL_SPEND / total <= top_wr:
+            spend = FULL_SPEND
+        if total + 1e-6 < spend:
+            labor += 1
+            spend = total
+        if spend < FULL_SPEND - 1e-6:
+            short += 1
+        if run >= spend:
+            run -= spend
+        else:
+            res -= (spend - run)
+            run = 0.0
+        spends.append(spend)
+        run *= (1.0 + r_this)
+        res *= (1.0 + float(reserve_series.loc[yr]))
+        if run + res < floor_tot:
+            floor_tot = run + res
+    spends = np.array(spends)
+    return dict(labor_years=labor, shortfall_years=short,
+                min_spend_M=round(float(spends.min()) / M, 2),
+                total_spend_M=round(float(spends.sum()) / M, 1),
+                terminal_M=round((run + res) / M, 1),
+                ruin=int((run + res) <= 1e-6), n_years=n)
+
+
+def round_G(rets, bond):
+    print("\n" + "=" * 95)
+    print("ROUND G: F + hold-if-crash refill + run-fraction (Workflow-surfaced levers)")
+    print("=" * 95)
+    print("  hold-if-crash = don't dump the reserve all-in in a year the run strategy is NEGATIVE")
+    print("  (v2 dumped 26M reserve in the weak-positive 2014, one year before the 2015 -38% crash).")
+    print("  Also sweep run-fraction (v2 fixed it at 0.35); higher run-fraction raises the safe floor.")
+    rows = []
+    for strat in ["sc2.6", "sc2.4", "sc2.2", "sc2.0"]:
+        for runfrac in [0.35, 0.45, 0.50, 0.60]:
+            run0 = runfrac * 40 * M
+            res0 = 40 * M - run0
+            thr = min(14 * M, run0)
+            for floor_M in [5.0, 5.5, 6.0, 6.37]:
+                for top_wr in [0.16, 0.18, 0.20]:
+                    labor = short = ruin = 0
+                    wmin = 1e18
+                    tots = []
+                    terms = []
+                    for sy in ALL_STARTS:
+                        r = sim_G(rets, bond, sy, 20, strat=strat, run0=run0, reserve0=res0,
+                                  thr=thr, floor_yen=floor_M * M, top_wr=top_wr)
+                        labor += r["labor_years"]
+                        short += r["shortfall_years"]
+                        wmin = min(wmin, r["min_spend_M"])
+                        ruin += r["ruin"]
+                        tots.append(r["total_spend_M"])
+                        terms.append(r["terminal_M"])
+                    rows.append(dict(strat=strat, runfrac=runfrac, floor_M=floor_M, top_wr=top_wr,
+                                     labor_total=labor, shortfall_years_total=short,
+                                     worst_min_spend_M=round(wmin, 2),
+                                     median_total_spend_M=round(float(np.median(tots)), 1),
+                                     median_terminal_M=round(float(np.median(terms)), 1), ruin=ruin))
+    df = pd.DataFrame(rows)
+    df.to_csv(os.path.join(AR_DIR, "labor_zero_v3_roundG_holdcrash_20260628.csv"),
+              index=False, encoding="utf-8-sig")
+    ok = df[(df.labor_total == 0) & (df.ruin == 0)].sort_values(
+        ["worst_min_spend_M", "median_total_spend_M"], ascending=[False, False])
+    print("\n  labor-zero & ruin-free configs, sorted by GUARANTEED FLOOR (worst single-year spend): %d" % len(ok))
+    print("  %-7s %-9s %-8s %-7s %-9s %-13s %-15s %-13s %s"
+          % ("strat", "runfrac", "floorM", "topWR", "labor", "shortYrs", "worstYrSpendM",
+             "medTotalM", "medTermM"))
+    for _, r in ok.head(12).iterrows():
+        print("  %-7s %-9.2f %-8.2f %-7.2f %-9d %-13d %-15.2f %-13.1f %.0f"
+              % (r["strat"], r["runfrac"], r["floor_M"], r["top_wr"], r["labor_total"],
+                 r["shortfall_years_total"], r["worst_min_spend_M"], r["median_total_spend_M"],
+                 r["median_terminal_M"]))
+    best = ok.iloc[0] if len(ok) else None
+    if best is not None:
+        print("\n  => BEST (highest guaranteed floor with labor=0/ruin=0):")
+        print("     %s runfrac %.2f, floor %.2fM + top to 7.2M when WR<=%.0f%%, hold-if-crash ON:"
+              % (best["strat"], best["runfrac"], best["floor_M"], best["top_wr"] * 100))
+        print("     worst single-year spend %.2fM (guaranteed), median lifetime %.1fM, median terminal %.0fM,"
+              % (best["worst_min_spend_M"], best["median_total_spend_M"], best["median_terminal_M"]))
+        print("     %d of 920 years below 7.2M, labor=0, ruin=0." % best["shortfall_years_total"])
+    return df, best
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     print("=" * 95)
-    print("LABOR-ZERO v3 -- ROUND D/E/F: wealth-scaled spending (labor cannot be forced)")
+    print("LABOR-ZERO v3 -- ROUND D/E/F/G: wealth-scaled spending (labor cannot be forced)")
     print("=" * 95)
     rets = v3.load_rets()
     bond = v3.load_mixed_reserve({"bond": 1.0})
     dfD = round_D(rets, bond)
     dfE = round_E(rets, bond)
     dfF, bestF = round_F(rets, bond)
+    dfG, bestG = round_G(rets, bond)
     block = {
         "script": "labor_zero_v3_rounds_de_20260628.py", "date": "2026-06-28",
         "roundD": dfD.to_dict("records"),
         "roundE_best": dfE.sort_values(["ruin", "shortfall_years_total"]).iloc[0].to_dict(),
         "roundF_best": (bestF.to_dict() if bestF is not None else None),
+        "roundG_best": (bestG.to_dict() if bestG is not None else None),
     }
     print("\n" + "=" * 95)
     print("RETURN_BLOCK")
