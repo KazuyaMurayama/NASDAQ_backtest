@@ -1,0 +1,5 @@
+﻿horizon,IS_labor,IS_starts_fail,IS_n,IS_minFloor_M,HOLDOUT_labor,HOLDOUT_starts_fail,HOLDOUT_n,HOLDOUT_minFloor_M
+5,0,0,31,22.25,1,1,15,0.0
+10,0,0,31,18.12,15,3,15,0.0
+15,0,0,31,18.12,24,3,15,0.0
+20,0,0,31,18.12,24,3,15,0.0
