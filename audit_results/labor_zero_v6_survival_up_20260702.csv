@@ -1,0 +1,25 @@
+﻿label,p_mean,p_min,p_max,term_real_med_M
+B0 sc2.6 bond 20:20 run_first noHOLD thr20,0.8785000000000001,0.8625,0.89,7309.4
+E1a 20:20 res_first noHOLD thr20,0.8671,0.851,0.88,11194.3
+E1b 20:20 res_first NO-refill (glide),0.8516,0.841,0.8615,10642.6
+E1c 14:26 res_first noHOLD thr14,0.8681000000000001,0.8525,0.8815,8433.3
+E1d 10:30 res_first noHOLD thr10,0.8475999999999999,0.826,0.86,6197.4
+E1e 24:16 res_first noHOLD thr24,0.8577999999999999,0.8405,0.871,12434.6
+E1f 20:20 res_first prevyear-hold thr20,0.8516999999999999,0.841,0.8615,10642.6
+E1g 24:16 run_first noHOLD thr24,0.8782,0.862,0.891,8060.8
+E1h 30:10 run_first noHOLD thr30,0.8658000000000001,0.8485,0.8755,10688.4
+E2 sc2.0 bond 20:20 run_first noHOLD thr20,0.844,0.831,0.8595,2118.2
+E2 sc2.2 bond 20:20 run_first noHOLD thr20,0.8688,0.8505,0.8835,3457.6
+E2 sc2.4 bond 20:20 run_first noHOLD thr20,0.8748000000000001,0.8565,0.886,4876.3
+E2 N4 bond 20:20 run_first noHOLD thr20,0.8218,0.8095,0.836,1553.0
+E2 X4 bond 20:20 run_first noHOLD thr20,0.8263999999999999,0.814,0.8405,1763.1
+E3 sc2.6 gold100 20:20 run_first noHOLD thr20,0.857,0.839,0.866,7354.1
+E3 sc2.6 bond50_gold50 20:20 run_first noHOLD thr20,0.8712,0.854,0.884,7348.7
+E3 sc2.6 bond70_gold20_cash10 20:20 run_first noHOLD thr20,0.8751,0.8585,0.8875,7285.1
+E3 sc2.6 cash100 20:20 run_first noHOLD thr20,0.8631,0.849,0.8725,6649.9
+E4 sc2.2 bond100 20:20 res_first noHOLD thr20,0.8493999999999999,0.8345,0.8595,5203.8
+E4 sc2.2 bond50_gold50 20:20 res_first noHOLD thr20,0.8423999999999999,0.827,0.8545,5283.1
+E4 sc2.6 bond100 20:20 res_first noHOLD thr20,0.8671,0.851,0.88,11194.3
+E4 sc2.6 bond50_gold50 20:20 res_first noHOLD thr20,0.8582000000000001,0.84,0.8685,11317.1
+E4 N4 bond100 20:20 res_first noHOLD thr20,0.8244,0.809,0.835,2575.8
+E4 N4 bond50_gold50 20:20 res_first noHOLD thr20,0.82,0.802,0.832,2645.0
